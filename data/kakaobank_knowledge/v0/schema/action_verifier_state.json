@@ -44,7 +44,7 @@
       "topic": "banking_knowledge_tasks",
       "source": "/Users/jd/Documents/workspace/tau3-bench/data/tau2/domains/banking_knowledge/tasks.json:1",
       "finding": "All 97 original banking_knowledge tasks declare required_documents and many use user-side tools.",
-      "kakaobank_decision": "KakaoBank v0 keeps required_documents metadata, but evaluates only assistant-side tools from a single user_prompt. User-side simulation tools are deferred to a future version."
+      "kakaobank_decision": "KakaoBank tasks should keep required_documents and can use user tools for customer-side applications or confirmations."
     }
   ],
   "evaluation_basis_allowed": [
@@ -56,7 +56,7 @@
   ],
   "state_model_principles": [
     "Use one canonical mutable table for each business object; keep product rules in the KB/fact DB.",
-    "For v0, model user intent through user_prompt and initial_state only; user-side action tools are out of scope.",
+    "Represent user-side behavior explicitly when original tau3 would model it as requestor=user actions.",
     "Keep money, dates, limits, and status flags as structured values so DB hash comparison is meaningful.",
     "Do not store derived policy decisions unless a tool action creates a durable decision record.",
     "Prefer env_assertions for predicate checks that should not require full DB equality."
@@ -673,6 +673,28 @@
       "notes": "Read current mutable state before advising or executing."
     },
     {
+      "name": "log_identity_verification",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "service_enrollments"
+      ],
+      "arguments": [
+        "customer_id",
+        "verification_method",
+        "result"
+      ],
+      "postconditions": [
+        "A durable verification event exists for the customer and task."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Mirrors original banking_knowledge log_verification-style state."
+    },
+    {
       "name": "open_or_enroll_product",
       "requestor": "assistant",
       "tool_type": "write",
@@ -706,6 +728,31 @@
         "ENV_ASSERTION"
       ],
       "notes": "Used when the bank-side action creates or enrolls a product."
+    },
+    {
+      "name": "customer_apply_for_product",
+      "requestor": "user",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "loan_applications",
+        "cards",
+        "prepaid_wallets",
+        "service_enrollments"
+      ],
+      "arguments": [
+        "customer_id",
+        "product_name",
+        "application_payload"
+      ],
+      "postconditions": [
+        "A user-side application or request record exists with selected product and payload."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Direct analogue of original banking_knowledge user tools such as apply_for_credit_card."
     },
     {
       "name": "close_account_or_service",
@@ -850,6 +897,29 @@
         "ENV_ASSERTION"
       ],
       "notes": "Separates deposit renewal/auto-close from loan maturity extension."
+    },
+    {
+      "name": "submit_required_document",
+      "requestor": "user",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "required_documents"
+      ],
+      "arguments": [
+        "customer_id",
+        "target_id",
+        "document_type",
+        "submitted_at"
+      ],
+      "postconditions": [
+        "Required document status is updated to submitted, accepted, rejected, late, or locked."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Useful for lease/mortgage/car-loan pre- and post-execution deadlines."
     },
     {
       "name": "create_loan_application",
@@ -1053,6 +1123,27 @@
         "ACTION"
       ],
       "notes": "Useful for lost-card compensation, abnormal transaction restrictions, and affiliate-service disputes."
+    },
+    {
+      "name": "request_human_transfer",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "service_enrollments"
+      ],
+      "arguments": [
+        "customer_id",
+        "reason"
+      ],
+      "postconditions": [
+        "A transfer request record is logged with a reason."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Kept for cases where policy requires specialized handling or unavailable operation escalation."
     }
   ],
   "verifier_assertions": [
@@ -1532,7 +1623,8 @@
       "primary_actions": [
         "open_or_enroll_product",
         "close_account_or_service",
-        "execute_deposit_or_box_transfer"
+        "execute_deposit_or_box_transfer",
+        "submit_required_document"
       ],
       "task_sources": [
         "eligible child opening through verified legal representative parent",
@@ -1554,7 +1646,8 @@
       ],
       "primary_actions": [
         "open_or_enroll_product",
-        "close_account_or_service"
+        "close_account_or_service",
+        "submit_required_document"
       ],
       "task_sources": [
         "minor limit account daily/monthly limits",
@@ -1627,6 +1720,7 @@
       ],
       "primary_actions": [
         "create_loan_application",
+        "submit_required_document",
         "update_loan_contract_state"
       ],
       "task_sources": [
@@ -1676,6 +1770,7 @@
       "primary_actions": [
         "create_loan_application",
         "process_refinance_request",
+        "submit_required_document",
         "update_loan_contract_state"
       ],
       "task_sources": [
@@ -1722,6 +1817,7 @@
       ],
       "primary_actions": [
         "create_loan_application",
+        "submit_required_document",
         "update_loan_contract_state"
       ],
       "task_sources": [
@@ -1835,6 +1931,6 @@
     "Every product in fact DB v0 must appear in product_state_mapping.",
     "Loan household and enterprise layers remain separated; no task should attach the raw loan_common layer directly.",
     "When a policy requires refusal, prefer an env assertion that the target state did not change plus communicate_info or NL assertion for the refusal explanation.",
-    "When user-side agency matters, encode the already-provided user request in user_prompt/initial_state for v0; add requestor=user actions only in a future user-simulation schema."
+    "When user-side agency matters, use requestor=user actions instead of pretending the assistant executed the customer operation."
   ]
 }
