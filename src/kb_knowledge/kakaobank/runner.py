@@ -2058,38 +2058,11 @@ def _action_from_tool_call(tool_call: dict[str, Any]) -> dict[str, Any]:
         arguments = raw_arguments
     if not isinstance(arguments, dict):
         raise ValueError(f"tool call arguments must be an object for {name}")
-    arguments = _normalize_tool_call_arguments(name, arguments)
     return {
         "requestor": "assistant",
         "name": name,
         "arguments": arguments,
     }
-
-
-def _normalize_tool_call_arguments(
-    tool_name: str,
-    arguments: dict[str, Any],
-) -> dict[str, Any]:
-    option_keys = set(TOOL_OPTION_PROPERTIES.get(tool_name, ())) | set(
-        TOOL_OPTION_ENUMS.get(tool_name, {})
-    )
-    if not option_keys:
-        return arguments
-
-    option_items = {
-        key: value for key, value in arguments.items() if key in option_keys
-    }
-    if not option_items:
-        return arguments
-
-    normalized = dict(arguments)
-    raw_options = normalized.get("options")
-    options = dict(raw_options) if isinstance(raw_options, dict) else {}
-    for key, value in option_items.items():
-        options.setdefault(key, value)
-        normalized.pop(key, None)
-    normalized["options"] = options
-    return normalized
 
 
 def _find_table_for_record_id(db: KakaoBankDB, record_id: str) -> str:
