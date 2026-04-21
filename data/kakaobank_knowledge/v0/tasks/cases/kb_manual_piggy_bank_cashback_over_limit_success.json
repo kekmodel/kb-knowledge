@@ -68,7 +68,17 @@
           }
         },
         "transactions": {
-          "data": {}
+          "data": {
+            "cashback_brand_coupon_227": {
+              "transaction_id": "cashback_brand_coupon_227",
+              "record_type": "BRAND_COUPON_CASHBACK_SOURCE",
+              "purchase_id": "coupon_purchase_227",
+              "source_name": "브랜드쿠폰 캐시백",
+              "amount": 2000,
+              "currency": "KRW",
+              "status": "AVAILABLE"
+            }
+          }
         }
       },
       "user_data": null
