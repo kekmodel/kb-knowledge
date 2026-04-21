@@ -37,6 +37,9 @@ from kb_knowledge.kakaobank.tools import (
 DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
 DEFAULT_OPENAI_COMPATIBLE_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_OPENAI_COMPATIBLE_ENDPOINT = "https://api.openai.com/v1/chat/completions"
+DEFAULT_HTTP_MAX_RETRIES = 6
+DEFAULT_HTTP_RETRY_BASE_SECONDS = 2.0
+RETRYABLE_HTTP_STATUS_CODES = {429, 500, 502, 503, 504}
 DONE_TOOL_NAME = "done"
 STOP_TOKEN = "###STOP###"
 RUNNER_AGENT_INSTRUCTION = """
@@ -1202,10 +1205,14 @@ class OpenAICompatibleChatClient:
         endpoint: str = DEFAULT_OPENAI_COMPATIBLE_ENDPOINT,
         base_url: str | None = None,
         timeout_seconds: int = 90,
+        max_retries: int = DEFAULT_HTTP_MAX_RETRIES,
+        retry_base_seconds: float = DEFAULT_HTTP_RETRY_BASE_SECONDS,
     ) -> None:
         self.api_key = api_key or os.environ.get(api_key_env)
         self.chat_completions_url = _chat_completions_url(base_url or endpoint)
         self.timeout_seconds = timeout_seconds
+        self.max_retries = max_retries
+        self.retry_base_seconds = retry_base_seconds
 
     def create(
         self,
@@ -1218,20 +1225,33 @@ class OpenAICompatibleChatClient:
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
-        response = requests.post(
-            self.chat_completions_url,
-            headers=headers,
-            json={
-                "model": model,
-                "messages": messages,
-                "tools": tools,
-                "tool_choice": "auto",
-                "temperature": temperature,
-            },
-            timeout=self.timeout_seconds,
-        )
-        response.raise_for_status()
-        return response.json()
+        payload = {
+            "model": model,
+            "messages": messages,
+            "tools": tools,
+            "tool_choice": "auto",
+            "temperature": temperature,
+        }
+        for attempt in range(self.max_retries + 1):
+            response = requests.post(
+                self.chat_completions_url,
+                headers=headers,
+                json=payload,
+                timeout=self.timeout_seconds,
+            )
+            if response.status_code not in RETRYABLE_HTTP_STATUS_CODES:
+                response.raise_for_status()
+                return response.json()
+            if attempt >= self.max_retries:
+                response.raise_for_status()
+            time.sleep(
+                _http_retry_delay_seconds(
+                    response,
+                    attempt=attempt,
+                    retry_base_seconds=self.retry_base_seconds,
+                )
+            )
+        raise RuntimeError("unreachable HTTP retry state")
 
 
 OpenAIChatClient = OpenAICompatibleChatClient
@@ -1247,6 +1267,7 @@ def run_task_with_openai_compatible(
     retrieval_config: str = DEFAULT_RETRIEVAL_CONFIG,
     max_tool_steps: int = 12,
     timeout_seconds: int = 90,
+    max_http_retries: int = DEFAULT_HTTP_MAX_RETRIES,
 ) -> AssistantRunResult:
     """Run one task through an OpenAI-compatible chat server and evaluate DB."""
 
@@ -1257,6 +1278,7 @@ def run_task_with_openai_compatible(
             base_url=base_url,
             api_key_env=api_key_env,
             timeout_seconds=timeout_seconds,
+            max_retries=max_http_retries,
         ),
         model=model,
         retrieval_config=retrieval_config,
@@ -1738,7 +1760,7 @@ def _openai_tool_definition(action_schema: dict[str, Any]) -> dict[str, Any]:
                 "type": "object",
                 "properties": properties,
                 "required": required,
-                "additionalProperties": True,
+                "additionalProperties": False,
             },
         },
     }
@@ -1779,7 +1801,7 @@ def _argument_json_schema(
         schema = {
             "type": "object",
             "description": description,
-            "additionalProperties": True,
+            "additionalProperties": False,
         }
         if argument_name == "options":
             option_properties = _option_json_schema_properties(tool_name)
@@ -2027,3 +2049,30 @@ def _chat_completions_url(base_url: str) -> str:
     if stripped.endswith("/chat/completions"):
         return stripped
     return f"{stripped}/chat/completions"
+
+
+def _http_retry_delay_seconds(
+    response: requests.Response,
+    *,
+    attempt: int,
+    retry_base_seconds: float,
+) -> float:
+    retry_after = response.headers.get("retry-after")
+    if retry_after:
+        try:
+            return max(0.0, min(float(retry_after), 60.0))
+        except ValueError:
+            pass
+
+    retry_match = re.search(
+        r"try again in ([0-9.]+)s",
+        response.text or "",
+        flags=re.IGNORECASE,
+    )
+    if retry_match:
+        try:
+            return max(0.0, min(float(retry_match.group(1)), 60.0))
+        except ValueError:
+            pass
+
+    return min(retry_base_seconds * (2**attempt), 60.0)

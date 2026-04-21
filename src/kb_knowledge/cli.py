@@ -4,6 +4,7 @@ import argparse
 import dataclasses
 import json
 import os
+import time
 from pathlib import Path
 
 from kb_knowledge.kakaobank.replay import (
@@ -17,6 +18,7 @@ from kb_knowledge.kakaobank.replay import (
 )
 from kb_knowledge.kakaobank.runner import (
     DEFAULT_OPENAI_COMPATIBLE_ENDPOINT,
+    DEFAULT_HTTP_MAX_RETRIES,
     DEFAULT_OPENAI_MODEL,
     run_task_with_openai_compatible,
 )
@@ -132,6 +134,12 @@ def build_parser() -> argparse.ArgumentParser:
             "task while the batch is still running"
         ),
     )
+    run_tasks.add_argument(
+        "--task-delay-seconds",
+        type=float,
+        default=0.0,
+        help="Optional sleep between completed tasks to reduce endpoint rate limits",
+    )
 
     return parser
 
@@ -175,6 +183,12 @@ def _add_runner_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=12,
         help="Maximum assistant tool-call rounds before evaluation",
+    )
+    parser.add_argument(
+        "--max-http-retries",
+        type=int,
+        default=DEFAULT_HTTP_MAX_RETRIES,
+        help="Maximum retry attempts for retryable endpoint HTTP errors",
     )
 
 
@@ -318,6 +332,7 @@ def _run_one_task(args: argparse.Namespace) -> None:
             retrieval_config=args.retrieval_config,
             max_tool_steps=args.max_tool_steps,
             timeout_seconds=args.timeout_seconds,
+            max_http_retries=args.max_http_retries,
         )
     except Exception as exc:  # noqa: BLE001 - CLI should surface endpoint failures.
         raise SystemExit(
@@ -379,7 +394,7 @@ def _run_task_batch(args: argparse.Namespace) -> None:
     results: list[dict[str, object]] = []
     passed = 0
     try:
-        for task_path in task_paths:
+        for task_index, task_path in enumerate(task_paths):
             task = json.loads(task_path.read_text(encoding="utf-8"))
             task_id = str(task.get("id", task_path.stem))
             try:
@@ -391,6 +406,7 @@ def _run_task_batch(args: argparse.Namespace) -> None:
                     retrieval_config=args.retrieval_config,
                     max_tool_steps=args.max_tool_steps,
                     timeout_seconds=args.timeout_seconds,
+                    max_http_retries=args.max_http_retries,
                 )
                 result_data = dataclasses.asdict(result)
                 result_passed = result.passed
@@ -425,6 +441,11 @@ def _run_task_batch(args: argparse.Namespace) -> None:
                 f"actions: {action_count} stopped_reason: {stopped_reason}",
                 flush=True,
             )
+            if (
+                args.task_delay_seconds > 0
+                and task_index < len(task_paths) - 1
+            ):
+                time.sleep(args.task_delay_seconds)
     finally:
         if jsonl_handle is not None:
             jsonl_handle.close()
