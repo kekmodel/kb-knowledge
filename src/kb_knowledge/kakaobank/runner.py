@@ -48,7 +48,8 @@ You will be provided with a task request from the user.
 Plan the task, search policy documents when needed, inspect runtime DB state, call the appropriate tools, and then stop.
 
 Stop when you consider that you have solved the task.
-To do so, send a message containing a single tool call to the `{done_tool_name}` tool. Do not include any other tool calls in this last message.
+Prefer sending a message containing a single tool call to the `{done_tool_name}` tool. Do not include any other tool calls in this last message.
+If your endpoint cannot issue the final stop tool call, end the final assistant text with `{stop_token}` instead.
 
 Always follow the policy. Always generate valid JSON tool arguments only.
 """.strip()
@@ -87,16 +88,16 @@ If the policy and runtime state contain enough information to complete an allowe
 The user is treated as already authenticated for this runner mode. Do not perform identity verification unless a provided tool and task explicitly require it.
 Only use tools exposed in this episode. Do not refer to unavailable user-side, discovery, unlock, or human-transfer tools as callable tools.
 
-A task is complete only after all required read/write tool calls are done and you call `done` as the only tool call in the final assistant message.
+A task is complete only after all required read/write tool calls are done and you either call `done` as the only tool call in the final assistant message or end the final assistant text with `###STOP###`.
 """.strip()
 KAKAOBANK_V0_EVALUATION_POLICY = """
 ## DB-Delta Evaluation Mode
 
 This benchmark evaluates the final DB state after the complete assistant tool-call trajectory.
-Intermediate DB hashes are not success signals. Continue until the requested operation is fully complete, then call `done`.
+Intermediate DB hashes are not success signals. Continue until the requested operation is fully complete, then use a valid stop signal.
 
 Every exported v0 task requires at least one assistant-side state-changing operation.
-Plain assistant text is not a completion signal in this runner.
+Plain assistant text without `###STOP###` is not a completion signal in this runner.
 """.strip()
 KAKAOBANK_DETERMINISTIC_TOOLING_POLICY = """
 ## Deterministic Tool Argument Policy
@@ -1387,6 +1388,11 @@ def run_task_with_chat_client(
             break
 
         if not tool_calls:
+            text_stop_trace = _final_text_stop_trace(final_text)
+            if text_stop_trace["valid_final_text_stop"]:
+                stopped_reason = "agent_stop"
+                round_trace["stop_signal"] = text_stop_trace
+                break
             stopped_reason = "final_answer"
             break
 
@@ -1578,6 +1584,17 @@ def execute_runner_tool(
             "mutates_state": replayed.mutates_state,
             "db_hash": db.get_hash(),
         }
+    except KeyError as exc:
+        missing = exc.args[0] if exc.args else "<unknown>"
+        return {
+            "error": (
+                "MissingToolArgumentError: missing required field "
+                f"{missing!r} for {name}; include the exact runtime value in the "
+                "tool arguments. For operation-specific fields, put it inside "
+                "`options`."
+            ),
+            "db_hash": db.get_hash(),
+        }
     except Exception as exc:  # noqa: BLE001 - tool errors are returned to the model.
         return {
             "error": f"{type(exc).__name__}: {exc}",
@@ -1592,7 +1609,10 @@ def build_runner_system_prompt(
 ) -> str:
     """Build the tau3-style system prompt used by the v0 runner."""
 
-    agent_instruction = RUNNER_AGENT_INSTRUCTION.format(done_tool_name=DONE_TOOL_NAME)
+    agent_instruction = RUNNER_AGENT_INSTRUCTION.format(
+        done_tool_name=DONE_TOOL_NAME,
+        stop_token=STOP_TOKEN,
+    )
     return RUNNER_SYSTEM_PROMPT_TEMPLATE.format(
         agent_instruction=agent_instruction,
         domain_policy=build_runner_domain_policy(retrieval_config=retrieval_config),
@@ -1988,6 +2008,14 @@ def _done_tool_call_trace(tool_calls: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _final_text_stop_trace(final_text: str) -> dict[str, Any]:
+    return {
+        "token": STOP_TOKEN,
+        "text": final_text,
+        "valid_final_text_stop": final_text.strip().endswith(STOP_TOKEN),
+    }
+
+
 def _extract_assistant_message(response: dict[str, Any]) -> dict[str, Any]:
     choices = response.get("choices") or []
     if not choices:
@@ -2030,11 +2058,38 @@ def _action_from_tool_call(tool_call: dict[str, Any]) -> dict[str, Any]:
         arguments = raw_arguments
     if not isinstance(arguments, dict):
         raise ValueError(f"tool call arguments must be an object for {name}")
+    arguments = _normalize_tool_call_arguments(name, arguments)
     return {
         "requestor": "assistant",
         "name": name,
         "arguments": arguments,
     }
+
+
+def _normalize_tool_call_arguments(
+    tool_name: str,
+    arguments: dict[str, Any],
+) -> dict[str, Any]:
+    option_keys = set(TOOL_OPTION_PROPERTIES.get(tool_name, ())) | set(
+        TOOL_OPTION_ENUMS.get(tool_name, {})
+    )
+    if not option_keys:
+        return arguments
+
+    option_items = {
+        key: value for key, value in arguments.items() if key in option_keys
+    }
+    if not option_items:
+        return arguments
+
+    normalized = dict(arguments)
+    raw_options = normalized.get("options")
+    options = dict(raw_options) if isinstance(raw_options, dict) else {}
+    for key, value in option_items.items():
+        options.setdefault(key, value)
+        normalized.pop(key, None)
+    normalized["options"] = options
+    return normalized
 
 
 def _find_table_for_record_id(db: KakaoBankDB, record_id: str) -> str:
