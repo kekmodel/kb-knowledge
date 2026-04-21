@@ -99,14 +99,15 @@
             }
           }
         },
-        "transactions": {
+        "transfer_references": {
           "data": {
             "external_payee_restaurant_019": {
-              "transaction_id": "external_payee_restaurant_019",
-              "record_type": "EXTERNAL_PAYEE_REFERENCE",
+              "reference_id": "external_payee_restaurant_019",
+              "reference_type": "EXTERNAL_PAYEE",
               "payee_name": "식당 예약금 수취처",
               "description": "모임통장 식당 예약금 외부 수취처",
-              "currency": "KRW"
+              "currency": "KRW",
+              "status": "ACTIVE"
             }
           }
         }

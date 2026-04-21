@@ -171,8 +171,8 @@ TOOL_DESCRIPTION_OVERRIDES = {
     "get_account_or_contract": (
         "Read one runtime DB record by table and record_id. Use this to inspect the "
         "current state of accounts, deposits, boxes, loans, cards, wallets, services, "
-        "remittance cases, documents, or transactions before deciding a write action. "
-        "Read-only."
+        "remittance cases, documents, transfer references, or transactions before "
+        "deciding a write action. Read-only."
     ),
     "open_or_enroll_product": (
         "Create, enroll, convert, restrict, or reactivate a KakaoBank product or "
@@ -325,7 +325,7 @@ ARGUMENT_DESCRIPTION_OVERRIDES = {
     ("get_account_or_contract", "record_id"): (
         "Exact runtime record ID from the system context or a previous tool result, "
         "for example an account_id, deposit_id, box_id, loan_id, service_id, card_id, "
-        "remittance_id, document_id, transaction_id, or case ID."
+        "remittance_id, document_id, transfer reference ID, transaction_id, or case ID."
     ),
     ("get_account_or_contract", "table"): (
         "Name of the DB table that contains record_id. Prefer the table shown in the "

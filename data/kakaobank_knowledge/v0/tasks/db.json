@@ -96,9 +96,13 @@
     "data": {},
     "notes": "purpose: Credit-info, business-credit-info, document box, child service, meeting account, VAT box, and linked services.\nkey: service_id\nrequired_fields: service_id, customer_id, service_name, status, linked_account_id, started_at, ended_at, restriction_flags\nverifier_use: service suspension/termination notice; linked-service closure preconditions; affiliate responsibility boundaries"
   },
+  "transfer_references": {
+    "data": {},
+    "notes": "purpose: Balance-less external payees and synthetic transfer sources or targets used by transfer tools.\nkey: reference_id\nrequired_fields: reference_id, reference_type, currency, status\nverifier_use: external payee target visibility; coupon or cashback source visibility; transfer source and target precondition checks without treating references as ledger rows"
+  },
   "transactions": {
     "data": {},
-    "notes": "purpose: Account, card, mini, savings-box, remittance, fee, and auto-collect transactions.\nkey: transaction_id\nrequired_fields: transaction_id, customer_id, source_id, target_id, amount, currency, transaction_type, status, posted_at\nverifier_use: balance changes; collect/include/exclude transaction rules; fee assessment; lost-card compensation windows"
+    "notes": "purpose: Posted or pending account, card, mini, savings-box, remittance, fee, and auto-collect transaction events.\nkey: transaction_id\nrequired_fields: transaction_id, status, type_or_transaction_type\nverifier_use: balance changes; collect/include/exclude transaction rules; fee assessment; lost-card compensation windows"
   },
   "vehicle_purchase_cases": {
     "data": {},

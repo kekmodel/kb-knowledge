@@ -555,20 +555,31 @@
       ]
     },
     {
+      "name": "transfer_references",
+      "key": "reference_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Balance-less external payees and synthetic transfer sources or targets used by transfer tools.",
+      "required_fields": [
+        "reference_id",
+        "reference_type",
+        "currency",
+        "status"
+      ],
+      "verifier_use": [
+        "external payee target visibility",
+        "coupon or cashback source visibility",
+        "transfer source and target precondition checks without treating references as ledger rows"
+      ]
+    },
+    {
       "name": "transactions",
       "key": "transaction_id",
       "owner": "shared_transactional_db",
-      "purpose": "Account, card, mini, savings-box, remittance, fee, and auto-collect transactions.",
+      "purpose": "Posted or pending account, card, mini, savings-box, remittance, fee, and auto-collect transaction events.",
       "required_fields": [
         "transaction_id",
-        "customer_id",
-        "source_id",
-        "target_id",
-        "amount",
-        "currency",
-        "transaction_type",
         "status",
-        "posted_at"
+        "type_or_transaction_type"
       ],
       "verifier_use": [
         "balance changes",
@@ -826,6 +837,7 @@
         "savings_boxes",
         "pockets",
         "prepaid_wallets",
+        "transfer_references",
         "transactions"
       ],
       "arguments": [

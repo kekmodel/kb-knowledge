@@ -9,17 +9,15 @@ The current `transactions` table is doing too many jobs:
 - posted ledger entries for account, wallet, remittance, card, and box movements
 - card-purchase records used as dispute targets
 - pending mini or remittance transfer cases
-- external payee references
-- synthetic source references such as brand-coupon cashback sources
 
 This works for final DB replay, but it weakens the meaning of DB-hash evaluation:
-some records are real money movements, while others are balance-less references
-that happen to be stored in the same table.
+posted money movements and pending transaction events are still mixed, but
+balance-less transfer references are no longer stored as transaction rows.
 
-## Current Schema Mismatch
+## Schema Mismatch Found
 
-`data/kakaobank_knowledge/v0/schema/action_verifier_state.json` describes
-`transactions` as a ledger-like table with required fields:
+Before remediation, `data/kakaobank_knowledge/v0/schema/action_verifier_state.json`
+described `transactions` as a ledger-like table with required fields:
 
 - `transaction_id`
 - `customer_id`
@@ -31,17 +29,19 @@ that happen to be stored in the same table.
 - `status`
 - `posted_at`
 
-Actual task fixtures are looser and use multiple incompatible shapes:
+Actual task fixtures are looser and use multiple event shapes:
 
 - `type` vs `transaction_type`
 - `amount` vs `amount_krw`
 - `posted_at` vs `occurred_at`, `created_at`, `sent_at`, `received_at`
 - records without `customer_id`, `source_id`, `target_id`, or `posted_at`
-- non-ledger `record_type` values such as `EXTERNAL_PAYEE_REFERENCE` and
-  `BRAND_COUPON_CASHBACK_SOURCE`
 
 The Pydantic DB model intentionally stores table rows as `dict[str, Any]`, so
 this mismatch is not rejected.
+
+The v0 schema now records this explicitly by describing `transactions` as posted
+or pending transaction events, with minimal common fields
+`transaction_id`, `status`, and `type_or_transaction_type`.
 
 ## Current Replay Behavior
 
@@ -51,8 +51,8 @@ ledger entry for every balance movement.
 
 `transactions` records are sometimes updated as source records, for example
 mini transfer cancellation or pending refund cases. Remittance replay creates
-some transaction rows through `_upsert_transaction`, but that helper also uses
-a narrower shape than the schema notes.
+some transaction rows through `_upsert_transaction`, but that helper uses a
+narrow remittance/account event shape rather than a full normalized ledger row.
 
 This means DB hash currently verifies the final balances and selected record
 status updates, but it does not consistently verify that every money movement
@@ -60,8 +60,8 @@ left a normalized transaction ledger trail.
 
 ## Concrete Problem Found
 
-`kb_manual_group_account_extra_pocket_auto_covers_withdrawal` stored
-`external_payee_restaurant_019` in `transactions` as:
+Before remediation, `kb_manual_group_account_extra_pocket_auto_covers_withdrawal`
+stored `external_payee_restaurant_019` in `transactions` as:
 
 ```json
 {
@@ -79,21 +79,26 @@ balance-less. Before the balance precondition fix, withdrawing from the basic
 pocket before auto-moving funds could temporarily go negative and then return to
 the same final balance, so DB hash did not catch the wrong order.
 
-The immediate bug was fixed by requiring balance-backed debits to have enough
-available balance. The broader design issue remains: external payees and source
-references should not be indistinguishable from actual transaction ledger rows.
+The immediate order bug was fixed by requiring balance-backed debits to have
+enough available balance.
+
+The broader table-design issue was also narrowed in v0: balance-less external
+payees and synthetic funding sources now live in `transfer_references`, not in
+`transactions`.
 
 ## Recommended V0 Direction
 
 For the hackathon v0 scope, avoid a broad schema migration unless it is needed
 for a failing evaluation. Instead:
 
-1. Keep the existing table set for compatibility.
-2. Enforce money-movement preconditions in replay:
+1. Keep the existing product/task table set compatible with exported v0 tasks.
+2. Keep `transfer_references` as the balance-less source/target table for
+   external payees and synthetic transfer sources.
+3. Enforce money-movement preconditions in replay:
    - no negative debit from balance-backed records
    - no lost-card compensation dispute before the lost-card report is durable
-3. Treat `transactions` rows with `record_type` as references, not ledger rows.
-4. Do not use action-list order matching as the primary fix for order-sensitive
+4. Treat `transactions` as transaction events, not generic references.
+5. Do not use action-list order matching as the primary fix for order-sensitive
    money flows.
 
 This preserves the final DB-hash philosophy while making invalid write order
@@ -103,19 +108,18 @@ produce a failed replay or different final DB state.
 
 For a cleaner design, split the current responsibilities:
 
-- `transactions`: only durable ledger/event rows for actual financial or card
-  events.
-- `external_payees` or `counterparties`: payee references that can be transfer
-  targets but do not have balances.
+- `transactions`: only durable ledger/event rows for actual financial, card, or
+  transaction-workflow events.
+- `transfer_references`: keep or split into `external_payees` and
+  `transaction_sources` if the row shapes diverge further.
 - `pending_transfers` or product-specific case tables: mini transfers,
   remittance pending cases, cancellation-return records, and other workflow
   objects that may later produce ledger entries.
-- `transaction_sources` or explicit source fields: synthetic funding sources
-  such as coupon cashback sources, if they need to remain DB-visible.
 
-If `transactions` remains a union table, every row should at least include a
-stable discriminator such as `record_type`, and replay helpers should branch on
-that discriminator instead of inferring behavior from loose field presence.
+If `transactions` remains a union table, every row should include a stable
+discriminator such as `type` or `transaction_type`, and replay helpers should
+branch on that discriminator instead of inferring behavior from loose field
+presence.
 
 ## Open Design Question
 

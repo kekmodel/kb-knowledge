@@ -69,7 +69,7 @@ ASSISTANT_READ_TOOL_DEFINITIONS: tuple[KakaoBankToolDefinition, ...] = (
         tool_type="read",
         mutates_state=False,
         parameters=("record_id", "table"),
-        description="Read one account, contract, box, loan, card, or wallet record.",
+        description="Read one runtime DB record by table and record_id.",
     ),
 )
 
@@ -150,7 +150,7 @@ class KakaoBankReadTools:
         record_id: str,
         table: str,
     ) -> dict[str, Any]:
-        """Return one account, contract, box, loan, card, or wallet record."""
+        """Return one runtime DB record by table and record_id."""
 
         record = _get_record_by_id_or_field(
             self.db,

@@ -78,6 +78,7 @@ TABLE_NAMES: tuple[str, ...] = (
     "remittance_profiles",
     "remittance_cases",
     "service_enrollments",
+    "transfer_references",
     "transactions",
     "disputes",
 )
@@ -133,6 +134,7 @@ class KakaoBankDB(BaseModelNoExtra):
     remittance_profiles: DatabaseTable = Field(default_factory=DatabaseTable)
     remittance_cases: DatabaseTable = Field(default_factory=DatabaseTable)
     service_enrollments: DatabaseTable = Field(default_factory=DatabaseTable)
+    transfer_references: DatabaseTable = Field(default_factory=DatabaseTable)
     transactions: DatabaseTable = Field(default_factory=DatabaseTable)
     disputes: DatabaseTable = Field(default_factory=DatabaseTable)
 
