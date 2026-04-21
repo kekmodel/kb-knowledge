@@ -51,7 +51,7 @@
               "customer_id": "cust_097",
               "source_wallet_id": "mini_wallet_097",
               "target_phone_hash": "receiver_phone_hash_097",
-              "type": "MINI_SIMPLE_TRANSFER",
+              "transaction_type": "MINI_SIMPLE_TRANSFER",
               "status": "PENDING_RECEIVER_ACCEPTANCE",
               "amount_krw": 40000,
               "sent_at": "2026-04-19T10:00:00+09:00",

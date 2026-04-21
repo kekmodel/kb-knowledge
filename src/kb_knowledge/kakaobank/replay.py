@@ -1853,7 +1853,7 @@ def _upsert_transaction(
 
     transaction: dict[str, Any] = {
         "transaction_id": transaction_id,
-        "type": transaction_type,
+        "transaction_type": transaction_type,
         "status": "POSTED",
         "currency": currency,
     }

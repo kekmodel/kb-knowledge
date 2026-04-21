@@ -41,7 +41,7 @@ this mismatch is not rejected.
 
 The v0 schema now records this explicitly by describing `transactions` as posted
 or pending transaction events, with minimal common fields
-`transaction_id`, `status`, and `type_or_transaction_type`.
+`transaction_id`, `status`, and `transaction_type`.
 
 ## Current Replay Behavior
 

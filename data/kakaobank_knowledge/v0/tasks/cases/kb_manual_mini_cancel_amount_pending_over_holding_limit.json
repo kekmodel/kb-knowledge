@@ -50,7 +50,7 @@
               "transaction_id": "mini_cancel_return_254",
               "customer_id": "cust_254",
               "target_wallet_id": "mini_wallet_254",
-              "type": "MINI_WITHDRAWAL_CANCEL_RETURN",
+              "transaction_type": "MINI_WITHDRAWAL_CANCEL_RETURN",
               "status": "CANCEL_RETURN_READY",
               "amount_krw": 12000,
               "cancel_confirmed_at": "2026-04-20T12:10:00+09:00",

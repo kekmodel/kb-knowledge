@@ -91,7 +91,7 @@
               "transaction_id": "txn_outbound_initial_172",
               "account_id": "acct_outbound_return_172",
               "amount_krw": -4204900,
-              "type": "OUTBOUND_REMITTANCE_DEBIT",
+              "transaction_type": "OUTBOUND_REMITTANCE_DEBIT",
               "status": "POSTED",
               "created_at": "2026-04-17T14:30:00+09:00"
             }

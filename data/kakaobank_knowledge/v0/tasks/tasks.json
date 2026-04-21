@@ -11645,7 +11645,7 @@
                 "transaction_id": "mini_cancel_return_254",
                 "customer_id": "cust_254",
                 "target_wallet_id": "mini_wallet_254",
-                "type": "MINI_WITHDRAWAL_CANCEL_RETURN",
+                "transaction_type": "MINI_WITHDRAWAL_CANCEL_RETURN",
                 "status": "CANCEL_RETURN_READY",
                 "amount_krw": 12000,
                 "cancel_confirmed_at": "2026-04-20T12:10:00+09:00",
@@ -12011,7 +12011,7 @@
                 "customer_id": "cust_097",
                 "source_wallet_id": "mini_wallet_097",
                 "target_phone_hash": "receiver_phone_hash_097",
-                "type": "MINI_SIMPLE_TRANSFER",
+                "transaction_type": "MINI_SIMPLE_TRANSFER",
                 "status": "PENDING_RECEIVER_ACCEPTANCE",
                 "amount_krw": 40000,
                 "sent_at": "2026-04-19T10:00:00+09:00",
@@ -12640,7 +12640,7 @@
                 "customer_id": "cust_086",
                 "card_id": "mini_card_086",
                 "wallet_id": "mini_wallet_086",
-                "type": "CARD_PURCHASE",
+                "transaction_type": "CARD_PURCHASE",
                 "status": "POSTED",
                 "amount_krw": 87000,
                 "occurred_at": "2026-03-25T18:42:00+09:00",
@@ -12834,7 +12834,7 @@
                 "customer_id": "cust_087",
                 "card_id": "mini_card_087",
                 "wallet_id": "mini_wallet_087",
-                "type": "CARD_PURCHASE",
+                "transaction_type": "CARD_PURCHASE",
                 "status": "POSTED",
                 "amount_krw": 62000,
                 "occurred_at": "2026-04-18T12:22:00+09:00",
@@ -17107,7 +17107,7 @@
                 "transaction_id": "txn_outbound_initial_171",
                 "account_id": "acct_outbound_fix_171",
                 "amount_krw": -2104900,
-                "type": "OUTBOUND_REMITTANCE_DEBIT",
+                "transaction_type": "OUTBOUND_REMITTANCE_DEBIT",
                 "status": "POSTED",
                 "created_at": "2026-04-16T10:00:00+09:00"
               }
@@ -17859,7 +17859,7 @@
                 "transaction_id": "txn_outbound_initial_172",
                 "account_id": "acct_outbound_return_172",
                 "amount_krw": -4204900,
-                "type": "OUTBOUND_REMITTANCE_DEBIT",
+                "transaction_type": "OUTBOUND_REMITTANCE_DEBIT",
                 "status": "POSTED",
                 "created_at": "2026-04-17T14:30:00+09:00"
               }

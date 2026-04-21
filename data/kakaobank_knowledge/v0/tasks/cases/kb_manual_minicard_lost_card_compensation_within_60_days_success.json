@@ -64,7 +64,7 @@
               "customer_id": "cust_086",
               "card_id": "mini_card_086",
               "wallet_id": "mini_wallet_086",
-              "type": "CARD_PURCHASE",
+              "transaction_type": "CARD_PURCHASE",
               "status": "POSTED",
               "amount_krw": 87000,
               "occurred_at": "2026-03-25T18:42:00+09:00",

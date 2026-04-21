@@ -579,7 +579,7 @@
       "required_fields": [
         "transaction_id",
         "status",
-        "type_or_transaction_type"
+        "transaction_type"
       ],
       "verifier_use": [
         "balance changes",
