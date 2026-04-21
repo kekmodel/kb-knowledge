@@ -1277,6 +1277,16 @@ def _replay_file_dispute_or_objection(db: KakaoBankDB, action: dict[str, Any]) -
     reason = str(arguments["reason"])
     dispute_id = _dispute_id(arguments)
 
+    if reason == "LOST_CARD_COMPENSATION_ELIGIBLE_WITHIN_60_DAYS":
+        card_id = options.get("card_id")
+        if not card_id:
+            raise ReplayError("lost-card compensation dispute requires card_id")
+        _, card = _find_record_by_id(db, str(card_id))
+        if card.get("status") != "LOST_REPORTED" or not card.get("lost_reported_at"):
+            raise ReplayError(
+                "lost-card compensation dispute requires a recorded lost-card report first"
+            )
+
     dispute = {
         "dispute_id": dispute_id,
         "customer_id": arguments["customer_id"],
@@ -2235,7 +2245,14 @@ def _debit_record_if_balance_backed(
     balance_field = _balance_field(record)
     if balance_field is None:
         return
-    record[balance_field] = _numeric_value(record.get(balance_field)) - amount
+    if amount < 0:
+        raise ReplayError(f"cannot debit negative amount: {amount!r}")
+    balance = _numeric_value(record.get(balance_field))
+    if balance < amount:
+        raise ReplayError(
+            f"insufficient balance for debit: available={balance!r}, amount={amount!r}"
+        )
+    record[balance_field] = balance - amount
 
 
 def _credit_record_if_balance_backed(
