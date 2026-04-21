@@ -351,6 +351,8 @@ def _run_one_task(args: argparse.Namespace) -> None:
     print(f"actual_final_hash: {result.actual_final_hash}")
     if args.output_trace_json:
         print(f"trace: {args.output_trace_json}")
+    if result.tool_errors:
+        print(f"tool_errors: {len(result.tool_errors)}")
     if result.error is not None:
         print(f"error: {result.error}")
     if result.final_text:
@@ -408,6 +410,7 @@ def _run_task_batch(args: argparse.Namespace) -> None:
                     "expected_final_hash": None,
                     "actual_final_hash": None,
                     "error": f"{type(exc).__name__}: {exc}",
+                    "tool_errors": [],
                     "trace": {},
                 }
 

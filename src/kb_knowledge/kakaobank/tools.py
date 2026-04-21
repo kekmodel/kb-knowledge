@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import re
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Sequence
@@ -140,9 +141,9 @@ class KakaoBankReadTools:
         consents = query_db("consents", self.db, customer_id=customer_id)
         return {
             "customer_id": customer_id,
-            "customer": customer,
-            "businesses": businesses,
-            "consents": consents,
+            "customer": deepcopy(customer),
+            "businesses": deepcopy(businesses),
+            "consents": deepcopy(consents),
         }
 
     def get_account_or_contract(
@@ -160,7 +161,7 @@ class KakaoBankReadTools:
         return {
             "table": table,
             "record_id": record_id,
-            "record": record,
+            "record": deepcopy(record),
         }
 
 

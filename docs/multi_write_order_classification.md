@@ -39,6 +39,12 @@ After enforcing DB/replay preconditions:
 
 - Gold replay: `123/123` passed.
 - Reversed write order for all 3 multi-write tasks: `3/3` failed.
+- OpenAI-compatible runner scoring now compares the live final DB hash against
+  the gold final DB hash. Failed tool attempts are recorded in `tool_errors`,
+  but a recovered trajectory can still pass DB-only scoring if the final DB
+  matches. Therefore DB hash detects wrong order when it prevents completion or
+  leaves durable wrong state; it does not penalize a transient failed attempt
+  that mutates no DB state and is later corrected.
 
 Observed reversed-order failures:
 

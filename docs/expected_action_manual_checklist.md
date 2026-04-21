@@ -44,6 +44,7 @@ The goal is to distinguish correct gold actions from task bugs, fixture visibili
 - Multi-write order-sensitive behavior: classified in `docs/multi_write_order_classification.md`; strict-order cases are enforced through DB/replay preconditions rather than action-list style matching.
 - Balance-less external payees and synthetic funding sources were moved from `transactions` to `transfer_references` so transaction rows represent posted or pending transaction events, not generic references.
 - Multi-write e2e after remediation and removal of task-specific ordering hints: 3/3 passed with `gpt-5.4-nano` on `bm25_grep`.
+- Multi-write e2e after live-final-DB runner evaluation: 3/3 passed with `gpt-5.4-nano` on `bm25_grep`; one run contained a recovered insufficient-balance tool error, recorded separately in `tool_errors`.
 - Remaining required-document top-10 retrieval miss: `kb_manual_demand_deposit_clean_close_success` still misses `doc_kakao_product_입출금통장_002`, but the manual audit judged it non-material because `doc_kakao_product_입출금통장_003` contains the close restrictions and is retrieved at rank 1.
 
 ## Gold Replay Failures

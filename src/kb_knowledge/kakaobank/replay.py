@@ -206,7 +206,13 @@ def replay_candidate_actions(
     db: KakaoBankDB | None = None,
     schema_path: Path = ACTION_VERIFIER_SCHEMA_PATH,
 ) -> ReplayResult:
-    """Replay candidate assistant actions into a task-initialized DB."""
+    """Replay candidate assistant actions into a task-initialized DB.
+
+    Candidate replay mirrors live tool execution: a state-changing tool call
+    that fails a runtime precondition returns an error and leaves DB state
+    unchanged. Schema-level problems still raise because those calls could not
+    be executed by the declared tool surface.
+    """
 
     if db is None:
         db = build_empty_domain_db()
@@ -216,15 +222,34 @@ def replay_candidate_actions(
     schema_actions = _action_schema_by_name(schema_path)
     replayed: list[ReplayedAction] = []
     for index, action in enumerate(actions):
-        replayed.append(
-            replay_expected_action(
-                initialized_db,
-                action,
-                schema_actions=schema_actions,
-                task_id=str(task_data.get("id", "")),
-                action_index=index,
+        try:
+            replayed.append(
+                replay_expected_action(
+                    initialized_db,
+                    action,
+                    schema_actions=schema_actions,
+                    task_id=str(task_data.get("id", "")),
+                    action_index=index,
+                )
             )
-        )
+        except (
+            UnknownReplayActionError,
+            ReplayRequestorMismatchError,
+            UnsupportedMutatingActionError,
+        ):
+            raise
+        except ReplayError as exc:
+            replayed.append(
+                ReplayedAction(
+                    action_id=str(
+                        action.get("action_id", f"{task_data['id']}_{index:02d}")
+                    ),
+                    name=str(action.get("name", "")),
+                    requestor=str(action.get("requestor", "assistant")),
+                    mutates_state=True,
+                    status=f"failed_no_state_change:{type(exc).__name__}: {exc}",
+                )
+            )
 
     return ReplayResult(
         task_id=str(task_data["id"]),

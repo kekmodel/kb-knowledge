@@ -23,7 +23,6 @@ from kb_knowledge.kakaobank.replay import (
     _action_schema_by_name,
     apply_task_initial_state,
     build_empty_domain_db,
-    evaluate_candidate_actions,
     replay_expected_action,
     replay_expected_actions,
 )
@@ -1188,6 +1187,7 @@ class AssistantRunResult:
     expected_final_hash: str
     actual_final_hash: str | None
     error: str | None = None
+    tool_errors: list[str] = field(default_factory=list)
     trace: dict[str, Any] = field(default_factory=dict)
 
 
@@ -1309,7 +1309,7 @@ def run_task_with_chat_client(
     actions: list[dict[str, Any]] = []
     final_text = ""
     stopped_reason = "max_tool_steps"
-    error: str | None = None
+    tool_errors: list[str] = []
     trace: dict[str, Any] = {
         "schema_version": "kakaobank_assistant_trace.v0",
         "task_id": str(task_data["id"]),
@@ -1379,15 +1379,15 @@ def run_task_with_chat_client(
                 task_id=str(task_data["id"]),
                 action_index=len(actions) - 1,
             )
-            if "error" in tool_result and error is None:
-                error = str(tool_result["error"])
+            if "error" in tool_result:
+                tool_errors.append(str(tool_result["error"]))
             round_trace["tool_results"].append(
                 {
                     "action_index": len(actions) - 1,
                     "tool_call_id": str(tool_call.get("id", f"tool_{len(actions)}")),
                     "name": action["name"],
-                    "arguments": action["arguments"],
-                    "result": tool_result,
+                    "arguments": copy.deepcopy(action["arguments"]),
+                    "result": copy.deepcopy(tool_result),
                     "db_hash_after": db.get_hash(),
                 }
             )
@@ -1399,10 +1399,15 @@ def run_task_with_chat_client(
                 }
             )
 
-    evaluation = evaluate_candidate_actions(
-        task_data,
-        actions,
-        schema_path=schema_path,
+    actual_final_hash = db.get_hash()
+    db_passed = actual_final_hash == expected.final_hash
+    evaluation = DbEvaluationResult(
+        task_id=str(task_data["id"]),
+        passed=db_passed,
+        initialized_hash=expected.initialized_hash,
+        expected_final_hash=expected.final_hash,
+        actual_final_hash=actual_final_hash,
+        error=None if db_passed else "final DB hash mismatch",
     )
     passed = evaluation.passed and stopped_reason == "agent_stop"
     termination_error = None
@@ -1410,6 +1415,9 @@ def run_task_with_chat_client(
         termination_error = (
             f"episode did not terminate with agent_stop: {stopped_reason}"
         )
+    final_error = termination_error
+    if final_error is None and not evaluation.passed:
+        final_error = evaluation.error or (tool_errors[0] if tool_errors else None)
     trace["final"] = {
         "passed": passed,
         "db_passed": evaluation.passed,
@@ -1418,7 +1426,8 @@ def run_task_with_chat_client(
         "final_text": final_text,
         "expected_final_hash": evaluation.expected_final_hash,
         "actual_final_hash": evaluation.actual_final_hash,
-        "error": error or evaluation.error or termination_error,
+        "tool_errors": tool_errors,
+        "error": final_error,
     }
     return AssistantRunResult(
         task_id=str(task_data["id"]),
@@ -1429,7 +1438,8 @@ def run_task_with_chat_client(
         stopped_reason=stopped_reason,
         expected_final_hash=evaluation.expected_final_hash,
         actual_final_hash=evaluation.actual_final_hash,
-        error=error or evaluation.error or termination_error,
+        error=final_error,
+        tool_errors=tool_errors,
         trace=trace,
     )
 
