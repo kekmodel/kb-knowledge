@@ -421,6 +421,7 @@ def _replay_close_account_or_service(db: KakaoBankDB, action: dict[str, Any]) ->
         target_record["status"] = str(options.get("new_membership_status", "REMOVED"))
         return "applied_close_account_or_service"
 
+    _validate_record_customer_argument(target_id, target_record, arguments)
     target_record["status"] = "CLOSED"
 
     if close_type == "CHILD_ACCOUNT_SELF_CLOSE_AT_AGE_19":
@@ -474,8 +475,10 @@ def _replay_execute_deposit_or_box_transfer(
         )
 
     if source is not None:
+        _validate_record_currency_argument(str(source_id), source[1], arguments)
         _debit_record_if_balance_backed(source[1], amount)
     if target is not None:
+        _validate_record_currency_argument(str(target_id), target[1], arguments)
         _credit_record_if_balance_backed(target[1], amount)
 
     _apply_transfer_record_updates(db, arguments, source=source, target=target)
@@ -486,6 +489,7 @@ def _replay_open_or_enroll_product(db: KakaoBankDB, action: dict[str, Any]) -> s
     arguments = action.get("arguments") or {}
     options = arguments.get("options") or {}
     operation = str(options.get("operation") or options.get("opening_mode") or "")
+    _validate_open_product_existing_references(db, arguments, options, operation)
 
     if _is_rejected_open_operation(options, operation):
         return "rejected_open_noop"
@@ -889,6 +893,12 @@ def _replay_request_maturity_or_extension(
         return "rejected_maturity_noop"
 
     _, deposit = _find_record_by_id(db, target_id)
+    destination_account_id = options.get("destination_account_id")
+    if destination_account_id:
+        _, destination = _find_record_by_id(db, str(destination_account_id))
+        _validate_record_customer_consistency(
+            target_id, deposit, str(destination_account_id), destination
+        )
     if operation in {
         "MATURE_DIRECT_CLOSE",
         "MATURE_HOLIDAY_PREVIOUS_BUSINESS_DAY_CLOSE",
@@ -950,7 +960,8 @@ def _close_deposit_contract_for_maturity(
     balance_field = _balance_field(deposit)
     if balance_field is None:
         raise ReplayTargetRecordNotFoundError(
-            f"deposit contract has no balance-backed field: {deposit!r}"
+            "deposit contract has no balance-backed field. Inspect the runtime "
+            "record with a read tool and retry with a balance-backed target."
         )
     _transfer_krw_balance(
         db,
@@ -1277,6 +1288,8 @@ def _replay_update_card_state(db: KakaoBankDB, action: dict[str, Any]) -> str:
     if operation == "REJECT_PAYMENT":
         return "rejected_card_payment_noop"
 
+    _validate_card_existing_references(db, arguments)
+
     if operation == "REJECT_NEW_ISSUE":
         _upsert_card_order(db, arguments, status="REJECTED")
         return "rejected_card_order"
@@ -1321,12 +1334,16 @@ def _replay_file_dispute_or_objection(db: KakaoBankDB, action: dict[str, Any]) -
     target_id = str(arguments["target_id"])
     reason = str(arguments["reason"])
     dispute_id = _dispute_id(arguments)
+    target_record = _find_record_by_id_optional(db, target_id)
+    if target_record is not None:
+        _validate_record_customer_argument(target_id, target_record[1], arguments)
 
     if reason == "LOST_CARD_COMPENSATION_ELIGIBLE_WITHIN_60_DAYS":
         card_id = options.get("card_id")
         if not card_id:
             raise ReplayError("lost-card compensation dispute requires card_id")
         _, card = _find_record_by_id(db, str(card_id))
+        _validate_record_customer_argument(str(card_id), card, arguments)
         if card.get("status") != "LOST_REPORTED" or not card.get("lost_reported_at"):
             raise ReplayError(
                 "lost-card compensation dispute requires a recorded lost-card report first"
@@ -1375,6 +1392,7 @@ def _replay_process_refinance_request(db: KakaoBankDB, action: dict[str, Any]) -
     operation = str(arguments["operation"])
     refinance_id = str(arguments["refinance_id"])
     _, refinance = _find_record_by_id(db, refinance_id)
+    _validate_refinance_existing_references(db, refinance_id, refinance)
 
     refinance["old_loan_repayment_status"] = arguments.get("old_loan_repayment_status")
     refinance["processed_at"] = _tool_timestamp()
@@ -1446,6 +1464,18 @@ def _replay_configure_auto_transfer(db: KakaoBankDB, action: dict[str, Any]) -> 
 
     if operation == "CREATE":
         options = arguments.get("options") or {}
+        _, source = _find_record_by_id(db, str(arguments["source_account_id"]))
+        _, target = _find_record_by_id(db, str(arguments["target_id"]))
+        _validate_record_currency_literal(
+            str(arguments["source_account_id"]), source, "KRW"
+        )
+        _validate_record_currency_literal(str(arguments["target_id"]), target, "KRW")
+        _validate_record_customer_consistency(
+            str(arguments["source_account_id"]),
+            source,
+            str(arguments["target_id"]),
+            target,
+        )
         auto_transfer_id = str(options["auto_transfer_id"])
         record = {
             "auto_transfer_id": auto_transfer_id,
@@ -1475,6 +1505,12 @@ def _replay_request_interest_payment(db: KakaoBankDB, action: dict[str, Any]) ->
     options = arguments.get("options") or {}
     target_id = str(arguments["target_id"])
     _, target = _find_record_by_id(db, target_id)
+    destination_id = options.get("destination_id")
+    if destination_id:
+        _, destination = _find_record_by_id(db, str(destination_id))
+        _validate_record_customer_consistency(
+            target_id, target, str(destination_id), destination
+        )
 
     interest_amount = _numeric_value(options["interest_amount_krw"])
     _credit_record_if_balance_backed(target, interest_amount)
@@ -1567,6 +1603,20 @@ def _replay_update_loan_contract_state(db: KakaoBankDB, action: dict[str, Any]) 
         return "applied_loan_contract_state"
 
     _, loan = _find_record_by_id(db, loan_id)
+    application_id = arguments.get("application_id")
+    if application_id:
+        application = _find_record_by_id_optional(db, str(application_id))
+        if application is not None:
+            _validate_record_customer_consistency(
+                loan_id, loan, str(application_id), application[1]
+            )
+            _validate_record_link_argument(
+                loan_id,
+                loan,
+                "application_id",
+                str(application_id),
+                argument_name="application_id",
+            )
     if operation == "STOP_EXECUTION_BEFORE_DISBURSEMENT":
         loan["status"] = "EXECUTION_STOPPED"
         loan["execution_block_reason"] = reason
@@ -1881,11 +1931,177 @@ def _validate_existing_remittance_arguments(
             actual_matches = actual_value == expected_value
         if not actual_matches:
             raise ReplayError(
-                "remittance argument mismatch for existing record "
+                "remittance argument mismatch for existing runtime record "
                 f"{existing.get('remittance_id', '<unknown>')!r}: "
-                f"{field_name} must match runtime DB value "
-                f"{actual_value!r}, got {expected_value!r}"
+                f"field {field_name!r} does not match. Inspect the runtime "
+                "record with a read tool and retry with arguments consistent "
+                "with that record."
             )
+
+
+def _validate_open_product_existing_references(
+    db: KakaoBankDB,
+    arguments: dict[str, Any],
+    options: dict[str, Any],
+    operation: str,
+) -> None:
+    for argument_name in ("source_account_id",):
+        record_id = arguments.get(argument_name)
+        if not record_id:
+            continue
+        _, record = _find_record_by_id(db, str(record_id))
+        _validate_record_customer_argument(str(record_id), record, arguments)
+
+    for option_name in ("base_account_id", "previous_service_id"):
+        record_id = options.get(option_name)
+        if not record_id:
+            continue
+        _, record = _find_record_by_id(db, str(record_id))
+        _validate_record_customer_argument(str(record_id), record, arguments)
+
+    if operation in {
+        "CONVERT_LIMIT_TO_NORMAL_ACCOUNT",
+        "RESTRICT_GROUP_ACCOUNT_SERVICE",
+        "REACTIVATE_GROUP_ACCOUNT_SERVICE_AFTER_RECONSENT",
+    }:
+        service_id = options.get("service_id")
+        if service_id:
+            _, service = _find_record_by_id(db, str(service_id))
+            _validate_record_customer_argument(str(service_id), service, arguments)
+
+
+def _validate_card_existing_references(
+    db: KakaoBankDB,
+    arguments: dict[str, Any],
+) -> None:
+    operation = str(arguments.get("operation") or "")
+    card_argument_names = ["existing_card_id"]
+    if operation != "ISSUE_NEW_CARD":
+        card_argument_names.append("card_id")
+    for argument_name in card_argument_names:
+        record_id = arguments.get(argument_name)
+        if not record_id:
+            continue
+        _, card = _find_record_by_id(db, str(record_id))
+        _validate_record_customer_argument(str(record_id), card, arguments)
+        wallet_id = arguments.get("wallet_id")
+        if wallet_id:
+            _validate_record_link_argument(
+                str(record_id),
+                card,
+                "wallet_id",
+                str(wallet_id),
+                argument_name="wallet_id",
+            )
+
+    wallet_id = arguments.get("wallet_id")
+    if wallet_id:
+        _, wallet = _find_record_by_id(db, str(wallet_id))
+        _validate_record_customer_argument(str(wallet_id), wallet, arguments)
+
+
+def _validate_refinance_existing_references(
+    db: KakaoBankDB,
+    refinance_id: str,
+    refinance: dict[str, Any],
+) -> None:
+    for field_name in ("old_loan_id", "new_loan_id"):
+        loan_id = refinance.get(field_name)
+        if not loan_id:
+            continue
+        _, loan = _find_record_by_id(db, str(loan_id))
+        _validate_record_customer_consistency(
+            refinance_id,
+            refinance,
+            str(loan_id),
+            loan,
+        )
+
+
+def _validate_record_customer_argument(
+    record_id: str,
+    record: dict[str, Any],
+    arguments: dict[str, Any],
+) -> None:
+    customer_id = arguments.get("customer_id")
+    if not customer_id or "customer_id" not in record:
+        return
+    if record.get("customer_id") != customer_id:
+        raise ReplayError(
+            f"argument customer_id does not match existing runtime record {record_id!r}. "
+            "Inspect the runtime record with a read tool and retry with arguments "
+            "consistent with that record."
+        )
+
+
+def _validate_record_customer_consistency(
+    left_id: str,
+    left: dict[str, Any],
+    right_id: str,
+    right: dict[str, Any],
+) -> None:
+    if "customer_id" not in left or "customer_id" not in right:
+        return
+    if left.get("customer_id") != right.get("customer_id"):
+        raise ReplayError(
+            f"runtime records {left_id!r} and {right_id!r} belong to different "
+            "customers. Inspect the runtime records with read tools and retry "
+            "with consistent IDs."
+        )
+
+
+def _validate_record_currency_argument(
+    record_id: str,
+    record: dict[str, Any],
+    arguments: dict[str, Any],
+) -> None:
+    currency = arguments.get("currency")
+    if not currency:
+        return
+    _validate_record_currency_literal(record_id, record, str(currency))
+
+
+def _validate_record_currency_literal(
+    record_id: str,
+    record: dict[str, Any],
+    currency: str,
+) -> None:
+    record_currency = _record_currency(record)
+    if record_currency is None:
+        return
+    if str(record_currency) != currency:
+        raise ReplayError(
+            f"argument currency does not match existing runtime record {record_id!r}. "
+            "Inspect the runtime record with a read tool and retry with arguments "
+            "consistent with that record."
+        )
+
+
+def _record_currency(record: dict[str, Any]) -> str | None:
+    if record.get("currency"):
+        return str(record["currency"])
+    if any(field_name in record for field_name in ("balance_krw", "principal_krw", "amount_krw")):
+        return "KRW"
+    return None
+
+
+def _validate_record_link_argument(
+    record_id: str,
+    record: dict[str, Any],
+    field_name: str,
+    expected_value: str,
+    *,
+    argument_name: str,
+) -> None:
+    actual_value = record.get(field_name)
+    if actual_value is None:
+        return
+    if str(actual_value) != expected_value:
+        raise ReplayError(
+            f"argument {argument_name} does not match existing runtime record "
+            f"{record_id!r}. Inspect the runtime record with a read tool and "
+            "retry with arguments consistent with that record."
+        )
 
 
 GENERATED_REMITTANCE_TRANSACTION_PREFIXES: dict[str, dict[str, str]] = {
@@ -2383,7 +2599,8 @@ def _debit_record_if_balance_backed(
     balance = _numeric_value(record.get(balance_field))
     if balance < amount:
         raise ReplayError(
-            f"insufficient balance for debit: available={balance!r}, amount={amount!r}"
+            "insufficient balance for debit. Inspect the runtime source record "
+            "with a read tool and retry with arguments consistent with that record."
         )
     record[balance_field] = balance - amount
 

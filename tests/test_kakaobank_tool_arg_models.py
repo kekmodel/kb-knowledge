@@ -4,7 +4,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-from kb_knowledge.kakaobank.replay import evaluate_candidate_actions
+from kb_knowledge.kakaobank.replay import (
+    evaluate_candidate_actions,
+    replay_candidate_actions,
+)
 from kb_knowledge.kakaobank.runner import build_openai_tool_definitions
 from kb_knowledge.kakaobank.tool_arg_models import (
     pydantic_tool_parameters,
@@ -84,6 +87,50 @@ def test_remittance_replay_rejects_existing_record_argument_mismatch() -> None:
 
     assert result.passed is False
     assert result.actual_final_hash != result.expected_final_hash
+
+
+def test_remittance_mismatch_error_does_not_reveal_answer_value() -> None:
+    task = _load_task("kb_manual_dollarbox_gift_receive_within_30_days_success")
+    actions = json.loads(json.dumps(task["evaluation_criteria"]["actions"]))
+    for action in actions:
+        if action.get("name") == "execute_remittance_case":
+            action["arguments"]["country"] = "US"
+
+    replay = replay_candidate_actions(task, actions)
+    failed = [action for action in replay.actions if action.status.startswith("failed")]
+
+    assert failed
+    assert "country" in failed[0].status
+    assert "KR" not in failed[0].status
+    assert "US" not in failed[0].status
+
+
+def test_transfer_replay_rejects_currency_mismatch() -> None:
+    task = _load_task("kb_manual_piggy_bank_coin_saving_transfers_change")
+    actions = json.loads(json.dumps(task["evaluation_criteria"]["actions"]))
+    for action in actions:
+        if action.get("name") == "execute_deposit_or_box_transfer":
+            action["arguments"]["currency"] = "USD"
+
+    result = evaluate_candidate_actions(task, actions)
+
+    assert result.passed is False
+
+
+def test_insufficient_balance_error_does_not_reveal_runtime_balance() -> None:
+    task = _load_task("kb_manual_piggy_bank_coin_saving_transfers_change")
+    actions = json.loads(json.dumps(task["evaluation_criteria"]["actions"]))
+    for action in actions:
+        if action.get("name") == "execute_deposit_or_box_transfer":
+            action["arguments"]["amount"] = 999_999_999
+
+    replay = replay_candidate_actions(task, actions)
+    failed = [action for action in replay.actions if action.status.startswith("failed")]
+
+    assert failed
+    assert "insufficient balance" in failed[0].status
+    assert "available=" not in failed[0].status
+    assert "999999999" not in failed[0].status
 
 
 def test_strict_tool_schema_flag_marks_only_pydantic_tools() -> None:
