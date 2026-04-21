@@ -115,6 +115,7 @@
               "amount": 320,
               "currency": "USD",
               "country": "KR",
+              "purpose_code": "GIFT_AUTO_CANCEL_AFTER_30_DAYS",
               "requested_at": "2026-03-20T10:00:00+09:00",
               "receive_deadline_at": "2026-04-19T10:00:00+09:00",
               "sender_box_id": "box_dollar_016",

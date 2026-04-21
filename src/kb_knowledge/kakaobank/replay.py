@@ -1033,12 +1033,15 @@ def _replay_dollarbox_gift_remittance(
     amount = _numeric_value(arguments["amount"])
 
     if direction == "DOLLARBOX_GIFT_RECEIVE":
+        transaction_id = _generated_remittance_transaction_id(
+            direction, options, "receive_transaction_id"
+        )
         remittance["status"] = "RECEIVED"
         remittance["recipient_completed_at"] = _tool_timestamp()
         remittance["recipient_real_name_confirmed"] = options.get(
             "recipient_real_name_confirmed", True
         )
-        remittance["receive_transaction_id"] = options.get("receive_transaction_id")
+        remittance["receive_transaction_id"] = transaction_id
         recipient_box_id = str(options["recipient_box_id"])
         _, recipient_box = _find_record_by_id(db, recipient_box_id)
         _credit_record_if_balance_backed(recipient_box, amount)
@@ -1047,7 +1050,7 @@ def _replay_dollarbox_gift_remittance(
         )
         _upsert_transaction(
             db,
-            transaction_id=options.get("receive_transaction_id"),
+            transaction_id=transaction_id,
             record_id=recipient_box_id,
             amount=amount,
             currency=str(arguments["currency"]),
@@ -1056,9 +1059,12 @@ def _replay_dollarbox_gift_remittance(
         return
 
     if direction == "DOLLARBOX_GIFT_AUTO_CANCEL":
+        transaction_id = _generated_remittance_transaction_id(
+            direction, options, "refund_transaction_id"
+        )
         remittance["status"] = "CANCELLED_REFUNDED"
         remittance["cancel_reason"] = options.get("cancel_reason")
-        remittance["refund_transaction_id"] = options.get("refund_transaction_id")
+        remittance["refund_transaction_id"] = transaction_id
         sender_box_id = str(options["sender_box_id"])
         _, sender_box = _find_record_by_id(db, sender_box_id)
         _credit_record_if_balance_backed(sender_box, amount)
@@ -1077,7 +1083,7 @@ def _replay_dollarbox_gift_remittance(
             )
         _upsert_transaction(
             db,
-            transaction_id=options.get("refund_transaction_id"),
+            transaction_id=transaction_id,
             record_id=sender_box_id,
             amount=amount,
             currency=str(arguments["currency"]),
@@ -1100,9 +1106,12 @@ def _replay_inbound_remittance(
     expected_status = str(options.get("expected_status", "DEPOSITED"))
 
     if direction in {"INBOUND_IMMEDIATE_DEPOSIT", "INBOUND_BULK_DEPOSIT"}:
+        transaction_id = _generated_remittance_transaction_id(
+            direction, options, "transaction_id"
+        )
         remittance["status"] = "DEPOSITED"
         remittance["deposit_date"] = options.get("deposit_date")
-        remittance["deposited_transaction_id"] = options.get("transaction_id")
+        remittance["deposited_transaction_id"] = transaction_id
         remittance["receive_fee_krw"] = options.get("receive_fee_krw", 0)
         remittance["fee_waiver_reason"] = options.get("fee_waiver_reason")
         remittance["applied_exchange_rate_krw_per_unit"] = options.get(
@@ -1115,7 +1124,7 @@ def _replay_inbound_remittance(
         _credit_record_if_balance_backed(target_account, credit_amount)
         _upsert_transaction(
             db,
-            transaction_id=options.get("transaction_id"),
+            transaction_id=transaction_id,
             record_id=target_account_id,
             amount=credit_amount,
             currency="KRW",
@@ -1129,6 +1138,11 @@ def _replay_inbound_remittance(
         )
         return
 
+    if direction == "INBOUND_RETURN_INFO_MISMATCH":
+        options = dict(options)
+        options["return_transaction_id"] = _generated_remittance_transaction_id(
+            direction, options, "return_transaction_id"
+        )
     remittance["status"] = expected_status
     _copy_remittance_options(
         remittance,
@@ -1154,8 +1168,11 @@ def _replay_outbound_remittance(
     remittance = _get_or_create_remittance_case(db, arguments, options)
 
     if direction == "OUTBOUND_NO_DOCUMENT":
+        transaction_id = _generated_remittance_transaction_id(
+            direction, options, "transaction_id"
+        )
         remittance["status"] = "SENT"
-        remittance["debit_transaction_id"] = options.get("transaction_id")
+        remittance["debit_transaction_id"] = transaction_id
         _copy_remittance_options(
             remittance,
             options,
@@ -1179,7 +1196,7 @@ def _replay_outbound_remittance(
         _debit_record_if_balance_backed(source_account, total_debit)
         _upsert_transaction(
             db,
-            transaction_id=options.get("transaction_id"),
+            transaction_id=transaction_id,
             record_id=source_account_id,
             amount=-total_debit,
             currency="KRW",
@@ -1214,8 +1231,11 @@ def _replay_outbound_remittance(
         "OUTBOUND_BENEFICIARY_INFO_AUTO_CANCEL",
         "OUTBOUND_RETURN_SETTLEMENT",
     }:
+        transaction_id = _generated_remittance_transaction_id(
+            direction, options, "transaction_id"
+        )
         remittance["status"] = str(options["expected_status"])
-        remittance["returned_transaction_id"] = options.get("transaction_id")
+        remittance["returned_transaction_id"] = transaction_id
         remittance["send_fee_refunded"] = options.get("send_fee_refunded", False)
         _copy_remittance_options(
             remittance,
@@ -1237,7 +1257,7 @@ def _replay_outbound_remittance(
         _credit_record_if_balance_backed(source_account, returned_principal)
         _upsert_transaction(
             db,
-            transaction_id=options.get("transaction_id"),
+            transaction_id=transaction_id,
             record_id=source_account_id,
             amount=returned_principal,
             currency="KRW",
@@ -1831,6 +1851,59 @@ def _get_or_create_remittance_case(
     )
     db.remittance_cases.data[remittance_id] = remittance
     return remittance
+
+
+GENERATED_REMITTANCE_TRANSACTION_PREFIXES: dict[str, dict[str, str]] = {
+    "DOLLARBOX_GIFT_AUTO_CANCEL": {
+        "refund_transaction_id": "txn_dollar_gift_refund",
+    },
+    "DOLLARBOX_GIFT_RECEIVE": {
+        "receive_transaction_id": "txn_dollar_gift_receive",
+    },
+    "INBOUND_BULK_DEPOSIT": {
+        "transaction_id": "txn_inbound_remit",
+    },
+    "INBOUND_IMMEDIATE_DEPOSIT": {
+        "transaction_id": "txn_inbound_remit",
+    },
+    "INBOUND_RETURN_INFO_MISMATCH": {
+        "return_transaction_id": "txn_inbound_return",
+    },
+    "OUTBOUND_BENEFICIARY_INFO_AUTO_CANCEL": {
+        "transaction_id": "txn_outbound_auto_cancel_return",
+    },
+    "OUTBOUND_NO_DOCUMENT": {
+        "transaction_id": "txn_outbound_remit",
+    },
+    "OUTBOUND_RETURN_SETTLEMENT": {
+        "transaction_id": "txn_outbound_return_settlement",
+    },
+}
+
+
+def _generated_remittance_transaction_id(
+    direction: str,
+    options: dict[str, Any],
+    field_name: str,
+) -> str | None:
+    supplied = options.get(field_name)
+    if supplied:
+        return str(supplied)
+    prefix = GENERATED_REMITTANCE_TRANSACTION_PREFIXES.get(direction, {}).get(
+        field_name
+    )
+    if prefix is None:
+        return None
+    return f"{prefix}_{_record_numeric_suffix(str(options['remittance_id']))}"
+
+
+def _record_numeric_suffix(record_id: str) -> str:
+    suffix = record_id.rsplit("_", 1)[-1]
+    if len(suffix) != 3 or not suffix.isdigit():
+        raise ReplayError(
+            f"cannot generate deterministic ID from record id {record_id!r}"
+        )
+    return suffix
 
 
 def _base_remittance_direction(direction: str) -> str:

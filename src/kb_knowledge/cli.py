@@ -190,6 +190,15 @@ def _add_runner_arguments(parser: argparse.ArgumentParser) -> None:
         default=DEFAULT_HTTP_MAX_RETRIES,
         help="Maximum retry attempts for retryable endpoint HTTP errors",
     )
+    parser.add_argument(
+        "--strict-tool-schemas",
+        action="store_true",
+        help=(
+            "Attach strict:true to Pydantic-backed tool schemas for OpenAI API "
+            "or strict-compatible servers. Leave off for broad OpenAI-compatible "
+            "server compatibility."
+        ),
+    )
 
 
 def _normalize_candidate_actions(raw: object) -> list[dict[str, object]]:
@@ -333,6 +342,7 @@ def _run_one_task(args: argparse.Namespace) -> None:
             max_tool_steps=args.max_tool_steps,
             timeout_seconds=args.timeout_seconds,
             max_http_retries=args.max_http_retries,
+            strict_tool_schemas=args.strict_tool_schemas,
         )
     except Exception as exc:  # noqa: BLE001 - CLI should surface endpoint failures.
         raise SystemExit(
@@ -407,6 +417,7 @@ def _run_task_batch(args: argparse.Namespace) -> None:
                     max_tool_steps=args.max_tool_steps,
                     timeout_seconds=args.timeout_seconds,
                     max_http_retries=args.max_http_retries,
+                    strict_tool_schemas=args.strict_tool_schemas,
                 )
                 result_data = dataclasses.asdict(result)
                 result_passed = result.passed

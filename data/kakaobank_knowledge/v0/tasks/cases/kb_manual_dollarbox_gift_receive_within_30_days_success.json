@@ -84,6 +84,7 @@
               "amount": 250,
               "currency": "USD",
               "country": "KR",
+              "purpose_code": "GIFT_RECEIVE_WITHIN_30_DAYS",
               "requested_at": "2026-04-12T11:00:00+09:00",
               "receive_deadline_at": "2026-05-12T11:00:00+09:00",
               "sender_box_id": "box_dollar_126_sender",

@@ -5,9 +5,31 @@ from __future__ import annotations
 import copy
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, ValidationError
+from openai.lib._pydantic import to_strict_json_schema
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 JsonNumber = int | float
+
+
+def _numeric_suffix(record_id: str) -> str:
+    suffix = record_id.rsplit("_", 1)[-1]
+    if len(suffix) == 3 and suffix.isdigit():
+        return suffix
+    raise ValueError(f"{record_id!r} does not end with a three-digit suffix")
+
+
+def _validate_generated_id(
+    *,
+    source_id: str,
+    field_name: str,
+    actual: str | None,
+    prefix: str,
+) -> None:
+    if actual is None:
+        return
+    expected = f"{prefix}_{_numeric_suffix(source_id)}"
+    if actual != expected:
+        raise ValueError(f"{field_name} must be {expected!r} for {source_id!r}")
 
 
 class ToolArgumentModel(BaseModel):
@@ -17,31 +39,82 @@ class ToolArgumentModel(BaseModel):
 
 
 class RemittanceCommonArguments(ToolArgumentModel):
-    customer_id: str
-    amount: JsonNumber
-    currency: str
-    country: str
-    purpose_code: str
+    customer_id: str = Field(description="Customer ID that owns the remittance case.")
+    amount: JsonNumber = Field(description="Foreign-currency remittance amount.")
+    currency: str = Field(description="Foreign-currency code, such as USD, EUR, JPY, or CAD.")
+    country: str = Field(description="Source or destination country code for the remittance case.")
+    purpose_code: Literal[
+        "AD_REVENUE",
+        "BUSINESS_VENDOR_PAYMENT",
+        "GIFT_AUTO_CANCEL_AFTER_30_DAYS",
+        "GIFT_RECEIVE_WITHIN_30_DAYS",
+        "LIVING_EXPENSE",
+        "PERSONAL_TRANSFER",
+    ] = Field(
+        description=(
+            "DB mutation purpose code. Use the runtime purpose when visible. "
+            "DollarBox gift auto-cancel uses GIFT_AUTO_CANCEL_AFTER_30_DAYS; "
+            "DollarBox gift receive uses GIFT_RECEIVE_WITHIN_30_DAYS."
+        )
+    )
 
 
 class DollarBoxGiftAutoCancelOptions(ToolArgumentModel):
+    """Auto-cancel a DollarBox gift not received within 30 days and refund sender."""
+
     remittance_id: str
     sender_box_id: str
     recipient_box_id: str
     cancel_reason: Literal["RECIPIENT_NOT_RECEIVED_WITHIN_30_DAYS"]
-    refund_transaction_id: str
+    refund_transaction_id: str | None = Field(
+        description=(
+            "New refund transaction ID. Set null to let the tool generate it. "
+            "If supplied manually, for remittance_id remit_gift_NNN use "
+            "txn_dollar_gift_refund_NNN."
+        )
+    )
+
+    @model_validator(mode="after")
+    def validate_generated_ids(self):
+        _validate_generated_id(
+            source_id=self.remittance_id,
+            field_name="refund_transaction_id",
+            actual=self.refund_transaction_id,
+            prefix="txn_dollar_gift_refund",
+        )
+        return self
 
 
 class DollarBoxGiftReceiveOptions(ToolArgumentModel):
+    """Complete a DollarBox gift receive after recipient real-name confirmation."""
+
     remittance_id: str
     sender_box_id: str
     recipient_box_id: str
     recipient_real_name_confirmed: bool
     receive_completed_at: str
-    receive_transaction_id: str
+    receive_transaction_id: str | None = Field(
+        description=(
+            "New receive transaction ID. Set null to let the tool generate it. "
+            "If supplied manually, for remittance_id remit_gift_NNN use "
+            "txn_dollar_gift_receive_NNN."
+        )
+    )
+
+    @model_validator(mode="after")
+    def validate_generated_ids(self):
+        _validate_generated_id(
+            source_id=self.remittance_id,
+            field_name="receive_transaction_id",
+            actual=self.receive_transaction_id,
+            prefix="txn_dollar_gift_receive",
+        )
+        return self
 
 
 class InboundAutoReceiveDocumentRequestOptions(ToolArgumentModel):
+    """Request evidence before deposit when matched auto-receive still needs review."""
+
     remittance_id: str
     target_account_id: str
     auto_receive_matched: bool
@@ -54,6 +127,8 @@ class InboundAutoReceiveDocumentRequestOptions(ToolArgumentModel):
 
 
 class InboundDailyOver100kDocumentRequestOptions(ToolArgumentModel):
+    """Request documents before deposit when daily inbound aggregate exceeds USD 100,000."""
+
     remittance_id: str
     target_account_id: str
     daily_received_usd_before_case: JsonNumber
@@ -65,6 +140,8 @@ class InboundDailyOver100kDocumentRequestOptions(ToolArgumentModel):
 
 
 class InboundBulkDepositOptions(ToolArgumentModel):
+    """Bulk-deposit an inbound remittance on the fourth business day without application."""
+
     remittance_id: str
     target_account_id: str
     bulk_deposit_reason: Literal["NO_RECEIVE_APPLICATION_4TH_BUSINESS_DAY"]
@@ -73,20 +150,56 @@ class InboundBulkDepositOptions(ToolArgumentModel):
     credit_amount_krw: JsonNumber
     receive_fee_krw: JsonNumber
     fee_waiver_reason: Literal["PROMO_2024_10_01_TO_2026_09_30"]
-    transaction_id: str
+    transaction_id: str | None = Field(
+        description=(
+            "New inbound deposit transaction ID. Set null to let the tool generate it. "
+            "If supplied manually, for remittance_id remit_inbound_NNN use "
+            "txn_inbound_remit_NNN."
+        )
+    )
+
+    @model_validator(mode="after")
+    def validate_generated_ids(self):
+        _validate_generated_id(
+            source_id=self.remittance_id,
+            field_name="transaction_id",
+            actual=self.transaction_id,
+            prefix="txn_inbound_remit",
+        )
+        return self
 
 
 class InboundReturnInfoMismatchOptions(ToolArgumentModel):
+    """Return an inbound remittance because recipient or remittance information mismatches."""
+
     remittance_id: str
     target_account_id: str
     mismatch_review_result: str
     expected_status: Literal["RETURNED_INFO_MISMATCH"]
     deposit_first_refused: bool
-    return_transaction_id: str
+    return_transaction_id: str | None = Field(
+        description=(
+            "New inbound return transaction ID. Set null to let the tool generate it. "
+            "If supplied manually, for remittance_id remit_inbound_NNN use "
+            "txn_inbound_return_NNN."
+        )
+    )
     deposit_transaction_id: None
+
+    @model_validator(mode="after")
+    def validate_generated_ids(self):
+        _validate_generated_id(
+            source_id=self.remittance_id,
+            field_name="return_transaction_id",
+            actual=self.return_transaction_id,
+            prefix="txn_inbound_return",
+        )
+        return self
 
 
 class InboundResidencyVerificationHoldOptions(ToolArgumentModel):
+    """Hold an inbound remittance because customer residency is not verified."""
+
     remittance_id: str
     target_account_id: str
     resident_verified: bool
@@ -97,6 +210,8 @@ class InboundResidencyVerificationHoldOptions(ToolArgumentModel):
 
 
 class InboundImmediateDepositOptions(ToolArgumentModel):
+    """Immediately deposit an inbound remittance allowed without receive application."""
+
     remittance_id: str
     target_account_id: str
     deposit_reason: Literal["UNDER_5000_USD_NO_RECEIVE_APPLICATION_REQUIRED"]
@@ -105,10 +220,28 @@ class InboundImmediateDepositOptions(ToolArgumentModel):
     credit_amount_krw: JsonNumber
     receive_fee_krw: JsonNumber
     fee_waiver_reason: Literal["PROMO_2024_10_01_TO_2026_09_30"]
-    transaction_id: str
+    transaction_id: str | None = Field(
+        description=(
+            "New inbound deposit transaction ID. Set null to let the tool generate it. "
+            "If supplied manually, for remittance_id remit_inbound_NNN use "
+            "txn_inbound_remit_NNN."
+        )
+    )
+
+    @model_validator(mode="after")
+    def validate_generated_ids(self):
+        _validate_generated_id(
+            source_id=self.remittance_id,
+            field_name="transaction_id",
+            actual=self.transaction_id,
+            prefix="txn_inbound_remit",
+        )
+        return self
 
 
 class OutboundBeneficiaryInfoAutoCancelOptions(ToolArgumentModel):
+    """Auto-cancel an outbound remittance after beneficiary correction deadline expires."""
+
     remittance_id: str
     source_account_id: str
     correction_requested_at: str
@@ -120,10 +253,28 @@ class OutboundBeneficiaryInfoAutoCancelOptions(ToolArgumentModel):
     returned_principal_krw: JsonNumber
     send_fee_krw: JsonNumber
     send_fee_refunded: bool
-    transaction_id: str
+    transaction_id: str | None = Field(
+        description=(
+            "New outbound auto-cancel return transaction ID. Set null to let the "
+            "tool generate it. If supplied manually, for remittance_id "
+            "remit_outbound_NNN use txn_outbound_auto_cancel_return_NNN."
+        )
+    )
+
+    @model_validator(mode="after")
+    def validate_generated_ids(self):
+        _validate_generated_id(
+            source_id=self.remittance_id,
+            field_name="transaction_id",
+            actual=self.transaction_id,
+            prefix="txn_outbound_auto_cancel_return",
+        )
+        return self
 
 
 class OutboundBusinessPurposeRejectedOptions(ToolArgumentModel):
+    """Reject an outbound remittance that uses a business sender name or purpose."""
+
     remittance_id: str
     source_account_id: str
     requested_sender_name: str
@@ -134,6 +285,8 @@ class OutboundBusinessPurposeRejectedOptions(ToolArgumentModel):
 
 
 class OutboundNoDocumentOptions(ToolArgumentModel):
+    """Send an outbound no-document remittance after fees, limits, and FX are confirmed."""
+
     remittance_id: str
     source_account_id: str
     recipient_name: str
@@ -148,10 +301,28 @@ class OutboundNoDocumentOptions(ToolArgumentModel):
     intermediary_and_recipient_fee_borne_by: str
     annual_usd_equivalent: JsonNumber
     new_annual_usd_sent: JsonNumber
-    transaction_id: str
+    transaction_id: str | None = Field(
+        description=(
+            "New outbound remittance transaction ID. Set null to let the tool "
+            "generate it. If supplied manually, for remittance_id "
+            "remit_outbound_NNN use txn_outbound_remit_NNN."
+        )
+    )
+
+    @model_validator(mode="after")
+    def validate_generated_ids(self):
+        _validate_generated_id(
+            source_id=self.remittance_id,
+            field_name="transaction_id",
+            actual=self.transaction_id,
+            prefix="txn_outbound_remit",
+        )
+        return self
 
 
 class OutboundNoDocumentOver100kSingleLimitRejectedOptions(ToolArgumentModel):
+    """Reject a no-document outbound remittance above the post-USD-100,000 case limit."""
+
     remittance_id: str
     source_account_id: str
     annual_usd_sent_before_case: JsonNumber
@@ -163,6 +334,8 @@ class OutboundNoDocumentOver100kSingleLimitRejectedOptions(ToolArgumentModel):
 
 
 class OutboundReturnSettlementOptions(ToolArgumentModel):
+    """Settle a returned outbound remittance with return FX and fee-refund handling."""
+
     remittance_id: str
     source_account_id: str
     return_reason: Literal["RECIPIENT_REJECTED_BY_CUSTOMER_INPUT"]
@@ -175,7 +348,23 @@ class OutboundReturnSettlementOptions(ToolArgumentModel):
     fx_loss_krw: JsonNumber
     send_fee_krw: JsonNumber
     send_fee_refunded: bool
-    transaction_id: str
+    transaction_id: str | None = Field(
+        description=(
+            "New outbound return-settlement transaction ID. Set null to let the "
+            "tool generate it. If supplied manually, for remittance_id "
+            "remit_outbound_NNN use txn_outbound_return_settlement_NNN."
+        )
+    )
+
+    @model_validator(mode="after")
+    def validate_generated_ids(self):
+        _validate_generated_id(
+            source_id=self.remittance_id,
+            field_name="transaction_id",
+            actual=self.transaction_id,
+            prefix="txn_outbound_return_settlement",
+        )
+        return self
 
 
 RemittanceOptions = (
@@ -210,8 +399,26 @@ class ExecuteRemittanceCaseArguments(RemittanceCommonArguments):
         "OUTBOUND_NO_DOCUMENT",
         "OUTBOUND_NO_DOCUMENT_OVER_100K_SINGLE_LIMIT_REJECTED",
         "OUTBOUND_RETURN_SETTLEMENT",
-    ]
-    options: RemittanceOptions
+    ] = Field(
+        description=(
+            "Policy-grounded remittance mutation branch. Use "
+            "INBOUND_AUTO_RECEIVE_DOCUMENT_REQUEST when an inbound remittance "
+            "matches auto-receive but a personal-business account, purpose, or "
+            "evidence rule requires review before deposit. Use "
+            "INBOUND_IMMEDIATE_DEPOSIT only when policy allows immediate inbound "
+            "deposit without receive application. Other values map to explicit "
+            "DollarBox gift, inbound hold/return/bulk-deposit, outbound send, "
+            "outbound reject, outbound auto-cancel, or outbound return-settlement "
+            "flows."
+        )
+    )
+    options: RemittanceOptions = Field(
+        description=(
+            "Direction-specific argument object. Its shape must match the chosen "
+            "direction and contain the exact runtime IDs, amounts, fees, exchange "
+            "rates, reasons, and status fields needed for the DB mutation."
+        )
+    )
 
 
 class DollarBoxGiftAutoCancelArguments(RemittanceCommonArguments):
@@ -311,7 +518,7 @@ def pydantic_tool_parameters(tool_name: str) -> dict[str, Any] | None:
     model = PYDANTIC_TOOL_ARGUMENT_MODELS.get(tool_name)
     if model is None:
         return None
-    return _inline_local_refs(model.model_json_schema())
+    return _inline_local_refs(to_strict_json_schema(model))
 
 
 def validate_pydantic_tool_arguments(

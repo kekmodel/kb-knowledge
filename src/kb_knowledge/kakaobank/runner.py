@@ -1324,6 +1324,7 @@ def run_task_with_openai_compatible(
     max_tool_steps: int = 12,
     timeout_seconds: int = 90,
     max_http_retries: int = DEFAULT_HTTP_MAX_RETRIES,
+    strict_tool_schemas: bool = False,
 ) -> AssistantRunResult:
     """Run one task through an OpenAI-compatible chat server and evaluate DB."""
 
@@ -1339,6 +1340,7 @@ def run_task_with_openai_compatible(
         model=model,
         retrieval_config=retrieval_config,
         max_tool_steps=max_tool_steps,
+        strict_tool_schemas=strict_tool_schemas,
     )
 
 
@@ -1353,6 +1355,7 @@ def run_task_with_chat_client(
     retrieval_config: str = DEFAULT_RETRIEVAL_CONFIG,
     max_tool_steps: int = 12,
     schema_path: Path = ACTION_VERIFIER_SCHEMA_PATH,
+    strict_tool_schemas: bool = False,
 ) -> AssistantRunResult:
     """Run one task with an injected chat client for testable tool chaining."""
 
@@ -1368,6 +1371,7 @@ def run_task_with_chat_client(
     tools = build_openai_tool_definitions(
         schema_path=schema_path,
         retrieval_config=retrieval_config,
+        strict_tool_schemas=strict_tool_schemas,
     )
     tool_names = [str(tool["function"]["name"]) for tool in tools]
     messages = [
@@ -1394,6 +1398,7 @@ def run_task_with_chat_client(
         "model": model,
         "retrieval_config": retrieval_config,
         "max_tool_steps": max_tool_steps,
+        "strict_tool_schemas": strict_tool_schemas,
         "initial_db_hash": db.get_hash(),
         "expected_final_hash": expected.final_hash,
         "system_prompt": messages[0]["content"],
@@ -1812,6 +1817,7 @@ def build_openai_tool_definitions(
     *,
     schema_path: Path = ACTION_VERIFIER_SCHEMA_PATH,
     retrieval_config: str = DEFAULT_RETRIEVAL_CONFIG,
+    strict_tool_schemas: bool = False,
 ) -> list[dict[str, Any]]:
     """Build Chat Completions tool definitions for assistant-facing v0 tools."""
 
@@ -1832,7 +1838,12 @@ def build_openai_tool_definitions(
             continue
         if name == "grep" and retrieval_config not in GREP_RETRIEVAL_CONFIGS:
             continue
-        definitions.append(_openai_tool_definition(action_schema))
+        definitions.append(
+            _openai_tool_definition(
+                action_schema,
+                strict_tool_schemas=strict_tool_schemas,
+            )
+        )
     definitions.append(_done_tool_definition())
     return definitions
 
@@ -1858,9 +1869,14 @@ def _done_tool_definition() -> dict[str, Any]:
     }
 
 
-def _openai_tool_definition(action_schema: dict[str, Any]) -> dict[str, Any]:
+def _openai_tool_definition(
+    action_schema: dict[str, Any],
+    *,
+    strict_tool_schemas: bool = False,
+) -> dict[str, Any]:
     name = str(action_schema["name"])
     parameters = pydantic_tool_parameters(name)
+    pydantic_backed = parameters is not None
     if parameters is None:
         argument_names = _runner_argument_names(action_schema)
         properties = {
@@ -1875,13 +1891,17 @@ def _openai_tool_definition(action_schema: dict[str, Any]) -> dict[str, Any]:
             "additionalProperties": False,
         }
 
+    function_definition: dict[str, Any] = {
+        "name": name,
+        "description": _tool_description(action_schema),
+        "parameters": parameters,
+    }
+    if strict_tool_schemas and pydantic_backed:
+        function_definition["strict"] = True
+
     return {
         "type": "function",
-        "function": {
-            "name": name,
-            "description": _tool_description(action_schema),
-            "parameters": parameters,
-        },
+        "function": function_definition,
     }
 
 

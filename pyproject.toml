@@ -9,6 +9,7 @@ description = "KakaoBank knowledge v0 evaluator and OpenAI-compatible assistant 
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  "openai>=2.32.0",
   "pydantic>=2.7.0",
   "rank-bm25>=0.2.2",
   "requests>=2.32.3",
