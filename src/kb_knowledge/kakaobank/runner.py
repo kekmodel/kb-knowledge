@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -94,6 +95,18 @@ Intermediate DB hashes are not success signals. Continue until the requested ope
 
 Every exported v0 task requires at least one assistant-side state-changing operation.
 Plain assistant text is not a completion signal in this runner.
+""".strip()
+KAKAOBANK_DETERMINISTIC_TOOLING_POLICY = """
+## Deterministic Tool Argument Policy
+
+DB evaluation is exact. For code-like arguments, choose values from the tool schema enum when an enum is provided.
+Do not translate enum values into free-form labels, Korean prose, lowercase aliases, or shorter synonyms.
+
+When a write tool creates a new record and no ID is visible yet, generate the ID deterministically from the visible runtime IDs:
+reuse the task/customer numeric suffix, and use the product-specific prefix shown by existing IDs and tool argument names.
+Examples: `acct_child_211`, `box_safe_148`, `box_piggy_224`, `svc_group_131`, `gm_owner_131`,
+`auto_piggy_226`, `txn_inbound_remit_159`, `card_order_088`, `mini_card_mc_101`, `cmp_app_029`.
+For re-application flows, append `_reapply` to a new service ID and `_new` to new consent IDs when replacing a closed prior record.
 """.strip()
 
 READ_TOOL_NAMES = {
@@ -186,7 +199,12 @@ TOOL_DESCRIPTION_OVERRIDES = {
         "box transfer, pocket movement, record-book section movement, or mini balance "
         "movement. Use this when money or balance-backed state should change. For "
         "rejected or pending movements, include the rejection/pending status in the "
-        "arguments so replay leaves balances unchanged when appropriate."
+        "arguments so replay leaves balances unchanged when appropriate. For group-account "
+        "extra-pocket shortage coverage, first move only the shortage amount from the extra "
+        "pocket to the basic pocket with GROUP_POCKET_AUTO_MOVE_FOR_WITHDRAWAL, then move "
+        "the full withdrawal amount from the basic pocket to the external payee with "
+        "GROUP_ACCOUNT_WITHDRAWAL_AFTER_AUTO_POCKET_MOVE. Do not debit the basic pocket "
+        "to the external payee before the shortage-cover movement."
     ),
     "request_interest_payment": (
         "Request and apply a product-specific interest payment, such as a SafeBox "
@@ -227,12 +245,17 @@ TOOL_DESCRIPTION_OVERRIDES = {
         "Update mini-card/card state for issue, reissue, lost-card reporting, card "
         "restriction, rejected issuance, payment approval/refusal, or T-money transfer "
         "handling. Use when age, guardian consent, existing-card count, wallet balance, "
-        "password errors, merchant restrictions, or report-window rules control the outcome."
+        "password errors, merchant restrictions, or report-window rules control the outcome. "
+        "For lost/stolen-card compensation, if the card runtime record is still ACTIVE or "
+        "lost_reported_at is null, call REPORT_LOST_CARD before filing the dispute."
     ),
     "file_dispute_or_objection": (
         "Create or update a dispute, objection, compensation, or affiliate-service "
         "complaint record. Use when the correct bank action is to log an investigation "
-        "or dispute outcome rather than directly changing the underlying product state."
+        "or dispute outcome rather than directly changing the underlying product state. "
+        "For lost-card compensation, include card_id, reported_at, transaction_occurred_at, "
+        "within_60_days, member_fault_flags, and investigation_status. Do not set "
+        "compensation_approved unless the policy has already finalized compensation."
     ),
 }
 TOOL_ARGUMENT_OVERRIDES = {
@@ -515,9 +538,13 @@ ARGUMENT_DESCRIPTIONS = {
 NUMBER_ARGUMENTS = {
     "amount",
     "amount_krw",
+    "emergency_withdrawal_count_after",
     "requested_amount_krw",
     "issue_fee_krw",
     "customer_age",
+    "week_number",
+    "new_cumulative_payment_count",
+    "new_today_payment_count",
     "old_t_money_balance_krw",
     "new_card_t_money_balance_krw",
 }
@@ -535,6 +562,609 @@ BOOLEAN_ARGUMENTS = {
 }
 ARRAY_ARGUMENTS = {
     "rejected_source_account_ids",
+}
+TOOL_ARGUMENT_ENUMS: dict[str, dict[str, tuple[str, ...]]] = {
+    "close_account_or_service": {
+        "close_type": (
+            "AFFILIATE_SERVICE_STOP",
+            "AUTO_CLOSE",
+            "CHILD_ACCOUNT_SELF_CLOSE_AT_AGE_19",
+            "CLOSE_DEMAND_DEPOSIT_ACCOUNT",
+            "CLOSE_DOLLARBOX",
+            "CLOSE_GROUP_ACCOUNT_SERVICE",
+            "CLOSE_LAST_NON_INTEREST_SECTION_AND_RECORD_ACCOUNT",
+            "CLOSE_PIGGY_BANK",
+            "CLOSE_SAFEBOX",
+            "CLOSE_VAT_BOX",
+            "FEE_CHANGE_CANCEL",
+            "NORMAL_CLOSE",
+            "REMOVE_GROUP_MEMBER",
+            "SERVICE_CONSENT_WITHDRAWAL",
+            "WITHDRAW_SERVICE_CONSENT",
+        ),
+        "reason": (
+            "ACCOUNT_HOLDER_REACHED_AGE_19",
+            "AFFILIATE_CONTRACT_ENDED_AFTER_2_WEEK_NOTICE",
+            "AFFILIATE_CONTRACT_ENDED_AFTER_30_DAY_NOTICE",
+            "CUSTOMER_REQUEST_NO_RESTRICTIONS",
+            "LAST_NON_INTEREST_SECTION_CLOSE",
+            "MINI_LIFE_SERVICE_AUTO_CLOSED_AT_AGE_19",
+            "NO_PAYMENT_IDENTITY_PRODUCT_OR_LOAN_LINKS",
+            "NO_PAYMENT_PRODUCT_OR_LOAN_LINKS_REMAIN",
+            "OWNER_REMOVAL_REQUEST",
+            "OWNER_REQUEST_NO_MEMBERS_CARD_CANCELLED",
+            "USER_REJECTED_SEPARATE_CREDIT_LOOKUP_FEE_AFTER_PRIOR_NOTICE",
+            "USER_REQUEST_ZERO_BALANCE_NO_BLOCKERS",
+            "USER_WITHDREW_BUSINESS_CREDIT_INFO_CONSENT",
+            "USER_WITHDREW_CREDIT_LOAN_COMPARISON_SERVICE_CONSENT",
+            "USER_WITHDREW_MORTGAGE_COMPARISON_SERVICE_CONSENT_AFTER_FEE_NOTICE",
+            "USER_WITHDREW_MY_CREDIT_INFO_CONSENT",
+        ),
+    },
+    "configure_auto_transfer": {"operation": ("CREATE",)},
+    "create_loan_application": {
+        "expected_reason": ("ACTIVE_SOLE_PROPRIETOR_WORKING_CAPITAL_REQUEST",),
+        "expected_status": ("PARTNER_HANDOFF_CREATED", "SUBMITTED_FOR_SCREENING"),
+        "purpose": ("WORKING_CAPITAL", "생활자금", "주택구입자금"),
+    },
+    "execute_deposit_or_box_transfer": {
+        "currency": ("KRW",),
+        "interest_rate_type_for_withdrawn_amount": ("EARLY_CLOSE_RATE",),
+        "new_transaction_status": ("PENDING_CANCEL_RETURN",),
+        "representative_role": ("MAIN_REPRESENTATIVE_PARENT",),
+        "transaction_type": (
+            "CHILD_ACCOUNT_MAIN_REP_MOBILE_TRANSFER",
+            "CHILD_SAVINGS_EMERGENCY_WITHDRAWAL",
+            "FIXED_DEPOSIT_EMERGENCY_WITHDRAWAL",
+            "FREE_SAVINGS_AD_HOC_DEPOSIT",
+            "FREE_SAVINGS_EMERGENCY_WITHDRAWAL",
+            "GROUP_ACCOUNT_WITHDRAWAL_AFTER_AUTO_POCKET_MOVE",
+            "GROUP_POCKET_AUTO_MOVE_FOR_WITHDRAWAL",
+            "MINI_CANCEL_AMOUNT_PENDING_OVER_HOLDING_LIMIT",
+            "MINI_SIMPLE_TRANSFER_AUTO_CANCEL_REFUND",
+            "ONE_MONTH_SAVINGS_DAILY_PAYMENT",
+            "PIGGY_BANK_BRAND_COUPON_CASHBACK",
+            "PIGGY_BANK_COIN_SAVING",
+            "RECORD_BOOK_COLLECTION_RULE_DEPOSIT",
+            "RECORD_BOOK_SECTION_CLOSE_TRANSFER",
+            "SAFEBOX_LINKED_BASE_DEPOSIT",
+            "VAT_BOX_CUSTOM_AUTO_COLLECT",
+            "VAT_BOX_TEN_PERCENT_AUTO_COLLECT",
+        ),
+        "transfer_type": ("MISSED_WEEK_FILL",),
+    },
+    "execute_remittance_case": {
+        "country": ("CA", "DE", "JP", "KR", "US"),
+        "currency": ("CAD", "EUR", "JPY", "USD"),
+        "direction": (
+            "DOLLARBOX_GIFT_AUTO_CANCEL",
+            "DOLLARBOX_GIFT_RECEIVE",
+            "INBOUND_AUTO_RECEIVE_DOCUMENT_REQUEST",
+            "INBOUND_BULK_DEPOSIT",
+            "INBOUND_DAILY_OVER_100K_DOCUMENT_REQUEST",
+            "INBOUND_IMMEDIATE_DEPOSIT",
+            "INBOUND_RESIDENCY_VERIFICATION_HOLD",
+            "INBOUND_RETURN_INFO_MISMATCH",
+            "OUTBOUND_BENEFICIARY_INFO_AUTO_CANCEL",
+            "OUTBOUND_BUSINESS_PURPOSE_REJECTED",
+            "OUTBOUND_NO_DOCUMENT",
+            "OUTBOUND_NO_DOCUMENT_OVER_100K_SINGLE_LIMIT_REJECTED",
+            "OUTBOUND_RETURN_SETTLEMENT",
+        ),
+        "purpose_code": (
+            "AD_REVENUE",
+            "BUSINESS_VENDOR_PAYMENT",
+            "GIFT_AUTO_CANCEL_AFTER_30_DAYS",
+            "GIFT_RECEIVE_WITHIN_30_DAYS",
+            "LIVING_EXPENSE",
+            "PERSONAL_TRANSFER",
+        ),
+    },
+    "file_dispute_or_objection": {
+        "reason": (
+            "AFFILIATE_SERVICE_DISPUTE_KAKAOBANK_COOPERATION_ONLY",
+            "CUSTOMER_PHONE_CHANGE_NOTICE_DELAY_NO_BANK_OR_NICE_FAULT",
+            "EMERGENCY_TEMPORARY_RESTRICTION_AFTER_NOTICE_ALLOWED",
+            "LOST_CARD_COMPENSATION_ELIGIBLE_WITHIN_60_DAYS",
+            "LOST_CARD_MEMBER_LIABILITY_THIRD_PARTY_TRANSFER_FAMILY_INCLUDED",
+            "NICE_CONTENT_VALIDITY_NOT_KAKAOBANK_GUARANTEED",
+        ),
+        "target_type": (
+            "affiliate_service_availability",
+            "affiliate_service_content",
+            "service_alert",
+            "service_enrollment",
+            "transaction",
+        ),
+    },
+    "process_refinance_request": {
+        "old_loan_repayment_status": (
+            "BLOCKED_NON_APARTMENT_COLLATERAL",
+            "FAILED",
+            "SUCCEEDED",
+        ),
+        "operation": (
+            "CANCEL_NEW_LOAN_AFTER_OLD_REPAYMENT_FAILURE",
+            "COMPLETE_OLD_LOAN_REPAYMENT_AND_ACTIVATE_NEW_LOAN",
+            "COMPLETE_OLD_LOAN_REPAYMENT_AND_REQUEST_LIEN_RELEASE",
+            "REJECT_UNREPAYABLE_OLD_LOAN",
+        ),
+    },
+    "request_maturity_or_extension": {
+        "operation": (
+            "AUTO_EXTEND",
+            "AUTO_REDEPOSIT",
+            "EARLY_CLOSE",
+            "MATURE_AUTO_CLOSE",
+            "MATURE_DIRECT_CLOSE",
+            "MATURE_HOLIDAY_PREVIOUS_BUSINESS_DAY_CLOSE",
+        ),
+    },
+    "update_card_state": {
+        "attempted_transaction_type": ("ATM_WITHDRAWAL",),
+        "new_card_status": ("RESTRICTED",),
+        "new_status": ("ACTIVE", "LOST_REPORTED"),
+        "operation": (
+            "ISSUE_NEW_CARD",
+            "REISSUE_CARD",
+            "REISSUE_CARD_WITHOUT_TMONEY_TRANSFER",
+            "REJECT_NEW_ISSUE",
+            "REPORT_LOST_CARD",
+            "RESTRICT_CARD_AND_REJECT_TRANSACTION",
+        ),
+        "reason": (
+            "ADULT_NEW_ISSUE_NOT_ALLOWED",
+            "CARD_COUNT_LIMIT_ONE_PER_CUSTOMER",
+            "CUSTOMER_REPORTED_STOLEN_CARD_IMMEDIATELY",
+            "DAMAGED_CARD",
+            "LEGAL_GUARDIAN_CONSENT_NOT_VALID",
+            "PASSWORD_ERROR_COUNT_EXCEEDED",
+            "TMONEY_BALANCE_NOT_TRANSFERRED_AND_NO_CARD_REFUND_RESTRICTED",
+            "UNDER14_WITH_VALID_LEGAL_GUARDIAN_CONSENT",
+        ),
+    },
+    "update_loan_contract_state": {
+        "operation": (
+            "ACCELERATE_FOR_DOCUMENT_FAILURE",
+            "ACCELERATE_FOR_MOVE_IN_PROOF_NOT_SUBMITTED",
+            "ACCELERATE_FOR_SGI_FALSE_DOCUMENT",
+            "ACCELERATE_FOR_SGI_OPPOSING_POWER_FAILURE",
+            "ACCELERATE_FOR_SGI_OPPOSING_POWER_LOSS",
+            "ACCELERATE_FOR_UNDISCLOSED_HOUSEHOLD_HOME",
+            "ACCELERATE_IMMEDIATE_REPAYMENT",
+            "EXECUTE_LEASE_LOAN_TO_LANDLORD",
+            "EXECUTE_SGI_LEASE_REFINANCE_REMAINING_TO_LANDLORD",
+            "MARK_EXECUTION_BLOCKED",
+            "MARK_PURCHASE_MORTGAGE_EXECUTION_NOT_RUN",
+            "PROCESS_LOAN_WITHDRAWAL_RIGHT",
+            "RESUME_EXECUTION_WITH_UPDATED_LANDLORD_ACCOUNT",
+            "START_COLLATERAL_ENFORCEMENT",
+            "STOP_EXECUTION_BEFORE_DISBURSEMENT",
+            "VERIFY_USED_CAR_TITLE_TRANSFER",
+            "WITHDRAW_CONTRACT_WITHIN_COOLING_OFF",
+        ),
+        "reason": (
+            "ACCELERATED_MORTGAGE_NOT_REPAID",
+            "BUSINESS_CREDIT_FUNDS_USED_OUTSIDE_APPROVED_PURPOSE",
+            "CREDIT_RISK_AND_REPAYMENT_ABILITY_WORSENED_AFTER_CONTRACT",
+            "EXECUTION_CONDITIONS_SATISFIED",
+            "EXECUTION_CONFIRM_BUTTON_NOT_PRESSED_BY_PREVIOUS_DAY",
+            "EXECUTION_INFO_CHANGE_RETRY_SUCCEEDED",
+            "HIGH_CREDIT_REGULATED_AREA_HOME_PURCHASE_VIOLATION",
+            "LANDLORD_ACCOUNT_DEPOSIT_BLOCKED",
+            "MORTGAGE_MOVE_IN_PROOF_NOT_SUBMITTED_WITHIN_6_MONTHS",
+            "OLD_LOAN_REPAYMENT_PROOF_MISSING_BEFORE_EXECUTION",
+            "POST_USE_INSPECTION_STATEMENT_NOT_SUBMITTED_WITHIN_3_MONTHS",
+            "RESIDENT_REGISTRATION_DOCUMENT_NOT_SUBMITTED_WITHIN_ONE_MONTH",
+            "SGI_OPPOSING_POWER_LOST_DURING_TERM",
+            "SGI_OPPOSING_POWER_NOT_SECURED_WITHIN_3_BUSINESS_DAYS",
+            "SGI_REFINANCE_CONDITIONS_SATISFIED",
+            "SGI_SUBMITTED_DOCUMENT_FALSE",
+            "TITLE_TRANSFER_CONFIRMED_WITHIN_15_DAYS",
+            "TITLE_TRANSFER_NOT_COMPLETED_WITHIN_15_DAYS",
+            "TS_REGISTRY_SHOWS_TITLE_TRANSFER_NOT_COMPLETED",
+            "UNDISCLOSED_HOUSEHOLD_PRESALE_RIGHT_AT_EXECUTION",
+            "USED_CAR_LOAN_FUNDS_USED_OUTSIDE_VEHICLE_PURCHASE",
+            "USED_CAR_SALE_CANCEL_AFTER_DEALER_PAYMENT",
+            "WITHDRAWAL_WITHIN_14_DAYS_FUNDS_RETURN_READY",
+            "WITHIN_14_DAYS_FROM_LATEST_TRIGGER_AND_RETURN_READY",
+        ),
+    },
+}
+TOOL_OPTION_ENUMS: dict[str, dict[str, tuple[str, ...]]] = {
+    "close_account_or_service": {
+        "linked_group_check_card_status": ("CANCELLED",),
+        "new_membership_status": ("REMOVED",),
+    },
+    "execute_deposit_or_box_transfer": {"purchase_status": ("COMPLETED",)},
+    "execute_remittance_case": {
+        "bulk_deposit_reason": ("NO_RECEIVE_APPLICATION_4TH_BUSINESS_DAY",),
+        "cancel_reason": ("RECIPIENT_NOT_RECEIVED_WITHIN_30_DAYS",),
+        "deposit_reason": ("UNDER_5000_USD_NO_RECEIVE_APPLICATION_REQUIRED",),
+        "document_request_reason": (
+            "BUSINESS_ACCOUNT_REQUIRES_PURPOSE_CONFIRMATION_AND_EVIDENCE_BEFORE_DEPOSIT",
+            "DAILY_AGGREGATE_OVER_100K_USD",
+        ),
+        "expected_status": (
+            "AUTO_CANCELED",
+            "PENDING_DOCUMENT_REVIEW",
+            "PENDING_RESIDENCY_VERIFICATION",
+            "REJECTED",
+            "RETURNED_INFO_MISMATCH",
+            "RETURNED_SETTLED",
+        ),
+        "fee_waiver_reason": ("PROMO_2024_10_01_TO_2026_09_30",),
+        "hold_reason": ("RESIDENCY_NOT_VERIFIED_DELAY_OR_RETURN_POSSIBLE",),
+        "rejection_reason": (
+            "BUSINESS_NAME_OR_BUSINESS_PURPOSE_REMITTANCE_NOT_ALLOWED",
+            "NO_DOCUMENT_AFTER_100K_SINGLE_CASE_OVER_5000_USD",
+        ),
+        "return_reason": ("RECIPIENT_REJECTED_BY_CUSTOMER_INPUT",),
+    },
+    "file_dispute_or_objection": {"investigation_status": ("PENDING",)},
+    "open_or_enroll_product": {
+        "currency": ("KRW", "USD"),
+        "expected_status": ("ACTIVE",),
+        "financial_info_consent_status": ("ACTIVE",),
+        "kakaobank_approval_status": ("APPROVED",),
+        "nice_approval_status": ("APPROVED",),
+        "opening_mode": (
+            "CONNECTED_NEW",
+            "NEW_FIXED_DEPOSIT",
+            "NEW_LIMIT_ACCOUNT",
+            "NEW_PREPAID_WALLET",
+        ),
+        "operation": (
+            "CONVERT_LIMIT_TO_NORMAL_ACCOUNT",
+            "ENROLL_SERVICE",
+            "OPEN_CHILD_ACCOUNT",
+            "OPEN_DOLLARBOX",
+            "OPEN_GROUP_ACCOUNT_SERVICE",
+            "OPEN_PIGGY_BANK",
+            "OPEN_SAFEBOX",
+            "OPEN_VAT_BOX",
+            "REACTIVATE_GROUP_ACCOUNT_SERVICE_AFTER_RECONSENT",
+            "REENROLL_SERVICE",
+            "RESTRICT_GROUP_ACCOUNT_SERVICE",
+        ),
+        "reason": ("FINANCIAL_INFO_RECONSENT_OVERDUE",),
+        "requested_immediate_transfer_status": (
+            "REJECTED_OVER_UNDER_17_DAILY_LIMIT",
+        ),
+        "terms_consent_status": ("ACCEPTED",),
+    },
+    "process_refinance_request": {
+        "home_type": ("VILLA",),
+        "lien_release_status": ("REQUESTED",),
+        "reason": ("NON_APARTMENT_MORTGAGE_REFINANCE_SERVICE_BLOCKED",),
+    },
+    "request_interest_payment": {"reason": ("CUSTOMER_REQUESTED_INTEREST_PAYMENT",)},
+    "request_maturity_or_extension": {
+        "close_type": (
+            "EARLY_CLOSE",
+            "MATURITY_AUTO_CLOSE",
+            "MATURITY_DIRECT_CLOSE",
+            "MATURITY_HOLIDAY_PREVIOUS_BUSINESS_DAY",
+        ),
+        "reason": (
+            "KAKAOBANK_PLEDGE_EXCEPTION_ALLOWS_AUTO_EXTENSION",
+            "RETIREMENT_DEFAULT_OPTION_WITH_FUND_AUTO_REDEPOSIT",
+        ),
+        "rejected_reason": (
+            "AUTO_EXTENDED_PRINCIPAL_NO_PREFERENTIAL_RATE",
+            "NOT_26_CONSECUTIVE_AUTO_TRANSFER_SUCCESS",
+        ),
+        "retirement_plan_type": ("DEFAULT_OPTION",),
+    },
+    "update_loan_contract_state": {
+        "disbursement_status": ("NOT_EXECUTED",),
+        "document_status": ("FALSE_DOCUMENT_CONFIRMED", "OVERDUE"),
+        "document_type": (
+            "MORTGAGE_MOVE_IN_PROOF",
+            "OLD_LOAN_FULL_REPAYMENT_PROOF",
+            "RESIDENT_REGISTRATION_WITH_MOVE_IN",
+        ),
+        "landlord_account_status": ("ACTIVE",),
+        "new_landlord_account_status": ("ACTIVE",),
+        "opposing_power_status": ("LOST",),
+        "resident_registration_status": ("NOT_REGISTERED", "TRANSFERRED_OUT"),
+        "undisclosed_asset_type": ("PRESALE_RIGHT",),
+    },
+}
+TOOL_OPTION_PROPERTIES: dict[str, tuple[str, ...]] = {
+    "close_account_or_service": (
+        "affected_features",
+        "age",
+        "all_service_features_closed",
+        "balance_usd",
+        "base_account_id",
+        "close_card",
+        "close_wallet",
+        "closed_features",
+        "contract_deemed_terminated",
+        "convert_target_account_to",
+        "effective_at",
+        "effective_immediately",
+        "fee_change_notice_sent_at",
+        "linked_account_id",
+        "linked_group_check_card_status",
+        "member_count",
+        "member_customer_id",
+        "new_membership_status",
+        "notice_period",
+        "notice_posted_at",
+        "pending_gifts",
+        "pending_refunds",
+        "principal_krw",
+        "prior_mobile_app_notice_sent",
+        "release_restriction_flags",
+        "service_id",
+        "settlement_interest_krw",
+        "transfer_amount_krw",
+        "transfer_principal_and_interest_to_base_account",
+        "travelwallet_link_active",
+        "user_declines_changed_paid_service",
+    ),
+    "configure_auto_transfer": (
+        "auto_transfer_id",
+        "max_amount_krw",
+        "min_amount_krw",
+        "not_first_run_date",
+        "saving_range",
+    ),
+    "execute_deposit_or_box_transfer": (
+        "allow_balance_over_limit",
+        "paid_from_box_id",
+        "post_balance_krw",
+        "purchase_id",
+        "purchase_status",
+    ),
+    "execute_remittance_case": (
+        "allowed_single_case_limit_usd_after_100k",
+        "annual_usd_equivalent",
+        "annual_usd_sent_before_case",
+        "applied_exchange_rate_krw_per_unit",
+        "auto_receive_matched",
+        "bank_fault",
+        "bulk_deposit_reason",
+        "business_account_as_source",
+        "business_days_elapsed",
+        "cancel_reason",
+        "correction_due_date",
+        "correction_requested_at",
+        "credit_amount_krw",
+        "daily_aggregate_usd_after_case",
+        "daily_received_usd_before_case",
+        "deposit_date",
+        "deposit_first_refused",
+        "deposit_reason",
+        "deposit_transaction_id",
+        "document_request_reason",
+        "exchange_rate_krw_per_unit",
+        "expected_status",
+        "fee_waiver_reason",
+        "fx_loss_krw",
+        "fx_preference_rate_percent",
+        "hold_reason",
+        "intermediary_and_recipient_fee_borne_by",
+        "mismatch_review_result",
+        "new_annual_usd_sent",
+        "original_exchange_rate_krw_per_unit",
+        "original_principal_krw",
+        "processed_at",
+        "receive_completed_at",
+        "receive_fee_krw",
+        "receive_transaction_id",
+        "recipient_box_id",
+        "recipient_country",
+        "recipient_name",
+        "recipient_real_name_confirmed",
+        "recipient_relationship",
+        "refund_transaction_id",
+        "rejection_reason",
+        "remittance_amount_krw",
+        "remittance_id",
+        "requested_no_document_amount_usd",
+        "requested_sender_name",
+        "resident_verified",
+        "return_exchange_rate_krw_per_unit",
+        "return_reason",
+        "return_transaction_id",
+        "returned_principal_krw",
+        "send_fee_krw",
+        "send_fee_refunded",
+        "sender_box_id",
+        "source_account_id",
+        "target_account_id",
+        "total_debit_krw",
+        "transaction_id",
+        "wire_fee_waived",
+    ),
+    "file_dispute_or_objection": (
+        "affiliate_resolution_principle",
+        "affiliate_responsibility",
+        "after_notice_required",
+        "bank_or_nice_fault_found",
+        "business_id",
+        "card_id",
+        "compensation_approved",
+        "contested_feature",
+        "customer_fault_flags",
+        "investigation_status",
+        "kakaobank_content_guarantee_refused",
+        "kakaobank_cooperation_promised",
+        "liability_scope",
+        "member_fault_flags",
+        "missed_feature",
+        "reactivation_approved",
+        "reported_at",
+        "requested_immediate_bank_reactivation",
+        "requested_immediate_reactivation",
+        "service_access_allowed",
+        "service_status_change",
+        "transaction_occurred_at",
+        "within_60_days",
+    ),
+    "open_or_enroll_product": (
+        "account_id",
+        "age_band",
+        "apply_limit_loan_restriction",
+        "base_account_changeable",
+        "base_account_id",
+        "box_id",
+        "business_id",
+        "business_name_display",
+        "business_number",
+        "coupon_id",
+        "currency",
+        "daily_app_transfer_limit_krw",
+        "daily_spend_limit_krw",
+        "deposit_account_created",
+        "deposit_id",
+        "expected_status",
+        "financial_info_consent_status",
+        "financial_purpose_verified",
+        "first_section",
+        "guardian_consent_id",
+        "guardian_consent_valid",
+        "holding_limit_krw",
+        "initial_amount_krw",
+        "initial_balance",
+        "interest_rate_applies",
+        "is_limit_account",
+        "kakaobank_approval_status",
+        "kakaobank_terms_consent_id",
+        "kcb_terms_consent_id",
+        "legal_form",
+        "legal_guardian_consent_required_for_limit_release",
+        "limit_amount",
+        "limit_increased",
+        "maturity_management",
+        "member_access_granted",
+        "member_count",
+        "minor_account_holder",
+        "monthly_app_transfer_limit_krw",
+        "monthly_spend_limit_krw",
+        "new_account_id",
+        "nice_approval_status",
+        "nice_terms_consent_id",
+        "opening_amount_krw",
+        "opening_mode",
+        "operation",
+        "owner_access_granted",
+        "owner_membership_id",
+        "previous_service_id",
+        "principal_krw",
+        "privacy_consent_id",
+        "provided_services",
+        "reason",
+        "reconsented_at",
+        "requested_by_customer_id",
+        "requested_immediate_transfer_krw",
+        "requested_immediate_transfer_status",
+        "restriction_flags_cleared",
+        "service_id",
+        "tax_free_savings",
+        "term_months",
+        "terms_consent_status",
+        "verification_method",
+        "wallet_id",
+    ),
+    "process_refinance_request": (
+        "home_type",
+        "lien_release_status",
+        "new_loan_status_after",
+        "old_loan_closed",
+        "reason",
+    ),
+    "request_interest_payment": (
+        "add_to_principal",
+        "destination_id",
+        "interest_amount_krw",
+        "reason",
+    ),
+    "request_maturity_or_extension": (
+        "auto_extended_principal_preferential_rate_points",
+        "auto_transfer_success_count",
+        "auto_transfer_success_month_count",
+        "close_date",
+        "close_type",
+        "contract_months",
+        "contractual_maturity_date",
+        "coupon_rate_applied",
+        "destination_account_id",
+        "do_not_auto_close",
+        "early_close_payout_krw",
+        "failed_weeks",
+        "filled_missed_weeks",
+        "interest_days_policy",
+        "legal_restriction_flags",
+        "maturity_payout_krw",
+        "new_auto_extension_count",
+        "new_contract_years",
+        "portfolio_contains_fund",
+        "preferential_rate_points",
+        "preferential_rate_points_applied",
+        "principal_plus_interest_krw",
+        "rate_policy",
+        "reason",
+        "rejected_preferential_on_auto_extended_principal",
+        "rejected_preferential_rate_points",
+        "rejected_reason",
+        "retirement_plan_type",
+        "same_contract_months",
+        "tax_free_savings",
+    ),
+    "update_loan_contract_state": (
+        "acquisition_method",
+        "approved_amount_krw",
+        "collateral_id",
+        "credit_info_violation_reported",
+        "customer_requested_force_execution",
+        "deadline",
+        "disbursement_amount_krw",
+        "disbursement_status",
+        "document_id",
+        "document_status",
+        "document_type",
+        "executed_at",
+        "execution_confirm_required_by",
+        "execution_confirmed_at",
+        "finding",
+        "guarantee_provider",
+        "holder_relationship",
+        "housing_loan_restriction_years",
+        "immediate_repayment_due_at",
+        "immediate_repayment_required",
+        "inheritance_exception_applies",
+        "landlord_account_id",
+        "landlord_account_status",
+        "landlord_disbursement_amount_krw",
+        "lease_id",
+        "legal_procedure_required",
+        "move_in_verified",
+        "move_in_verified_before_loss",
+        "moved_out_at",
+        "new_landlord_account_id",
+        "new_landlord_account_status",
+        "old_landlord_account_id",
+        "old_loan_id",
+        "old_loan_repaid",
+        "old_loan_repayment_amount_krw",
+        "old_loan_repayment_proof_document_id",
+        "old_loan_repayment_verified_by_bank",
+        "opposing_power_due_date",
+        "opposing_power_status",
+        "outstanding_krw",
+        "ownership_loss_risk_disclosed",
+        "preexisting_acceleration_reason",
+        "refinance_condition",
+        "repayment_received_after_acceleration",
+        "required_document_to_create",
+        "resident_registration_status",
+        "undisclosed_asset_type",
+        "updated_execution_date",
+    ),
 }
 
 
@@ -896,6 +1526,7 @@ def build_runner_domain_policy(
             _retrieval_policy_for_config(retrieval_config),
             KAKAOBANK_SINGLE_TURN_RUNNER_POLICY,
             KAKAOBANK_V0_EVALUATION_POLICY,
+            KAKAOBANK_DETERMINISTIC_TOOLING_POLICY,
         ]
     )
 
@@ -953,7 +1584,26 @@ def build_runtime_context(task_data: dict[str, Any]) -> str:
             continue
         record_ids = ", ".join(sorted(str(record_id) for record_id in records))
         lines.append(f"- {table_name}: {record_ids}")
+    suffixes = _runtime_numeric_suffixes(agent_data)
+    if suffixes:
+        lines.append(
+            "Generated ID suffix hint: reuse suffix "
+            f"{', '.join(suffixes)} for newly created records when an ID is needed."
+        )
     return "\n".join(lines)
+
+
+def _runtime_numeric_suffixes(agent_data: dict[str, Any]) -> list[str]:
+    suffixes: set[str] = set()
+    for table in agent_data.values():
+        records = table.get("data") if isinstance(table, dict) else None
+        if not isinstance(records, dict):
+            continue
+        for record_id in records:
+            matches = re.findall(r"_(\d{3})(?:_|$)", str(record_id))
+            if matches:
+                suffixes.add(matches[-1])
+    return sorted(suffixes)
 
 
 def build_openai_tool_definitions(
@@ -1055,14 +1705,23 @@ def _argument_json_schema(
     tool_name: str,
 ) -> dict[str, Any]:
     description = _argument_description(argument_name, tool_name=tool_name)
+    enum_values = TOOL_ARGUMENT_ENUMS.get(tool_name, {}).get(argument_name)
     if argument_name in NUMBER_ARGUMENTS or argument_name.endswith("_krw"):
-        return {"type": "number", "description": description}
+        schema: dict[str, Any] = {"type": "number", "description": description}
+        if enum_values:
+            schema["enum"] = list(enum_values)
+        return schema
     if argument_name in {"options", "schedule"}:
-        return {
+        schema = {
             "type": "object",
             "description": description,
             "additionalProperties": True,
         }
+        if argument_name == "options":
+            option_properties = _option_json_schema_properties(tool_name)
+            if option_properties:
+                schema["properties"] = option_properties
+        return schema
     if argument_name in ARRAY_ARGUMENTS:
         return {
             "type": "array",
@@ -1074,14 +1733,152 @@ def _argument_json_schema(
         or argument_name.endswith("_valid")
         or argument_name.endswith("_approved")
     ):
-        return {"type": "boolean", "description": description}
+        schema = {"type": "boolean", "description": description}
+        if enum_values:
+            schema["enum"] = list(enum_values)
+        return schema
     if tool_name == "get_account_or_contract" and argument_name == "table":
         return {
             "type": "string",
             "description": description,
             "enum": list(KAKAOBANK_TABLE_NAMES),
         }
-    return {"type": "string", "description": description}
+    schema = {"type": "string", "description": description}
+    if enum_values:
+        schema["enum"] = list(enum_values)
+    return schema
+
+
+def _option_json_schema_properties(tool_name: str) -> dict[str, dict[str, Any]]:
+    return {
+        option_name: _option_property_json_schema(
+            tool_name,
+            option_name,
+            TOOL_OPTION_ENUMS.get(tool_name, {}).get(option_name, ()),
+        )
+        for option_name in sorted(
+            set(TOOL_OPTION_PROPERTIES.get(tool_name, ()))
+            | set(TOOL_OPTION_ENUMS.get(tool_name, ()))
+        )
+    }
+
+
+def _option_property_json_schema(
+    tool_name: str,
+    option_name: str,
+    enum_values: tuple[str, ...],
+) -> dict[str, Any]:
+    description = _option_argument_description(tool_name, option_name)
+    schema: dict[str, Any] = {
+        "type": _option_property_type(option_name),
+        "description": description,
+    }
+    if schema["type"] == "array":
+        schema["items"] = {"type": "string"}
+    if schema["type"] == "object":
+        schema["additionalProperties"] = True
+    if enum_values:
+        schema["enum"] = list(enum_values)
+    return schema
+
+
+def _option_property_type(option_name: str) -> str:
+    if option_name in {"first_section", "required_document_to_create"}:
+        return "object"
+    if (
+        option_name.endswith("_flags")
+        or option_name.endswith("_features")
+        or option_name in {"failed_weeks", "filled_missed_weeks", "provided_services"}
+    ):
+        return "array"
+    if (
+        option_name.startswith("is_")
+        or option_name.endswith("_valid")
+        or option_name.endswith("_approved")
+        or option_name.endswith("_applies")
+        or option_name.endswith("_created")
+        or option_name.endswith("_changeable")
+        or option_name.endswith("_verified")
+        or option_name.endswith("_required")
+        or option_name.endswith("_closed")
+        or option_name.endswith("_refused")
+        or option_name.endswith("_matched")
+        or option_name.endswith("_fault")
+        or option_name.endswith("_waived")
+        or option_name.endswith("_refunded")
+        or option_name.endswith("_confirmed")
+        or option_name.endswith("_processed")
+        or option_name
+        in {
+            "all_service_features_closed",
+            "close_card",
+            "close_wallet",
+            "contract_deemed_terminated",
+            "effective_immediately",
+            "pending_gifts",
+            "pending_refunds",
+            "prior_mobile_app_notice_sent",
+            "transfer_principal_and_interest_to_base_account",
+            "travelwallet_link_active",
+            "user_declines_changed_paid_service",
+            "deposit_first_refused",
+            "business_account_as_source",
+            "resident_verified",
+            "recipient_real_name_confirmed",
+            "wire_fee_waived",
+            "bank_or_nice_fault_found",
+            "kakaobank_content_guarantee_refused",
+            "kakaobank_cooperation_promised",
+            "requested_immediate_bank_reactivation",
+            "requested_immediate_reactivation",
+            "service_access_allowed",
+            "service_status_change",
+            "within_60_days",
+            "base_account_changeable",
+            "financial_purpose_verified",
+            "interest_rate_applies",
+            "limit_increased",
+            "member_access_granted",
+            "minor_account_holder",
+            "owner_access_granted",
+            "tax_free_savings",
+            "old_loan_repaid",
+            "old_loan_repayment_verified_by_bank",
+            "refinance_condition",
+            "repayment_received_after_acceleration",
+        }
+    ):
+        return "boolean"
+    if (
+        option_name.endswith("_krw")
+        or option_name.endswith("_usd")
+        or option_name.endswith("_count")
+        or option_name.endswith("_years")
+        or option_name.endswith("_months")
+        or option_name.endswith("_days")
+        or option_name.endswith("_percent")
+        or option_name.endswith("_points")
+        or option_name.endswith("_amount")
+        or option_name.endswith("_balance")
+        or option_name == "age"
+    ):
+        return "number"
+    return "string"
+
+
+def _option_argument_description(tool_name: str, option_name: str) -> str:
+    if option_name.endswith("_id") or option_name.endswith("_transaction_id"):
+        return (
+            f"Operation-specific ID field `{option_name}`. Use an existing runtime ID "
+            "when updating an existing record; when creating a new record, follow the "
+            "deterministic generated-ID convention from the system policy."
+        )
+    if option_name in TOOL_OPTION_ENUMS.get(tool_name, {}):
+        return (
+            f"Exact code value for options.{option_name}. Choose one of the enum values; "
+            "do not invent synonyms."
+        )
+    return f"Operation-specific options.{option_name} value."
 
 
 def _argument_description(argument_name: str, *, tool_name: str) -> str:

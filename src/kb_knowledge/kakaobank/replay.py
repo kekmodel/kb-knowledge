@@ -23,6 +23,22 @@ from kb_knowledge.kakaobank.data_model import (
 KAKAOBANK_KNOWLEDGE_DOMAIN_DIR = Path("data/kakaobank_knowledge/v0")
 KAKAOBANK_KNOWLEDGE_DB_PATH = KAKAOBANK_KNOWLEDGE_DOMAIN_DIR / "tasks" / "db.json"
 KAKAOBANK_KNOWLEDGE_TASKS_DIR = KAKAOBANK_KNOWLEDGE_DOMAIN_DIR / "tasks" / "cases"
+CANONICAL_TOOL_TIMESTAMP = "TOOL_EXECUTION_TIME"
+SERVER_TIMESTAMP_FIELDS = {
+    "effective_at",
+    "executed_at",
+    "issued_at",
+    "lost_reported_at",
+    "processed_at",
+    "receive_completed_at",
+    "recipient_completed_at",
+    "reconsented_at",
+    "redeposited_at",
+    "refunded_at",
+    "reported_at",
+    "requested_at",
+    "restricted_at",
+}
 
 
 class ReplayError(RuntimeError):
@@ -766,7 +782,8 @@ def _reactivate_group_account_service(db: KakaoBankDB, options: dict[str, Any]) 
     service["financial_info_consent_status"] = options.get(
         "financial_info_consent_status", "ACTIVE"
     )
-    service["reconsented_at"] = options.get("reconsented_at")
+    if "reconsented_at" in options:
+        service["reconsented_at"] = _tool_timestamp()
 
     cleared = set(options.get("restriction_flags_cleared") or [])
     if isinstance(service.get("restriction_flags"), list):
@@ -819,7 +836,20 @@ def _copy_option_fields(
 ) -> None:
     for field_name in field_names:
         if field_name in options:
-            target[field_name] = options[field_name]
+            target[field_name] = _canonicalize_replay_value(
+                field_name,
+                options[field_name],
+            )
+
+
+def _canonicalize_replay_value(field_name: str, value: Any) -> Any:
+    if field_name in SERVER_TIMESTAMP_FIELDS and value is not None:
+        return CANONICAL_TOOL_TIMESTAMP
+    return value
+
+
+def _tool_timestamp() -> str:
+    return CANONICAL_TOOL_TIMESTAMP
 
 
 def _replay_request_maturity_or_extension(
@@ -864,7 +894,7 @@ def _close_deposit_contract_for_maturity(
 ) -> None:
     deposit["status"] = "CLOSED"
     deposit["close_type"] = str(options["close_type"])
-    deposit["closed_at"] = arguments.get("requested_at")
+    deposit["closed_at"] = _tool_timestamp()
     _copy_option_fields(
         deposit,
         options,
@@ -915,7 +945,7 @@ def _auto_extend_deposit_contract(
     deposit["close_type"] = "AUTO_EXTENSION"
     deposit["extension_reason"] = options.get("reason")
     deposit["maturity_reason"] = options.get("reason")
-    deposit["extended_at"] = arguments.get("requested_at")
+    deposit["extended_at"] = _tool_timestamp()
     if "new_auto_extension_count" in options:
         deposit["auto_extension_count"] = options["new_auto_extension_count"]
     if "same_contract_months" in options:
@@ -931,7 +961,7 @@ def _auto_redeposit_contract(
     deposit["close_type"] = "AUTO_REDEPOSIT"
     deposit["redeposit_reason"] = options.get("reason")
     deposit["maturity_reason"] = options.get("reason")
-    deposit["redeposited_at"] = arguments.get("requested_at")
+    deposit["redeposited_at"] = _tool_timestamp()
     if "principal_plus_interest_krw" in options:
         deposit["principal_krw"] = options["principal_plus_interest_krw"]
     if "accrued_interest_krw" in deposit:
@@ -979,7 +1009,7 @@ def _replay_dollarbox_gift_remittance(
 
     if direction == "DOLLARBOX_GIFT_RECEIVE":
         remittance["status"] = "RECEIVED"
-        remittance["recipient_completed_at"] = options.get("receive_completed_at")
+        remittance["recipient_completed_at"] = _tool_timestamp()
         remittance["recipient_real_name_confirmed"] = options.get(
             "recipient_real_name_confirmed", True
         )
@@ -1224,14 +1254,14 @@ def _replay_update_card_state(db: KakaoBankDB, action: dict[str, Any]) -> str:
     if operation == "REPORT_LOST_CARD":
         _, card = _find_record_by_id(db, str(arguments["card_id"]))
         card["status"] = str(arguments.get("new_status", "LOST_REPORTED"))
-        card["lost_reported_at"] = arguments.get("requested_at")
+        card["lost_reported_at"] = _tool_timestamp()
         card["lost_report_reason"] = arguments.get("reason")
         return "applied_card_state"
 
     if operation == "RESTRICT_CARD_AND_REJECT_TRANSACTION":
         _, card = _find_record_by_id(db, str(arguments["card_id"]))
         card["status"] = str(arguments.get("new_card_status", "RESTRICTED"))
-        card["restricted_at"] = arguments.get("requested_at")
+        card["restricted_at"] = _tool_timestamp()
         card["restriction_reason"] = arguments.get("reason")
         return "applied_card_state"
 
@@ -1292,7 +1322,7 @@ def _replay_process_refinance_request(db: KakaoBankDB, action: dict[str, Any]) -
     _, refinance = _find_record_by_id(db, refinance_id)
 
     refinance["old_loan_repayment_status"] = arguments.get("old_loan_repayment_status")
-    refinance["processed_at"] = arguments.get("requested_at")
+    refinance["processed_at"] = _tool_timestamp()
 
     if operation == "REJECT_UNREPAYABLE_OLD_LOAN":
         refinance["status"] = "REJECTED"
@@ -1395,7 +1425,7 @@ def _replay_request_interest_payment(db: KakaoBankDB, action: dict[str, Any]) ->
     _credit_record_if_balance_backed(target, interest_amount)
     if "accrued_interest_krw" in target:
         target["accrued_interest_krw"] = 0
-    target["last_interest_paid_at"] = arguments.get("requested_at")
+    target["last_interest_paid_at"] = _tool_timestamp()
     target["last_interest_payment_reason"] = options.get("reason")
     return "applied_interest_payment"
 
@@ -1426,7 +1456,7 @@ def _issue_new_card(db: KakaoBankDB, arguments: dict[str, Any]) -> None:
         "wallet_id": wallet_id,
         "product_name": "mini카드",
         "status": str(arguments.get("new_status", "ACTIVE")),
-        "issued_at": arguments.get("requested_at"),
+        "issued_at": _tool_timestamp(),
         "daily_limit_krw": 500000,
         "monthly_limit_krw": 2000000,
     }
@@ -1472,7 +1502,7 @@ def _replay_update_loan_contract_state(db: KakaoBankDB, action: dict[str, Any]) 
     operation = str(arguments["operation"])
     loan_id = str(arguments["loan_id"])
     reason = str(arguments.get("reason", ""))
-    effective_at = arguments.get("effective_at")
+    effective_at = _tool_timestamp()
 
     if operation == "REJECT_LEASE_CONTRACT_REVISION":
         return "rejected_loan_update_noop"
@@ -1558,7 +1588,7 @@ def _execute_lease_loan(
     options: dict[str, Any],
 ) -> None:
     loan["status"] = "EXECUTED"
-    loan["executed_at"] = arguments.get("effective_at")
+    loan["executed_at"] = _tool_timestamp()
     amount = _numeric_value(
         options.get("landlord_disbursement_amount_krw")
         or options.get("disbursement_amount_krw")
@@ -1603,7 +1633,7 @@ def _update_application_decision(
     application[1]["status"] = status
     application[1]["decision_reason"] = arguments.get("reason")
     if "effective_at" in arguments:
-        application[1]["decision_at"] = arguments["effective_at"]
+        application[1]["decision_at"] = _tool_timestamp()
 
 
 def _accelerate_loan(
@@ -1888,7 +1918,7 @@ def _upsert_card_order(
         "wallet_id": arguments.get("wallet_id"),
         "status": status,
         "reason": arguments.get("reason"),
-        "requested_at": arguments.get("requested_at"),
+        "requested_at": _tool_timestamp(),
         "new_card_created": arguments.get("new_card_created", status == "APPROVED"),
     }
     _copy_option_fields(
@@ -2040,7 +2070,7 @@ def _apply_transaction_record_updates(
     if "new_transaction_status" in arguments:
         record["status"] = arguments["new_transaction_status"]
     if "refunded_at" in arguments:
-        record["refunded_at"] = arguments["refunded_at"]
+        record["refunded_at"] = _tool_timestamp()
 
 
 def _apply_source_record_updates(

@@ -30,8 +30,19 @@ The goal is to distinguish correct gold actions from task bugs, fixture visibili
 
 - Audit status: completed by direct task-by-task review of user prompt, expected write actions, required documents, initial-state visibility, and replay semantics.
 - Semantic expected-action bugs found: 0.
-- Manual verdict counts: OK=4, TOOL_SCHEMA_GAP=118, FIXTURE_VISIBILITY_GAP=0, KB_OR_QUERY_GAP=1.
+- Original manual verdict counts before remediation: OK=4, TOOL_SCHEMA_GAP=118, FIXTURE_VISIBILITY_GAP=0, KB_OR_QUERY_GAP=1.
 - Important interpretation: `TOOL_SCHEMA_GAP` means the expected write appears business-correct, but exact DB-hash-critical codes and/or generated IDs are not fairly exposed to the assistant yet.
+
+## Remediation Status
+
+- Fixture visibility gaps: fixed.
+- Exact code-like values absent from the current agent-facing tool schema: 0.
+- All expected `options.*` keys are present in the current agent-facing tool schema.
+- Generated-ID exposure: addressed by a deterministic system-prompt convention and runtime numeric suffix hints.
+- Server-side execution timestamps are canonicalized in replay so hidden exact wall-clock times are not part of model evaluation.
+- Material KB/query gaps: fixed for `kb_manual_safebox_clean_close_transfers_to_base_account`.
+- Multi-write e2e after remediation: 3/3 passed with `gpt-5.4-nano` on `bm25_grep`.
+- Remaining required-document top-10 retrieval miss: `kb_manual_demand_deposit_clean_close_success` still misses `doc_kakao_product_입출금통장_002`, but the manual audit judged it non-material because `doc_kakao_product_입출금통장_003` contains the close restrictions and is retrieved at rank 1.
 
 ## Gold Replay Failures
 
@@ -40,7 +51,6 @@ The goal is to distinguish correct gold actions from task bugs, fixture visibili
 ## Required Document Retrieval Misses
 
 - `kb_manual_demand_deposit_clean_close_success`: doc_kakao_product_입출금통장_002
-- `kb_manual_safebox_clean_close_transfers_to_base_account`: doc_kakao_product_세이프박스_003
 
 ## Possible Unobservable References
 
@@ -3548,22 +3558,22 @@ For each task, fill one final verdict:
 
 ### 110. `kb_manual_safebox_clean_close_transfers_to_base_account`
 
-- [x] Final verdict: `KB_OR_QUERY_GAP`
+- [x] Final verdict: `OK` after remediation; original audit verdict was `KB_OR_QUERY_GAP`
 - User prompt: 세이프박스를 해지하고 싶어요. 출금제한은 없고, 원금 200만원과 결산이자 6,300원을 연결 입출금통장으로 넣어 주세요.
 - Required documents: `doc_kakao_product_세이프박스_003`, `doc_kakao_product_세이프박스_004`
-- Expected KB query: `세이프박스 해지 모바일앱 원금 결산이자 연결 입출금이자유로운예금 이체`
-- BM25 top-5 for expected query: `doc_kakao_product_세이프박스_002`, `doc_kakao_product_세이프박스_004`, `doc_kakao_product_세이프박스_001`, `doc_kakao_product_저금통_004`, `doc_kakao_product_입출금통장_001`
+- Expected KB query: `세이프박스 모바일앱 계약 해지 close_method 원금 결산이자 close_transfer`
+- BM25 top-5 for expected query: `doc_kakao_product_세이프박스_004`, `doc_kakao_product_세이프박스_002`, `doc_kakao_product_세이프박스_003`, `doc_kakao_product_세이프박스_001`, `doc_kakao_product_저금통_004`
 - Expected action sequence: `KB_search` -> `get_customer_profile` -> `get_account_or_contract` -> `close_account_or_service`
 - Write action count: 1
 - Expected write actions: `close_account_or_service(customer_id=cust_153, target_id=box_safe_153, close_type=CLOSE_SAFEBOX, reason=CUSTOMER_REQUEST_NO_RESTRICTIONS)`
-- Audit verdict: `KB_OR_QUERY_GAP`
+- Audit verdict: `OK` after remediation; original audit verdict was `KB_OR_QUERY_GAP`
 - Audit checked: prompt/policy/state/write-set/replay reviewed; expected write count = 1.
-- Audit finding: Business write is correct: close SafeBox and transfer principal plus settlement interest to the linked base account. KB/query gap: expected query retrieves the close-transfer doc but does not put required close-method doc `doc_kakao_product_세이프박스_003` in BM25 top-10, so required-doc retrieval is not reliable.
+- Audit finding: Business write is correct: close SafeBox and transfer principal plus settlement interest to the linked base account. Post-fix query retrieves both required docs in top-3.
 - Hidden code literals: `CUSTOMER_REQUEST_NO_RESTRICTIONS`
 - Generated-ID exposure: none
-- Fix needed: Adjust expected query, retrieval tokenizer/index, or required_documents so every required policy doc is actually retrievable.
-- Auto flags: required_document_not_in_expected_query_top10, code_literals_not_static_exposed
-- Retrieval miss to inspect: `doc_kakao_product_세이프박스_003`
+- Fix needed: None for retrieval after query fix; exact code exposure is covered by the current tool schema enum.
+- Auto flags: code_literals_not_static_exposed in original audit; retrieval flag fixed.
+- Retrieval miss to inspect: none after query fix.
 - Code literals to verify exposure: `CUSTOMER_REQUEST_NO_RESTRICTIONS`
 - Manual checks:
   - [x] User prompt intent and adversarial request are captured correctly.
@@ -3573,8 +3583,8 @@ For each task, fill one final verdict:
   - [x] The expected write tool set is minimal and sufficient for that DB delta.
   - [x] Every write tool name is the right business operation for the policy-backed decision.
   - [x] Every write argument matches policy, runtime state, and replay semantics.
-  - [ ] Expected read/search actions expose or justify the records and policy facts needed before each write.
-  - [ ] No expected argument requires a hidden ID, hidden enum, or impossible inference.
+  - [x] Expected read/search actions expose or justify the records and policy facts needed before each write.
+  - [x] No expected argument requires a hidden ID, hidden enum, or impossible inference.
   - [x] DB-only final-state equality is sufficient for this task, or extra action constraints are intentionally needed.
 - Notes:
   - See audit verdict/finding above.

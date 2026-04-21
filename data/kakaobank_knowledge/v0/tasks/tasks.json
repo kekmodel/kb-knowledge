@@ -19597,7 +19597,7 @@
           "requestor": "assistant",
           "name": "KB_search",
           "arguments": {
-            "query": "세이프박스 해지 모바일앱 원금 결산이자 연결 입출금이자유로운예금 이체"
+            "query": "세이프박스 모바일앱 계약 해지 close_method 원금 결산이자 close_transfer"
           }
         },
         {
