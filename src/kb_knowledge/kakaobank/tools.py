@@ -137,6 +137,8 @@ class KakaoBankReadTools:
             record_id=customer_id,
             field_name="customer_id",
         )
+        if customer is None:
+            raise ValueError(f"customer not found: {customer_id}")
         businesses = query_db("businesses", self.db, customer_id=customer_id)
         consents = query_db("consents", self.db, customer_id=customer_id)
         return {
@@ -158,6 +160,8 @@ class KakaoBankReadTools:
             table_name=table,
             record_id=record_id,
         )
+        if record is None:
+            raise ValueError(f"record not found in {table}: {record_id}")
         return {
             "table": table,
             "record_id": record_id,

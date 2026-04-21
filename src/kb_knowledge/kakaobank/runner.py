@@ -1357,10 +1357,11 @@ def run_task_with_chat_client(
         }
         trace["rounds"].append(round_trace)
 
-        if _has_done_tool_call(tool_calls):
+        done_trace = _done_tool_call_trace(tool_calls)
+        if done_trace["valid_single_tool_call"]:
             stopped_reason = "agent_stop"
             final_text = STOP_TOKEN
-            round_trace["stop_signal"] = _done_tool_call_trace(tool_calls)
+            round_trace["stop_signal"] = done_trace
             break
 
         if not tool_calls:
@@ -1368,8 +1369,68 @@ def run_task_with_chat_client(
             break
 
         messages.append(_assistant_message_for_history(assistant_message))
-        for tool_call in tool_calls:
-            action = _action_from_tool_call(tool_call)
+        for tool_call_index, tool_call in enumerate(tool_calls):
+            tool_call_id = _tool_call_id(
+                tool_call,
+                fallback_index=(round_index * 1000) + tool_call_index,
+            )
+            name = _tool_call_name(tool_call)
+            if name == DONE_TOOL_NAME:
+                tool_result = {
+                    "error": (
+                        "DoneToolError: done must be the only tool call in the "
+                        "assistant message; call done by itself after all other "
+                        "tool calls are complete."
+                    ),
+                    "db_hash": db.get_hash(),
+                }
+                tool_errors.append(str(tool_result["error"]))
+                round_trace["tool_results"].append(
+                    {
+                        "action_index": None,
+                        "tool_call_id": tool_call_id,
+                        "name": name,
+                        "arguments": _raw_tool_call_arguments(tool_call),
+                        "result": copy.deepcopy(tool_result),
+                        "db_hash_after": db.get_hash(),
+                    }
+                )
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call_id,
+                        "content": json.dumps(tool_result, ensure_ascii=False),
+                    }
+                )
+                continue
+
+            try:
+                action = _action_from_tool_call(tool_call)
+            except Exception as exc:  # noqa: BLE001 - return parse errors to the agent.
+                tool_result = {
+                    "error": f"ToolCallParseError: {type(exc).__name__}: {exc}",
+                    "db_hash": db.get_hash(),
+                }
+                tool_errors.append(str(tool_result["error"]))
+                round_trace["tool_results"].append(
+                    {
+                        "action_index": None,
+                        "tool_call_id": tool_call_id,
+                        "name": name,
+                        "arguments": _raw_tool_call_arguments(tool_call),
+                        "result": copy.deepcopy(tool_result),
+                        "db_hash_after": db.get_hash(),
+                    }
+                )
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call_id,
+                        "content": json.dumps(tool_result, ensure_ascii=False),
+                    }
+                )
+                continue
+
             actions.append(action)
             tool_result = execute_runner_tool(
                 db,
@@ -1384,7 +1445,7 @@ def run_task_with_chat_client(
             round_trace["tool_results"].append(
                 {
                     "action_index": len(actions) - 1,
-                    "tool_call_id": str(tool_call.get("id", f"tool_{len(actions)}")),
+                    "tool_call_id": tool_call_id,
                     "name": action["name"],
                     "arguments": copy.deepcopy(action["arguments"]),
                     "result": copy.deepcopy(tool_result),
@@ -1394,7 +1455,7 @@ def run_task_with_chat_client(
             messages.append(
                 {
                     "role": "tool",
-                    "tool_call_id": str(tool_call.get("id", f"tool_{len(actions)}")),
+                    "tool_call_id": tool_call_id,
                     "content": json.dumps(tool_result, ensure_ascii=False),
                 }
             )
@@ -1892,13 +1953,6 @@ def _argument_description(argument_name: str, *, tool_name: str) -> str:
     )
 
 
-def _has_done_tool_call(tool_calls: list[dict[str, Any]]) -> bool:
-    return any(
-        str((tool_call.get("function") or {}).get("name", "")) == DONE_TOOL_NAME
-        for tool_call in tool_calls
-    )
-
-
 def _done_tool_call_trace(tool_calls: list[dict[str, Any]]) -> dict[str, Any]:
     done_calls = [
         tool_call
@@ -1930,6 +1984,18 @@ def _assistant_message_for_history(message: dict[str, Any]) -> dict[str, Any]:
     if message.get("tool_calls"):
         history_message["tool_calls"] = message["tool_calls"]
     return history_message
+
+
+def _tool_call_id(tool_call: dict[str, Any], *, fallback_index: int) -> str:
+    return str(tool_call.get("id") or f"tool_{fallback_index}")
+
+
+def _tool_call_name(tool_call: dict[str, Any]) -> str:
+    return str((tool_call.get("function") or {}).get("name", ""))
+
+
+def _raw_tool_call_arguments(tool_call: dict[str, Any]) -> Any:
+    return copy.deepcopy((tool_call.get("function") or {}).get("arguments", {}))
 
 
 def _action_from_tool_call(tool_call: dict[str, Any]) -> dict[str, Any]:
