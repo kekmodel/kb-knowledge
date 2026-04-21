@@ -29,7 +29,12 @@ def _validate_generated_id(
         return
     expected = f"{prefix}_{_numeric_suffix(source_id)}"
     if actual != expected:
-        raise ValueError(f"{field_name} must be {expected!r} for {source_id!r}")
+        raise ValueError(
+            f"{field_name} does not follow the deterministic generated-ID "
+            "convention for the supplied source record. Set it to null to let "
+            "the tool generate it, or retry with an ID derived from the schema "
+            "convention."
+        )
 
 
 class ToolArgumentModel(BaseModel):

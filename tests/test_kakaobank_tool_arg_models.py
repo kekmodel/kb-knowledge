@@ -61,7 +61,9 @@ def test_remittance_validation_rejects_wrong_generated_id() -> None:
 
     assert error is not None
     assert "refund_transaction_id" in error
-    assert "txn_dollar_gift_refund_016" in error
+    assert "generated-ID convention" in error
+    assert "txn_dollar_gift_refund_016" not in error
+    assert "txn_inbound_remit_016_refund" not in error
 
 
 def test_remittance_replay_generates_null_transaction_id() -> None:
