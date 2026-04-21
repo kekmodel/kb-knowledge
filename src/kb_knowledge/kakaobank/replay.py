@@ -1825,6 +1825,7 @@ def _get_or_create_remittance_case(
     remittance_id = str(options["remittance_id"])
     existing = db.remittance_cases.data.get(remittance_id)
     if existing is not None:
+        _validate_existing_remittance_arguments(existing, arguments)
         return existing
 
     remittance = {
@@ -1851,6 +1852,40 @@ def _get_or_create_remittance_case(
     )
     db.remittance_cases.data[remittance_id] = remittance
     return remittance
+
+
+def _validate_existing_remittance_arguments(
+    existing: dict[str, Any],
+    arguments: dict[str, Any],
+) -> None:
+    expected_values = {
+        "direction": _base_remittance_direction(str(arguments["direction"])),
+        "amount": arguments["amount"],
+        "currency": arguments["currency"],
+        "country": arguments["country"],
+        "purpose_code": arguments["purpose_code"],
+    }
+    for field_name, expected_value in expected_values.items():
+        if field_name not in existing:
+            raise ReplayError(
+                "existing remittance record "
+                f"{existing.get('remittance_id', '<unknown>')!r} is missing "
+                f"DB-critical field {field_name!r}"
+            )
+        actual_value = existing[field_name]
+        if field_name == "amount":
+            actual_matches = _numeric_value(actual_value) == _numeric_value(
+                expected_value
+            )
+        else:
+            actual_matches = actual_value == expected_value
+        if not actual_matches:
+            raise ReplayError(
+                "remittance argument mismatch for existing record "
+                f"{existing.get('remittance_id', '<unknown>')!r}: "
+                f"{field_name} must match runtime DB value "
+                f"{actual_value!r}, got {expected_value!r}"
+            )
 
 
 GENERATED_REMITTANCE_TRANSACTION_PREFIXES: dict[str, dict[str, str]] = {

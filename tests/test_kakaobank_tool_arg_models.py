@@ -73,6 +73,19 @@ def test_remittance_replay_generates_null_transaction_id() -> None:
     assert result.passed is True
 
 
+def test_remittance_replay_rejects_existing_record_argument_mismatch() -> None:
+    task = _load_task("kb_manual_dollarbox_gift_receive_within_30_days_success")
+    actions = json.loads(json.dumps(task["evaluation_criteria"]["actions"]))
+    for action in actions:
+        if action.get("name") == "execute_remittance_case":
+            action["arguments"]["country"] = "US"
+
+    result = evaluate_candidate_actions(task, actions)
+
+    assert result.passed is False
+    assert result.actual_final_hash != result.expected_final_hash
+
+
 def test_strict_tool_schema_flag_marks_only_pydantic_tools() -> None:
     default_tools = build_openai_tool_definitions()
     strict_tools = build_openai_tool_definitions(strict_tool_schemas=True)
