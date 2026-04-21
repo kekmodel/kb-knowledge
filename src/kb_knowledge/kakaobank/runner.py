@@ -33,6 +33,10 @@ from kb_knowledge.kakaobank.tools import (
     KakaoBankReadTools,
     SUPPORTED_RETRIEVAL_CONFIGS,
 )
+from kb_knowledge.kakaobank.tool_arg_models import (
+    pydantic_tool_parameters,
+    validate_pydantic_tool_arguments,
+)
 
 DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
 DEFAULT_OPENAI_COMPATIBLE_BASE_URL = "https://api.openai.com/v1"
@@ -311,6 +315,57 @@ TOOL_ARGUMENT_OVERRIDES = {
         "operation",
         "reason",
         "effective_at",
+        "options",
+    ),
+}
+TOOL_REQUIRED_ARGUMENTS = {
+    "open_or_enroll_product": ("customer_id", "product_name", "options"),
+    "close_account_or_service": ("customer_id", "target_id", "close_type", "reason"),
+    "configure_auto_transfer": (
+        "source_account_id",
+        "target_id",
+        "schedule",
+        "operation",
+        "options",
+    ),
+    "execute_deposit_or_box_transfer": ("target_id", "amount", "currency"),
+    "request_interest_payment": ("target_id", "requested_at", "options"),
+    "request_maturity_or_extension": (
+        "target_id",
+        "operation",
+        "requested_at",
+        "options",
+    ),
+    "create_loan_application": (
+        "application_id",
+        "customer_id",
+        "product_name",
+        "requested_amount_krw",
+        "purpose",
+        "expected_status",
+    ),
+    "update_loan_contract_state": ("loan_id", "operation", "reason"),
+    "process_refinance_request": (
+        "refinance_id",
+        "operation",
+        "old_loan_repayment_status",
+        "requested_at",
+    ),
+    "execute_remittance_case": (
+        "customer_id",
+        "direction",
+        "amount",
+        "currency",
+        "country",
+        "purpose_code",
+        "options",
+    ),
+    "update_card_state": ("operation", "reason"),
+    "file_dispute_or_objection": (
+        "customer_id",
+        "target_type",
+        "target_id",
+        "reason",
         "options",
     ),
 }
@@ -1548,6 +1603,12 @@ def execute_runner_tool(
     arguments = action.get("arguments") or {}
     if not isinstance(arguments, dict):
         return {"error": f"tool arguments must be an object for {name}"}
+    required_error = _required_argument_error(name, arguments, schema_actions)
+    if required_error is not None:
+        return {"error": required_error, "db_hash": db.get_hash()}
+    validation_error = validate_pydantic_tool_arguments(name, arguments)
+    if validation_error is not None:
+        return {"error": validation_error, "db_hash": db.get_hash()}
 
     try:
         if name == "KB_search":
@@ -1600,6 +1661,41 @@ def execute_runner_tool(
             "error": f"{type(exc).__name__}: {exc}",
             "db_hash": db.get_hash(),
         }
+
+
+def _required_argument_error(
+    tool_name: str,
+    arguments: dict[str, Any],
+    schema_actions: dict[str, dict[str, Any]],
+) -> str | None:
+    action_schema = schema_actions.get(tool_name)
+    if action_schema is None:
+        return None
+    required = _required_argument_names(tool_name, _runner_argument_names(action_schema))
+    missing = [argument_name for argument_name in required if argument_name not in arguments]
+    if missing:
+        return (
+            "MissingToolArgumentError: missing required top-level field(s) "
+            f"{', '.join(repr(item) for item in missing)} for {tool_name}; "
+            "retry the same tool call with those fields present in the JSON arguments."
+        )
+    object_arguments = {
+        argument_name
+        for argument_name in required
+        if argument_name in {"options", "schedule"}
+    }
+    wrong_type = [
+        argument_name
+        for argument_name in object_arguments
+        if not isinstance(arguments.get(argument_name), dict)
+    ]
+    if wrong_type:
+        return (
+            "InvalidToolArgumentError: required top-level object field(s) "
+            f"{', '.join(repr(item) for item in wrong_type)} for {tool_name} "
+            "must be JSON objects."
+        )
+    return None
 
 
 def build_runner_system_prompt(
@@ -1764,24 +1860,27 @@ def _done_tool_definition() -> dict[str, Any]:
 
 def _openai_tool_definition(action_schema: dict[str, Any]) -> dict[str, Any]:
     name = str(action_schema["name"])
-    argument_names = _runner_argument_names(action_schema)
-    properties = {
-        argument_name: _argument_json_schema(argument_name, tool_name=name)
-        for argument_name in argument_names
-    }
-    required = list(argument_names) if name in READ_TOOL_NAMES else []
+    parameters = pydantic_tool_parameters(name)
+    if parameters is None:
+        argument_names = _runner_argument_names(action_schema)
+        properties = {
+            argument_name: _argument_json_schema(argument_name, tool_name=name)
+            for argument_name in argument_names
+        }
+        required = list(_required_argument_names(name, argument_names))
+        parameters = {
+            "type": "object",
+            "properties": properties,
+            "required": required,
+            "additionalProperties": False,
+        }
 
     return {
         "type": "function",
         "function": {
             "name": name,
             "description": _tool_description(action_schema),
-            "parameters": {
-                "type": "object",
-                "properties": properties,
-                "required": required,
-                "additionalProperties": False,
-            },
+            "parameters": parameters,
         },
     }
 
@@ -1791,6 +1890,16 @@ def _runner_argument_names(action_schema: dict[str, Any]) -> tuple[str, ...]:
     if name in TOOL_ARGUMENT_OVERRIDES:
         return TOOL_ARGUMENT_OVERRIDES[name]
     return tuple(str(argument) for argument in action_schema.get("arguments", []))
+
+
+def _required_argument_names(
+    tool_name: str,
+    argument_names: tuple[str, ...],
+) -> tuple[str, ...]:
+    if tool_name in READ_TOOL_NAMES:
+        return argument_names
+    required = TOOL_REQUIRED_ARGUMENTS.get(tool_name, ())
+    return tuple(argument_name for argument_name in required if argument_name in argument_names)
 
 
 def _tool_description(action_schema: dict[str, Any]) -> str:
