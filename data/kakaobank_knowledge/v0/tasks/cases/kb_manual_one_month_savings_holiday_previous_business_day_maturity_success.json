@@ -1,0 +1,167 @@
+{
+  "id": "kb_manual_one_month_savings_holiday_previous_business_day_maturity_success",
+  "description": {
+    "purpose": "success task for 한달적금",
+    "relevant_policies": "doc_kakao_product_한달적금_003",
+    "notes": "source_task_id=kb_manual_one_month_savings_holiday_previous_business_day_maturity_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_one_month_savings_holiday_previous_business_day_maturity_success.md; notes=This task checks the holiday maturity exception using a fixed date fixture rather than a generalized business-day calendar service."
+  },
+  "user_prompt": "제 한달적금 만기일이 2026년 5월 5일 휴일이에요. 직전 영업일인 5월 4일에 해지하면 중도해지로 깎이나요? 중도해지가 아니라 만기 해지로 처리해서 연결계좌로 입금해 주세요.",
+  "user_scenario": {
+    "persona": "한달적금 만기일이 휴일이라 직전 영업일에 해지하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 한달적금 만기일이 2026년 5월 5일 휴일이에요. 직전 영업일인 5월 4일에 해지하면 중도해지로 깎이나요? 중도해지가 아니라 만기 해지로 처리해서 연결계좌로 입금해 주세요.\n\nExpected assistant response points:\n- 만기일이 휴일이면 직전 영업일 해지도 중도해지가 아니라 만기 해지로 간주된다고 안내한다.\n- 약정 금리는 제공하되 이자는 실제 예치된 일수만큼 계산된다고 설명한다.\n- 법적 지급제한이 없고 지급 destination이 연결계좌이므로 휴일 만기 직전 영업일 close를 실행한다.\n- close_type은 EARLY_CLOSE가 아니라 MATURITY_HOLIDAY_PREVIOUS_BUSINESS_DAY로 남긴다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_158": {
+              "customer_id": "cust_158",
+              "name": "강휴일",
+              "date_of_birth": "1990-05-04",
+              "age": 35,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_month_base_158": {
+              "account_id": "acct_month_base_158",
+              "customer_id": "cust_158",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 320000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_one_month_158"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_one_month_158": {
+              "deposit_id": "dep_one_month_158",
+              "account_id": "acct_month_base_158",
+              "customer_id": "cust_158",
+              "product_name": "한달적금",
+              "status": "ACTIVE",
+              "opened_at": "2026-04-04",
+              "matures_at": "2026-05-05",
+              "principal_krw": 930000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_month_base_158",
+              "maturity_date_is_holiday": true,
+              "previous_business_day": "2026-05-04",
+              "maturity_payout_krw": 936200,
+              "interest_days_policy": "ACTUAL_DAYS_ONLY",
+              "preferential_rate_points_if_closed_at_maturity": 5.5
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_one_month_savings_holiday_previous_business_day_maturity_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "한달적금 만기일 휴일 직전 영업일 해지 중도해지 아님 약정금리 실제 예치일수 이자"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_holiday_previous_business_day_maturity_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_158"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_holiday_previous_business_day_maturity_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_one_month_158",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_holiday_previous_business_day_maturity_success_03",
+        "requestor": "assistant",
+        "name": "request_maturity_or_extension",
+        "arguments": {
+          "target_id": "dep_one_month_158",
+          "operation": "MATURE_HOLIDAY_PREVIOUS_BUSINESS_DAY_CLOSE",
+          "requested_at": "2026-05-04T10:00:00+09:00",
+          "options": {
+            "destination_account_id": "acct_month_base_158",
+            "contractual_maturity_date": "2026-05-05",
+            "close_date": "2026-05-04",
+            "close_type": "MATURITY_HOLIDAY_PREVIOUS_BUSINESS_DAY",
+            "interest_days_policy": "ACTUAL_DAYS_ONLY",
+            "maturity_payout_krw": 936200
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_maturity_or_close_result",
+        "arguments": {
+          "deposit_id": "dep_one_month_158",
+          "expected_status": "CLOSED",
+          "expected_close_type": "MATURITY_HOLIDAY_PREVIOUS_BUSINESS_DAY",
+          "expected_destination_account_id": "acct_month_base_158"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_one_month_158",
+          "target_id": "acct_month_base_158",
+          "amount": 936200,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "만기일이 휴일이면 직전 영업일 해지도 중도해지가 아니라 만기 해지로 간주된다고 안내한다.",
+      "약정 금리는 제공하되 이자는 실제 예치된 일수만큼 계산된다고 설명한다.",
+      "법적 지급제한이 없고 지급 destination이 연결계좌이므로 휴일 만기 직전 영업일 close를 실행한다.",
+      "close_type은 EARLY_CLOSE가 아니라 MATURITY_HOLIDAY_PREVIOUS_BUSINESS_DAY로 남긴다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_한달적금_003"
+  ],
+  "user_tools": []
+}

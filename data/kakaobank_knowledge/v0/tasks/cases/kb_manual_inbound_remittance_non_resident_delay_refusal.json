@@ -1,0 +1,189 @@
+{
+  "id": "kb_manual_inbound_remittance_non_resident_delay_refusal",
+  "description": {
+    "purpose": "refusal task for 해외송금 받기",
+    "relevant_policies": "doc_kakao_product_해외송금_받기_001, doc_kakao_product_해외송금_받기_002, doc_kakao_common_policy_remittance_common_001",
+    "notes": "source_task_id=kb_manual_inbound_remittance_non_resident_delay_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_inbound_remittance_non_resident_delay_refusal.md; notes=The source says delayed or returned may occur; this task deliberately uses a deterministic residence-verification hold instead of asserting that every unverified case must be returned."
+  },
+  "user_prompt": "일본에서 3,000달러가 들어왔고 5천불 이하니까 바로 입금되는 거죠? 제 거주자 확인 상태가 아직 미확인으로 뜨지만 저는 한국 계좌가 있으니 먼저 입금해 주세요.",
+  "user_scenario": {
+    "persona": "국내 거주자 확인이 아직 완료되지 않은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n일본에서 3,000달러가 들어왔고 5천불 이하니까 바로 입금되는 거죠? 제 거주자 확인 상태가 아직 미확인으로 뜨지만 저는 한국 계좌가 있으니 먼저 입금해 주세요.\n\nExpected assistant response points:\n- 해외송금 서비스는 카카오뱅크 입출금 계좌를 보유한 국민인 거주자만 이용 가능하다고 안내한다.\n- 거주자로 확인되지 않는 경우 송금이 지연되거나 반환될 수 있으므로, 5천불 이하 즉시입금 일반 규칙보다 거주자 확인 상태가 우선한다고 설명한다.\n- 이번 fixture에서는 즉시 입금하지 않고 remittance case를 PENDING_RESIDENCY_VERIFICATION 상태로 둔다.\n- 수취계좌 잔액과 transactions는 변경하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_161": {
+              "customer_id": "cust_161",
+              "name": "문거주",
+              "date_of_birth": "1998-07-07",
+              "age": 27,
+              "residency": "UNVERIFIED",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": [
+                "RESIDENCY_UNVERIFIED"
+              ]
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_remit_base_161": {
+              "account_id": "acct_remit_base_161",
+              "customer_id": "cust_161",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 510000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_profiles": {
+          "data": {
+            "remit_profile_161": {
+              "remittance_profile_id": "remit_profile_161",
+              "customer_id": "cust_161",
+              "base_account_id": "acct_remit_base_161",
+              "annual_usd_sent": 0,
+              "annual_usd_received": 0,
+              "auto_receive_enabled": false,
+              "verified_purpose_codes": [],
+              "daily_received_usd_before_case": 0,
+              "resident_verified": false
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {
+            "remit_inbound_161": {
+              "remittance_id": "remit_inbound_161",
+              "customer_id": "cust_161",
+              "direction": "INBOUND",
+              "status": "ARRIVED",
+              "amount": 3000,
+              "currency": "USD",
+              "country": "JP",
+              "requested_at": "2026-04-20T11:00:00+09:00",
+              "arrived_at": "2026-04-20T11:00:00+09:00",
+              "correction_due_date": null,
+              "purpose_code": "LIVING_EXPENSE",
+              "sender_bank_id": "jp_bank_021",
+              "sender_name": "Hana Moon",
+              "target_account_id": "acct_remit_base_161",
+              "receive_application_required": false,
+              "resident_verified": false,
+              "hold_reason": null,
+              "deposited_transaction_id": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_inbound_remittance_non_resident_delay_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "해외송금 받기 국민인 거주자만 이용 가능 거주자로 확인되지 않으면 지연 반환 5천불 이하 즉시입금 예외"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_non_resident_delay_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_161"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_non_resident_delay_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "remit_inbound_161",
+          "table": "remittance_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_non_resident_delay_refusal_03",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_161",
+          "direction": "INBOUND_RESIDENCY_VERIFICATION_HOLD",
+          "amount": 3000,
+          "currency": "USD",
+          "country": "JP",
+          "purpose_code": "LIVING_EXPENSE",
+          "options": {
+            "remittance_id": "remit_inbound_161",
+            "target_account_id": "acct_remit_base_161",
+            "resident_verified": false,
+            "expected_status": "PENDING_RESIDENCY_VERIFICATION",
+            "hold_reason": "RESIDENCY_NOT_VERIFIED_DELAY_OR_RETURN_POSSIBLE",
+            "deposit_first_refused": true,
+            "transaction_id": null
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_remittance_outcome",
+        "arguments": {
+          "remittance_id": "remit_inbound_161",
+          "expected_status": "PENDING_RESIDENCY_VERIFICATION",
+          "expected_fee_refunded": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_remit_base_161",
+          "field_names": [
+            "balance_krw",
+            "status"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "해외송금 서비스는 카카오뱅크 입출금 계좌를 보유한 국민인 거주자만 이용 가능하다고 안내한다.",
+      "거주자로 확인되지 않는 경우 송금이 지연되거나 반환될 수 있으므로, 5천불 이하 즉시입금 일반 규칙보다 거주자 확인 상태가 우선한다고 설명한다.",
+      "이번 fixture에서는 즉시 입금하지 않고 remittance case를 PENDING_RESIDENCY_VERIFICATION 상태로 둔다.",
+      "수취계좌 잔액과 transactions는 변경하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_해외송금_받기_001",
+    "doc_kakao_product_해외송금_받기_002",
+    "doc_kakao_common_policy_remittance_common_001"
+  ],
+  "user_tools": []
+}

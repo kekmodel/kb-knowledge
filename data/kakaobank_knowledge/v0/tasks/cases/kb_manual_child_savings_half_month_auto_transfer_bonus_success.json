@@ -1,0 +1,250 @@
+{
+  "id": "kb_manual_child_savings_half_month_auto_transfer_bonus_success",
+  "description": {
+    "purpose": "success task for 우리아이적금",
+    "relevant_policies": "doc_kakao_product_우리아이적금_002",
+    "notes": "source_task_id=kb_manual_child_savings_half_month_auto_transfer_bonus_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_child_savings_half_month_auto_transfer_bonus_success.md; notes=This success task makes the optional auto-transfer preferential-rate axis explicit. The decisive boundary is that exactly 6 successful auto-transfer months in a 12-month contract qualifies, but only because the close is a maturity close."
+  },
+  "user_prompt": "아이 우리아이적금 12개월 중 자동이체로 들어간 달이 딱 6개월이고 나머지는 제가 수동으로 넣었어요. 오늘 만기 해지하면서 자동이체 우대금리 4.00%p도 반영해서 우리아이통장으로 지급해 주세요.",
+  "user_scenario": {
+    "persona": "우리아이적금 만기 해지를 앞둔 주대리인 부모",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n아이 우리아이적금 12개월 중 자동이체로 들어간 달이 딱 6개월이고 나머지는 제가 수동으로 넣었어요. 오늘 만기 해지하면서 자동이체 우대금리 4.00%p도 반영해서 우리아이통장으로 지급해 주세요.\n\nExpected assistant response points:\n- 우리아이적금 자동이체 우대금리는 전체 계약월수의 1/2 이상 개월 동안 자동이체 납입하고 만기 해지해야 제공된다고 확인한다.\n- 12개월 계약에서 6개월은 1/2 이상 요건을 충족한다고 판단한다.\n- 각 인정 월에 1회 이상 자동이체 납입 실적이 있으면 해당 월 실적으로 본다고 설명한다.\n- 만기 직접해지를 처리하고 자동이체 우대금리 4.00%p를 반영한 만기 지급액을 연결 우리아이통장으로 입금한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_201": {
+              "customer_id": "cust_201",
+              "name": "오혜택",
+              "date_of_birth": "1985-01-16",
+              "age": 41,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "child_201": {
+              "customer_id": "child_201",
+              "name": "오아이",
+              "date_of_birth": "2016-03-04",
+              "age": 10,
+              "residency": "KR",
+              "employment_type": "MINOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "child_relationships": {
+          "data": {
+            "rel_child_savings_201": {
+              "relationship_id": "rel_child_savings_201",
+              "child_customer_id": "child_201",
+              "representative_customer_id": "cust_201",
+              "representative_role": "MAIN_REPRESENTATIVE_PARENT",
+              "status": "ACTIVE",
+              "child_age": 10,
+              "legal_representative_verified": true
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_child_base_201": {
+              "account_id": "acct_child_base_201",
+              "customer_id": "child_201",
+              "product_name": "우리아이통장",
+              "status": "ACTIVE",
+              "balance_krw": 150000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_child_savings_201"
+              ],
+              "restriction_flags": []
+            },
+            "acct_parent_201": {
+              "account_id": "acct_parent_201",
+              "customer_id": "cust_201",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 950000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "auto_child_savings_201"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_child_savings_201": {
+              "deposit_id": "dep_child_savings_201",
+              "account_id": "acct_child_base_201",
+              "customer_id": "child_201",
+              "product_name": "우리아이적금",
+              "status": "ACTIVE",
+              "opened_at": "2025-04-20",
+              "matures_at": "2026-04-20",
+              "principal_krw": 2400000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "tax_free_savings": false,
+              "base_account_id": "acct_child_base_201",
+              "contract_months": 12,
+              "auto_transfer_success_month_count": 6,
+              "manual_deposit_month_count": 6,
+              "preferential_rate_points_if_closed_at_maturity": 4.0,
+              "maturity_payout_krw": 2489000
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_child_savings_201": {
+              "auto_transfer_id": "auto_child_savings_201",
+              "source_account_id": "acct_parent_201",
+              "target_id": "dep_child_savings_201",
+              "status": "ACTIVE",
+              "schedule": {
+                "type": "MONTHLY",
+                "day_of_month": 20
+              },
+              "amount_krw": 200000,
+              "success_count": 6,
+              "failed_count": 0,
+              "successful_months": [
+                "2025-04",
+                "2025-05",
+                "2025-06",
+                "2025-07",
+                "2025-08",
+                "2025-09"
+              ]
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_child_savings_half_month_auto_transfer_bonus_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "우리아이적금 자동이체 우대금리 전체 계약월수 1/2 이상 1개월 1회 만기 해지"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_half_month_auto_transfer_bonus_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_201"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_half_month_auto_transfer_bonus_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_child_savings_201",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_half_month_auto_transfer_bonus_success_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "auto_child_savings_201",
+          "table": "auto_transfer_rules"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_half_month_auto_transfer_bonus_success_04",
+        "requestor": "assistant",
+        "name": "request_maturity_or_extension",
+        "arguments": {
+          "target_id": "dep_child_savings_201",
+          "operation": "MATURE_DIRECT_CLOSE",
+          "requested_at": "2026-04-20T09:00:00+09:00",
+          "options": {
+            "destination_account_id": "acct_child_base_201",
+            "auto_transfer_success_month_count": 6,
+            "contract_months": 12,
+            "preferential_rate_points": 4.0,
+            "close_type": "MATURITY_DIRECT_CLOSE",
+            "maturity_payout_krw": 2489000
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_auto_transfer_count",
+        "arguments": {
+          "auto_transfer_id": "auto_child_savings_201",
+          "expected_success_count": 6,
+          "expected_failed_count": 0
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_maturity_or_close_result",
+        "arguments": {
+          "deposit_id": "dep_child_savings_201",
+          "expected_status": "CLOSED",
+          "expected_close_type": "MATURITY_DIRECT_CLOSE",
+          "expected_destination_account_id": "acct_child_base_201",
+          "expected_preferential_rate_points": 4.0
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_child_savings_201",
+          "target_id": "acct_child_base_201",
+          "amount": 2489000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "우리아이적금 자동이체 우대금리는 전체 계약월수의 1/2 이상 개월 동안 자동이체 납입하고 만기 해지해야 제공된다고 확인한다.",
+      "12개월 계약에서 6개월은 1/2 이상 요건을 충족한다고 판단한다.",
+      "각 인정 월에 1회 이상 자동이체 납입 실적이 있으면 해당 월 실적으로 본다고 설명한다.",
+      "만기 직접해지를 처리하고 자동이체 우대금리 4.00%p를 반영한 만기 지급액을 연결 우리아이통장으로 입금한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_우리아이적금_002"
+  ],
+  "user_tools": []
+}

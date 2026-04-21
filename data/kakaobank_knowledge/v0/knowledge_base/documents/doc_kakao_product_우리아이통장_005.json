@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_우리아이통장_005",
+  "title": "KakaoBank Product Facts: 우리아이통장 (part 5)",
+  "content": "Product: 우리아이통장\nScope: product-specific reviewed facts\nCommon policy links: deposit_basic, deposit_free_deposit, document_box, child_service_common\n\n## 수동 검수 fact\n\n- `service_terms_effective`: 우리아이서비스 이용약관 시행일은 2025년 08월 27일\n  - Evidence: `우리아이서비스 이용약관.md:184`, `우리아이서비스 이용약관.md:188`\n- `compliance_review_validity`: 우리아이통장 상품설명서 준법감시인 심의필 25-1534, 유효기간 2025.08.27~2027.08.26\n  - Evidence: `카카오뱅크 우리아이통장 상품설명서.md:3`\n- `complaint_channel`: 문의 또는 민원은 고객센터 1599-3333 또는 인터넷홈페이지에서 가능\n  - Evidence: `카카오뱅크 우리아이통장 상품설명서.md:47`, `카카오뱅크 우리아이통장 상품설명서.md:137`"
+}

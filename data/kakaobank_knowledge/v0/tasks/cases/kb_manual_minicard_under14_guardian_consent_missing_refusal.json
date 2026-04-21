@@ -1,0 +1,169 @@
+{
+  "id": "kb_manual_minicard_under14_guardian_consent_missing_refusal",
+  "description": {
+    "purpose": "refusal task for mini카드",
+    "relevant_policies": "doc_kakao_product_mini카드_001, doc_kakao_common_policy_card_common_001",
+    "notes": "source_task_id=kb_manual_minicard_under14_guardian_consent_missing_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_minicard_under14_guardian_consent_missing_refusal.md; notes=This mini card task is distinct from the 카카오뱅크 mini wallet opening consent task. The customer already has mini, but the card issuance still requires valid guardian consent."
+  },
+  "user_prompt": "mini는 이미 쓰고 있고 저는 만 13세예요. 부모님 동의는 아직 앱에서 확인 안 됐지만 mini카드를 먼저 발급해 주세요. 동의는 나중에 받아도 되잖아요?",
+  "user_scenario": {
+    "persona": "mini는 보유하지만 법정대리인 동의가 확인되지 않은 만 13세 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\nmini는 이미 쓰고 있고 저는 만 13세예요. 부모님 동의는 아직 앱에서 확인 안 됐지만 mini카드를 먼저 발급해 주세요. 동의는 나중에 받아도 되잖아요?\n\nExpected assistant response points:\n- mini를 보유한 만 18세 이하 고객이라도 만 14세 미만이면 mini카드 신청 시 법정대리인 동의가 필요하다고 안내한다.\n- 법정대리인 동의가 유효하게 확인되지 않은 상태에서는 발급을 진행할 수 없다고 거절한다.\n- 새 card record를 만들지 않고 card order를 동의 미확인 사유로 거절한다.\n- 기존 mini wallet은 유지하되 mini카드 발급 상태는 변하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_091": {
+              "customer_id": "cust_091",
+              "name": "신동의",
+              "date_of_birth": "2012-07-04",
+              "age": 13,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {}
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_091": {
+              "wallet_id": "mini_wallet_091",
+              "customer_id": "cust_091",
+              "status": "ACTIVE",
+              "balance_krw": 62000,
+              "daily_spend_used_krw": 0,
+              "monthly_spend_used_krw": 35000,
+              "age_band": "UNDER_14"
+            }
+          }
+        },
+        "cards": {
+          "data": {}
+        },
+        "card_orders": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_minicard_under14_guardian_consent_missing_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "mini카드 만 14세 미만 법정대리인 동의 유효 확인 없으면 발급 제한"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_under14_guardian_consent_missing_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_091"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_under14_guardian_consent_missing_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_wallet_091",
+          "table": "prepaid_wallets"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_under14_guardian_consent_missing_refusal_03",
+        "requestor": "assistant",
+        "name": "update_card_state",
+        "arguments": {
+          "card_id": null,
+          "operation": "REJECT_NEW_ISSUE",
+          "reason": "LEGAL_GUARDIAN_CONSENT_NOT_VALID",
+          "requested_at": "2026-04-20T16:10:00+09:00",
+          "order_id": "card_order_091",
+          "customer_id": "cust_091",
+          "wallet_id": "mini_wallet_091",
+          "customer_age": 13,
+          "guardian_consent_valid": false,
+          "new_card_created": false
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_consent_validity",
+        "arguments": {
+          "customer_id": "cust_091",
+          "consent_type": "LEGAL_GUARDIAN_MINICARD_ISSUE",
+          "expected_valid": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_card_order_outcome",
+        "arguments": {
+          "card_order_id": "card_order_091",
+          "expected_status": "REJECTED",
+          "expected_reason": "LEGAL_GUARDIAN_CONSENT_NOT_VALID"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "cards",
+          "record_id": "*",
+          "field_names": [
+            "data"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_091",
+          "field_names": [
+            "status",
+            "balance_krw"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "mini를 보유한 만 18세 이하 고객이라도 만 14세 미만이면 mini카드 신청 시 법정대리인 동의가 필요하다고 안내한다.",
+      "법정대리인 동의가 유효하게 확인되지 않은 상태에서는 발급을 진행할 수 없다고 거절한다.",
+      "새 card record를 만들지 않고 card order를 동의 미확인 사유로 거절한다.",
+      "기존 mini wallet은 유지하되 mini카드 발급 상태는 변하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_mini카드_001",
+    "doc_kakao_common_policy_card_common_001"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_common_policy_tax_free_savings_003",
+  "title": "KakaoBank Common Policy Facts: tax_free_savings (part 3)",
+  "content": "Common policy layer: tax_free_savings\nApplies to products: 26주적금, 우리아이적금, 자유적금\nSource review file: data/curated/common_policy/tax_free_savings_policy.review.md\n\n## 공통 fact\n\n- `tax_objection_exception_deadline`: 사망, 해외장기출장, 부득이한 사유가 있으면 그 사유가 끝난 날부터 7일 이내에 의견서 제출 가능\n  - Evidence: `비과세종합저축 특약.md:93`\n- `tax_objection_accepted_follow_up`: 가입자의 이의가 수용되어 과세특례 자격이 적격으로 다시 판정되고 국세청이 통보하면 은행은 통보 내용에 따라 조치\n  - Evidence: `비과세종합저축 특약.md:95`"
+}

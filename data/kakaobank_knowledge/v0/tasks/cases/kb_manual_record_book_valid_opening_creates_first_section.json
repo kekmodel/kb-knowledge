@@ -1,0 +1,156 @@
+{
+  "id": "kb_manual_record_book_valid_opening_creates_first_section",
+  "description": {
+    "purpose": "success task for 기록통장",
+    "relevant_policies": "doc_kakao_product_기록통장_001, doc_kakao_product_기록통장_002",
+    "notes": "source_task_id=kb_manual_record_book_valid_opening_creates_first_section; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_record_book_valid_opening_creates_first_section.md; notes=This task adds the missing positive opening path for Record Book. It intentionally includes the first section and collection rule because the source says section creation requires at least one collection rule."
+  },
+  "user_prompt": "제 카카오뱅크 입출금통장에 연결해서 기록통장을 처음 만들고 싶어요. 여행 섹션을 만들고 모으기 규칙은 5만원, 기록은 여행 준비로 설정해 주세요. 처음 금액은 0원이어도 되나요?",
+  "user_scenario": {
+    "persona": "카카오뱅크 입출금통장을 보유하고 기록통장을 처음 만들려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 카카오뱅크 입출금통장에 연결해서 기록통장을 처음 만들고 싶어요. 여행 섹션을 만들고 모으기 규칙은 5만원, 기록은 여행 준비로 설정해 주세요. 처음 금액은 0원이어도 되나요?\n\nExpected assistant response points:\n- 기록통장은 카카오뱅크 입출금통장을 보유한 실명 개인이 가입 대상이라고 안내한다.\n- 기록통장은 카카오뱅크 입출금통장을 통한 연결 신규만 가능하고 1인 1계좌 제한이 있다고 안내한다.\n- 0원 신규가 가능하다고 안내한다.\n- 섹션 개설 시 최소 1개의 모으기 규칙이 필요하므로 여행 섹션과 5만원 모으기 규칙을 함께 생성한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_066": {
+              "customer_id": "cust_066",
+              "name": "박기록",
+              "date_of_birth": "1996-04-04",
+              "age": 30,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_066": {
+              "account_id": "acct_base_066",
+              "customer_id": "cust_066",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 900000,
+              "currency": "KRW",
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "pockets": {
+          "data": {}
+        },
+        "savings_boxes": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_record_book_valid_opening_creates_first_section_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "기록통장 가입대상 연결 신규 1인 1계좌 섹션 모으기 규칙 0원 신규"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_valid_opening_creates_first_section_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_066"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_valid_opening_creates_first_section_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_base_066",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_valid_opening_creates_first_section_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_066",
+          "product_name": "기록통장",
+          "source_account_id": "acct_base_066",
+          "options": {
+            "account_id": "acct_record_066",
+            "opening_mode": "CONNECTED_NEW",
+            "base_account_id": "acct_base_066",
+            "initial_amount_krw": 0,
+            "first_section": {
+              "pocket_id": "pocket_record_trip_066",
+              "section_name": "여행",
+              "collection_rules": [
+                {
+                  "rule_id": "record_rule_trip_066",
+                  "amount_krw": 50000,
+                  "record_text": "여행 준비"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_record_066",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "pockets",
+          "record_id": "pocket_record_trip_066",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "기록통장은 카카오뱅크 입출금통장을 보유한 실명 개인이 가입 대상이라고 안내한다.",
+      "기록통장은 카카오뱅크 입출금통장을 통한 연결 신규만 가능하고 1인 1계좌 제한이 있다고 안내한다.",
+      "0원 신규가 가능하다고 안내한다.",
+      "섹션 개설 시 최소 1개의 모으기 규칙이 필요하므로 여행 섹션과 5만원 모으기 규칙을 함께 생성한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_기록통장_001",
+    "doc_kakao_product_기록통장_002"
+  ],
+  "user_tools": []
+}

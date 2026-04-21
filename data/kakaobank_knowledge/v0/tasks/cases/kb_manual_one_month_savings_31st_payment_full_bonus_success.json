@@ -1,0 +1,181 @@
+{
+  "id": "kb_manual_one_month_savings_31st_payment_full_bonus_success",
+  "description": {
+    "purpose": "success task for 한달적금",
+    "relevant_policies": "doc_kakao_product_한달적금_001, doc_kakao_product_한달적금_002",
+    "notes": "source_task_id=kb_manual_one_month_savings_31st_payment_full_bonus_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_one_month_savings_31st_payment_full_bonus_success.md; notes=This task complements the existing 5-payment success and 10-payment no-op tasks by checking the final maximum threshold without claiming that preferential interest is paid before maturity close."
+  },
+  "user_prompt": "한달적금이 내일 만기고 지금까지 30번 납입했어요. 오늘은 아직 안 넣었고 연결계좌에 15만원이 있습니다. 오늘 3만원을 넣어서 31회째로 만들고, 매일 우대 최대랑 31회 보너스 우대가 어떻게 되는지도 알려 주세요.",
+  "user_scenario": {
+    "persona": "한달적금 30회 납입을 끝내고 만기 전 마지막 날 첫 납입을 하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n한달적금이 내일 만기고 지금까지 30번 납입했어요. 오늘은 아직 안 넣었고 연결계좌에 15만원이 있습니다. 오늘 3만원을 넣어서 31회째로 만들고, 매일 우대 최대랑 31회 보너스 우대가 어떻게 되는지도 알려 주세요.\n\nExpected assistant response points:\n- 한달적금은 가입일부터 만기 전일까지 1일 1회, 100원 이상 30,000원 이하로 연결된 카카오뱅크 입출금계좌에서 납입할 수 있다고 안내한다.\n- 오늘 첫 납입이고 요청 금액이 한도 안이며 source가 연결계좌이므로 30,000원 납입을 실행한다.\n- 이번 납입 후 누적 납입 횟수는 31회가 되어 매일 우대금리 최대 연 3.10%p와 31회 보너스 누적 연 2.40%p 조건을 충족한다고 안내한다.\n- 다만 우대금리는 조건 달성만으로 즉시 확정 지급되는 것이 아니라 만기 해지하는 경우 제공된다는 전제를 함께 안내한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_154": {
+              "customer_id": "cust_154",
+              "name": "최만회",
+              "date_of_birth": "1996-09-18",
+              "age": 29,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_month_base_154": {
+              "account_id": "acct_month_base_154",
+              "customer_id": "cust_154",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 150000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_one_month_154"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_one_month_154": {
+              "deposit_id": "dep_one_month_154",
+              "account_id": "acct_month_base_154",
+              "customer_id": "cust_154",
+              "product_name": "한달적금",
+              "status": "ACTIVE",
+              "opened_at": "2026-03-21",
+              "matures_at": "2026-04-21",
+              "principal_krw": 900000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_month_base_154",
+              "term_days": 31,
+              "per_payment_min_krw": 100,
+              "per_payment_max_krw": 30000,
+              "cumulative_payment_count": 30,
+              "today_payment_count": 0,
+              "last_payment_date": "2026-04-19",
+              "daily_preferential_rate_pp": "3.00",
+              "bonus_preferential_rate_pp": "1.50",
+              "maturity_close_required_for_preferential": true
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_one_month_savings_31st_payment_full_bonus_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "한달적금 31회 납입 매일 우대 최대 3.10 보너스 우대 2.40 만기해지 조건 연결계좌 1일 1회"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_31st_payment_full_bonus_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_154"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_31st_payment_full_bonus_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_one_month_154",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_31st_payment_full_bonus_success_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_month_base_154",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_31st_payment_full_bonus_success_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "acct_month_base_154",
+          "target_id": "dep_one_month_154",
+          "amount": 30000,
+          "currency": "KRW",
+          "transaction_type": "ONE_MONTH_SAVINGS_DAILY_PAYMENT",
+          "payment_date": "2026-04-20",
+          "new_cumulative_payment_count": 31,
+          "new_today_payment_count": 1,
+          "new_daily_preferential_rate_pp": "3.10",
+          "new_bonus_preferential_rate_pp": "2.40",
+          "counts_for_preferential_rate": true,
+          "maturity_close_required_for_preferential": true
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_month_base_154",
+          "target_id": "dep_one_month_154",
+          "amount": 30000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "deposit_contracts",
+          "record_id": "dep_one_month_154",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "한달적금은 가입일부터 만기 전일까지 1일 1회, 100원 이상 30,000원 이하로 연결된 카카오뱅크 입출금계좌에서 납입할 수 있다고 안내한다.",
+      "오늘 첫 납입이고 요청 금액이 한도 안이며 source가 연결계좌이므로 30,000원 납입을 실행한다.",
+      "이번 납입 후 누적 납입 횟수는 31회가 되어 매일 우대금리 최대 연 3.10%p와 31회 보너스 누적 연 2.40%p 조건을 충족한다고 안내한다.",
+      "다만 우대금리는 조건 달성만으로 즉시 확정 지급되는 것이 아니라 만기 해지하는 경우 제공된다는 전제를 함께 안내한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_한달적금_001",
+    "doc_kakao_product_한달적금_002"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,179 @@
+{
+  "id": "kb_manual_record_book_collection_rule_deposit_success",
+  "description": {
+    "purpose": "success task for 기록통장",
+    "relevant_policies": "doc_kakao_product_기록통장_002",
+    "notes": "source_task_id=kb_manual_record_book_collection_rule_deposit_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_record_book_collection_rule_deposit_success.md; notes=This task is the positive counterpart to the external-deposit refusal. It requires all three allowed-deposit conditions: valid collection rule, linked base account, and monthly limit headroom."
+  },
+  "user_prompt": "연결된 입출금통장 잔액이 충분해요. 여행 섹션에 등록해 둔 40만원 모으기 규칙을 지금 실행해 주세요. 이번 달 여행 섹션에는 아직 60만원만 넣었습니다.",
+  "user_scenario": {
+    "persona": "여행 섹션에 정해둔 모으기 규칙을 실행하려는 기록통장 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n연결된 입출금통장 잔액이 충분해요. 여행 섹션에 등록해 둔 40만원 모으기 규칙을 지금 실행해 주세요. 이번 달 여행 섹션에는 아직 60만원만 넣었습니다.\n\nExpected assistant response points:\n- 기록통장 입금은 섹션별 모으기 규칙을 통해서만 가능하다고 안내한다.\n- 입금 출처는 연결된 카카오뱅크 입출금통장이어야 한다고 안내한다.\n- 40만원은 모으기 규칙 최대 50만원 이내이고 월 누적 100만원으로 1천만원 한도 이내라고 판단한다.\n- 연결 입출금통장에서 여행 섹션으로 40만원을 이체하고 기록을 남긴다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_068": {
+              "customer_id": "cust_068",
+              "name": "정여행",
+              "date_of_birth": "1991-12-20",
+              "age": 34,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_068": {
+              "account_id": "acct_base_068",
+              "customer_id": "cust_068",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 2000000,
+              "currency": "KRW",
+              "restriction_flags": []
+            },
+            "acct_record_068": {
+              "account_id": "acct_record_068",
+              "customer_id": "cust_068",
+              "product_name": "기록통장",
+              "status": "ACTIVE",
+              "balance_krw": 600000,
+              "currency": "KRW",
+              "linked_account_id": "acct_base_068",
+              "non_interest_section_count": 2,
+              "restriction_flags": []
+            }
+          }
+        },
+        "pockets": {
+          "data": {
+            "pocket_record_trip_068": {
+              "pocket_id": "pocket_record_trip_068",
+              "parent_id": "acct_record_068",
+              "pocket_type": "RECORD_BOOK_SECTION",
+              "section_name": "여행",
+              "status": "ACTIVE",
+              "balance_krw": 600000,
+              "created_at": "2026-02-01T09:00:00+09:00",
+              "is_interest_section": false,
+              "monthly_deposit_amount_krw": 600000,
+              "collection_rules": [
+                {
+                  "rule_id": "record_rule_trip_068",
+                  "amount_krw": 400000,
+                  "record_text": "여행 준비"
+                }
+              ]
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_record_book_collection_rule_deposit_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "기록통장 모으기 규칙 입금 연결 입출금통장 월 입금한도 1천만원 규칙 50만원"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_collection_rule_deposit_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_068"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_collection_rule_deposit_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "pocket_record_trip_068",
+          "table": "pockets"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_collection_rule_deposit_success_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_base_068",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_collection_rule_deposit_success_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "acct_base_068",
+          "target_id": "pocket_record_trip_068",
+          "amount": 400000,
+          "currency": "KRW",
+          "transaction_type": "RECORD_BOOK_COLLECTION_RULE_DEPOSIT"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_base_068",
+          "target_id": "pocket_record_trip_068",
+          "amount": 400000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "pockets",
+          "record_id": "pocket_record_trip_068",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "기록통장 입금은 섹션별 모으기 규칙을 통해서만 가능하다고 안내한다.",
+      "입금 출처는 연결된 카카오뱅크 입출금통장이어야 한다고 안내한다.",
+      "40만원은 모으기 규칙 최대 50만원 이내이고 월 누적 100만원으로 1천만원 한도 이내라고 판단한다.",
+      "연결 입출금통장에서 여행 섹션으로 40만원을 이체하고 기록을 남긴다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_기록통장_002"
+  ],
+  "user_tools": []
+}

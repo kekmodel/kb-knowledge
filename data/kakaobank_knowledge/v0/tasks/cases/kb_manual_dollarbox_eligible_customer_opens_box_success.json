@@ -1,0 +1,137 @@
+{
+  "id": "kb_manual_dollarbox_eligible_customer_opens_box_success",
+  "description": {
+    "purpose": "success task for 달러박스",
+    "relevant_policies": "doc_kakao_product_달러박스_001",
+    "notes": "source_task_id=kb_manual_dollarbox_eligible_customer_opens_box_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_dollarbox_eligible_customer_opens_box_success.md; notes=This covers the basic creation path that the existing Dollar Box tasks did not cover."
+  },
+  "user_prompt": "달러박스를 만들고 싶어요. 저는 만 19세 이상 국민인 거주자이고, 제 명의 카카오뱅크 입출금통장을 가지고 있습니다. 모바일앱 약관에 동의할게요.",
+  "user_scenario": {
+    "persona": "해외여행 경비를 보관하려는 30대 카카오뱅크 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n달러박스를 만들고 싶어요. 저는 만 19세 이상 국민인 거주자이고, 제 명의 카카오뱅크 입출금통장을 가지고 있습니다. 모바일앱 약관에 동의할게요.\n\nExpected assistant response points:\n- 달러박스 이용 대상은 만 19세 이상이고 본인 명의 카카오뱅크 입출금이자유로운예금을 보유한 국민인 거주자라고 확인한다.\n- 모바일앱에서 약관에 동의하고 가입을 신청해야 하며 카카오뱅크가 수락하면 계약이 성립한다고 안내한다.\n- 조건이 충족되므로 연결 요구불계좌를 기준으로 새 달러박스 record를 활성 상태로 만든다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_123": {
+              "customer_id": "cust_123",
+              "name": "문달러",
+              "date_of_birth": "1991-06-16",
+              "age": 34,
+              "residency": "KR",
+              "citizenship": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_123": {
+              "account_id": "acct_base_123",
+              "customer_id": "cust_123",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 3500000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "remittance_cases": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_dollarbox_eligible_customer_opens_box_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "달러박스 이용 대상 만 19세 국민인 거주자 본인 명의 입출금통장 약관 동의 신청"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_eligible_customer_opens_box_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_123"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_eligible_customer_opens_box_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_base_123",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_eligible_customer_opens_box_success_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_123",
+          "product_name": "달러박스",
+          "source_account_id": "acct_base_123",
+          "options": {
+            "box_id": "box_dollar_123",
+            "operation": "OPEN_DOLLARBOX",
+            "terms_consent_status": "ACCEPTED",
+            "base_account_id": "acct_base_123",
+            "currency": "USD",
+            "limit_amount": 10000,
+            "initial_balance": 0
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_dollar_123",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "달러박스 이용 대상은 만 19세 이상이고 본인 명의 카카오뱅크 입출금이자유로운예금을 보유한 국민인 거주자라고 확인한다.",
+      "모바일앱에서 약관에 동의하고 가입을 신청해야 하며 카카오뱅크가 수락하면 계약이 성립한다고 안내한다.",
+      "조건이 충족되므로 연결 요구불계좌를 기준으로 새 달러박스 record를 활성 상태로 만든다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_달러박스_001"
+  ],
+  "user_tools": []
+}

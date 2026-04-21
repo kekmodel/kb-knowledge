@@ -1,0 +1,208 @@
+{
+  "id": "kb_manual_child_savings_parent_emergency_withdrawal_min_balance",
+  "description": {
+    "purpose": "success task for 우리아이적금",
+    "relevant_policies": "doc_kakao_product_우리아이적금_003, doc_kakao_product_우리아이적금_004",
+    "notes": "source_task_id=kb_manual_child_savings_parent_emergency_withdrawal_min_balance; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_child_savings_parent_emergency_withdrawal_min_balance.md; notes=This success task uses the exact boundary case: after withdrawing 700,000 KRW from an 800,000 KRW child savings contract, the remaining balance is exactly the required 100,000 KRW minimum."
+  },
+  "user_prompt": "아이 우리아이적금에 원금이 80만원 있고 이번 계약기간 긴급출금은 한 번만 했어요. 만기 전인데 학원비가 급해서 가능한 최대치로 70만원만 긴급출금해서 연결된 우리아이통장으로 보내 주세요. 잔액 10만원은 남기는 걸로 이해하고 있어요.",
+  "user_scenario": {
+    "persona": "자녀 우리아이적금의 주대리인인 부모",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n아이 우리아이적금에 원금이 80만원 있고 이번 계약기간 긴급출금은 한 번만 했어요. 만기 전인데 학원비가 급해서 가능한 최대치로 70만원만 긴급출금해서 연결된 우리아이통장으로 보내 주세요. 잔액 10만원은 남기는 걸로 이해하고 있어요.\n\nExpected assistant response points:\n- 긴급출금은 부 또는 모가 가입일 또는 자동연장일부터 만기일 전일까지 신청할 수 있다고 안내한다.\n- 계약기간 중 최대 2회까지 가능하며, 현재 1회 사용 상태라 한 번 더 가능하다고 확인한다.\n- 긴급출금 후 최소 100,000원이 남아야 하므로 800,000원 중 700,000원 출금은 가능하다고 계산한다.\n- 먼저 납입한 금액부터 출금되어 근거계좌인 우리아이통장으로 이체되고, 출금금액에는 중도해지금리가 적용된다고 설명한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_031": {
+              "customer_id": "cust_031",
+              "name": "한부모",
+              "date_of_birth": "1986-06-15",
+              "age": 39,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "child_031": {
+              "customer_id": "child_031",
+              "name": "한아이",
+              "date_of_birth": "2017-09-03",
+              "age": 8,
+              "residency": "KR",
+              "employment_type": "MINOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "child_relationships": {
+          "data": {
+            "rel_child_savings_031": {
+              "relationship_id": "rel_child_savings_031",
+              "child_customer_id": "child_031",
+              "representative_customer_id": "cust_031",
+              "representative_role": "MAIN_REPRESENTATIVE_PARENT",
+              "status": "ACTIVE",
+              "child_age": 8,
+              "legal_representative_verified": true
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_child_base_031": {
+              "account_id": "acct_child_base_031",
+              "customer_id": "child_031",
+              "product_name": "우리아이통장",
+              "status": "ACTIVE",
+              "balance_krw": 150000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_child_savings_031"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_child_savings_031": {
+              "deposit_id": "dep_child_savings_031",
+              "account_id": "acct_child_base_031",
+              "customer_id": "child_031",
+              "product_name": "우리아이적금",
+              "status": "ACTIVE",
+              "opened_at": "2025-09-03",
+              "matures_at": "2026-09-03",
+              "principal_krw": 800000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_child_base_031",
+              "emergency_withdrawal_count_current_term": 1,
+              "emergency_withdrawal_limit_per_term": 2,
+              "minimum_balance_after_emergency_withdrawal_krw": 100000
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_child_savings_parent_emergency_withdrawal_min_balance_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "우리아이적금 긴급출금 부 또는 모 최대 2회 출금 후 10만원 이상 근거계좌 이체"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_parent_emergency_withdrawal_min_balance_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_031"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_parent_emergency_withdrawal_min_balance_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_child_savings_031",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_parent_emergency_withdrawal_min_balance_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_child_base_031",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_parent_emergency_withdrawal_min_balance_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "dep_child_savings_031",
+          "target_id": "acct_child_base_031",
+          "amount": 700000,
+          "currency": "KRW",
+          "transaction_type": "CHILD_SAVINGS_EMERGENCY_WITHDRAWAL",
+          "interest_rate_type_for_withdrawn_amount": "EARLY_CLOSE_RATE",
+          "remaining_principal_krw": 100000
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_child_savings_031",
+          "target_id": "acct_child_base_031",
+          "amount": 700000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "deposit_contracts",
+          "record_id": "dep_child_savings_031",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "deposit_contracts",
+          "record_id": "dep_child_savings_031",
+          "field_names": [
+            "status",
+            "close_type",
+            "legal_restriction_flags"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "긴급출금은 부 또는 모가 가입일 또는 자동연장일부터 만기일 전일까지 신청할 수 있다고 안내한다.",
+      "계약기간 중 최대 2회까지 가능하며, 현재 1회 사용 상태라 한 번 더 가능하다고 확인한다.",
+      "긴급출금 후 최소 100,000원이 남아야 하므로 800,000원 중 700,000원 출금은 가능하다고 계산한다.",
+      "먼저 납입한 금액부터 출금되어 근거계좌인 우리아이통장으로 이체되고, 출금금액에는 중도해지금리가 적용된다고 설명한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_우리아이적금_003",
+    "doc_kakao_product_우리아이적금_004"
+  ],
+  "user_tools": []
+}

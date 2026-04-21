@@ -1,0 +1,197 @@
+{
+  "id": "kb_manual_business_credit_info_withdraw_consent_closes_service",
+  "description": {
+    "purpose": "success task for 내 사업장 신용정보",
+    "relevant_policies": "doc_kakao_product_내_사업장_신용정보_001",
+    "notes": "source_task_id=kb_manual_business_credit_info_withdraw_consent_closes_service; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_info_withdraw_consent_closes_service.md; notes=This is a lifecycle task rather than another enrollment task. It verifies immediate service closure and all-feature access loss after the customer withdraws consent."
+  },
+  "user_prompt": "내 사업장 신용정보 서비스 동의를 철회하고 지금 해지해 주세요. 소호평점, 신용정보 조회, 사업장 리포트, 알림도 같이 멈추는지 확인해 주세요.",
+  "user_scenario": {
+    "persona": "이미 내 사업장 신용정보를 사용 중이지만 동의를 철회하려는 개인사업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n내 사업장 신용정보 서비스 동의를 철회하고 지금 해지해 주세요. 소호평점, 신용정보 조회, 사업장 리포트, 알림도 같이 멈추는지 확인해 주세요.\n\nExpected assistant response points:\n- 이용자는 언제든지 서비스 이용 동의를 철회할 수 있고 철회 시 이용계약이 즉시 해지된다고 안내한다.\n- 해지하면 제4조의 서비스 종류 전체가 일괄 해지된다고 설명한다.\n- 기존 서비스 enrollment를 닫고 소호평점, 신용정보 조회, 사업장 리포트, 알림 접근을 중지 상태로 만든다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_091": {
+              "customer_id": "cust_091",
+              "name": "신해지",
+              "date_of_birth": "1982-09-23",
+              "age": 43,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_091": {
+              "business_id": "biz_091",
+              "customer_id": "cust_091",
+              "business_name": "신해지 미용실",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "business_purpose": "BEAUTY_SERVICE"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_091": {
+              "account_id": "acct_base_091",
+              "customer_id": "cust_091",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 2100000,
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "svc_biz_credit_info_091"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {
+            "consent_biz_credit_info_terms_091": {
+              "consent_id": "consent_biz_credit_info_terms_091",
+              "customer_id": "cust_091",
+              "consent_type": "BUSINESS_CREDIT_INFO_KAKAOBANK_TERMS",
+              "status": "ACTIVE",
+              "effective_at": "2026-01-12T09:00:00+09:00",
+              "expires_at": null
+            },
+            "consent_nice_owner_credit_091": {
+              "consent_id": "consent_nice_owner_credit_091",
+              "customer_id": "cust_091",
+              "consent_type": "NICE_OWNER_CREDIT_MANAGEMENT_TERMS",
+              "status": "ACTIVE",
+              "effective_at": "2026-01-12T09:00:00+09:00",
+              "expires_at": null
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_biz_credit_info_091": {
+              "service_id": "svc_biz_credit_info_091",
+              "customer_id": "cust_091",
+              "service_name": "내 사업장 신용정보",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_base_091",
+              "business_id": "biz_091",
+              "started_at": "2026-01-12T09:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "provided_services": [
+                "SOHO_CREDIT_SCORE",
+                "CREDIT_INFO_LOOKUP",
+                "BUSINESS_CREDIT_REPORT",
+                "CREDIT_CHANGE_ALERT",
+                "SOHO_SCORE_CHANGE_ALERT"
+              ]
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_info_withdraw_consent_closes_service_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 사업장 신용정보 이용 동의 철회 즉시 해지 일괄 해지"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_withdraw_consent_closes_service_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_091"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_withdraw_consent_closes_service_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_biz_credit_info_091",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_withdraw_consent_closes_service_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_091",
+          "target_id": "svc_biz_credit_info_091",
+          "close_type": "WITHDRAW_SERVICE_CONSENT",
+          "reason": "USER_WITHDREW_BUSINESS_CREDIT_INFO_CONSENT",
+          "options": {
+            "effective_immediately": true,
+            "all_service_features_closed": true,
+            "affected_features": [
+              "SOHO_CREDIT_SCORE",
+              "CREDIT_INFO_LOOKUP",
+              "BUSINESS_CREDIT_REPORT",
+              "CREDIT_CHANGE_ALERT",
+              "SOHO_SCORE_CHANGE_ALERT"
+            ]
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_biz_credit_info_091",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_biz_credit_info_091",
+          "feature": "BUSINESS_CREDIT_REPORT",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "이용자는 언제든지 서비스 이용 동의를 철회할 수 있고 철회 시 이용계약이 즉시 해지된다고 안내한다.",
+      "해지하면 제4조의 서비스 종류 전체가 일괄 해지된다고 설명한다.",
+      "기존 서비스 enrollment를 닫고 소호평점, 신용정보 조회, 사업장 리포트, 알림 접근을 중지 상태로 만든다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_사업장_신용정보_001"
+  ],
+  "user_tools": []
+}

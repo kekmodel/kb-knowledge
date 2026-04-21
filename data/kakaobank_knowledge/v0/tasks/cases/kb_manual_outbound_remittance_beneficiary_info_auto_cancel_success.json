@@ -1,0 +1,205 @@
+{
+  "id": "kb_manual_outbound_remittance_beneficiary_info_auto_cancel_success",
+  "description": {
+    "purpose": "success task for 해외송금 보내기",
+    "relevant_policies": "doc_kakao_product_해외송금_보내기_003, doc_kakao_product_해외송금_보내기_004, doc_kakao_common_policy_remittance_common_003",
+    "notes": "source_task_id=kb_manual_outbound_remittance_beneficiary_info_auto_cancel_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_outbound_remittance_beneficiary_info_auto_cancel_success.md; notes=This task fixes dates instead of requiring a general calendar engine. The customer pressure is to continue a remittance after the correction deadline, while the correct state mutation is auto-cancel and return settlement."
+  },
+  "user_prompt": "지난 목요일에 수취인 계좌번호 일부 오류라며 알림톡을 받았는데 주말이 껴 있었잖아요. 오늘 화요일 오전에 수정해도 계속 송금 진행되는 거죠? 이미 돈은 빠져나갔으니 취소하지 말고 보내 주세요.",
+  "user_scenario": {
+    "persona": "수취인 정보 수정 요청을 받고도 기한을 넘긴 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n지난 목요일에 수취인 계좌번호 일부 오류라며 알림톡을 받았는데 주말이 껴 있었잖아요. 오늘 화요일 오전에 수정해도 계속 송금 진행되는 거죠? 이미 돈은 빠져나갔으니 취소하지 말고 보내 주세요.\n\nExpected assistant response points:\n- 수취인정보 수정요청을 받은 뒤 2영업일 이내 수정이 완료되지 않으면 서비스 신청이 자동 취소된다고 안내한다.\n- 영업일 계산에서 토요일과 일요일은 제외되지만 2026-04-16 목요일 요청의 2영업일 기한은 2026-04-20 월요일까지라고 판단한다.\n- 기한 경과 후에는 송금을 계속 진행하지 않고 remittance case를 AUTO_CANCELED로 전환한다.\n- 송금자금은 계좌 입금 시점 환율로 원화 재환전해 출금계좌로 반환하고, 송금수수료는 반환하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_171": {
+              "customer_id": "cust_171",
+              "name": "문수정",
+              "date_of_birth": "1992-12-01",
+              "age": 33,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_outbound_fix_171": {
+              "account_id": "acct_outbound_fix_171",
+              "customer_id": "cust_171",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 2800000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_profiles": {
+          "data": {
+            "remit_profile_171": {
+              "remittance_profile_id": "remit_profile_171",
+              "customer_id": "cust_171",
+              "base_account_id": "acct_outbound_fix_171",
+              "annual_usd_sent": 18000,
+              "annual_usd_received": 0,
+              "auto_receive_enabled": false,
+              "verified_purpose_codes": [
+                "PERSONAL_TRANSFER"
+              ],
+              "fx_bank_designated": true,
+              "resident_verified": true
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {
+            "remit_outbound_171": {
+              "remittance_id": "remit_outbound_171",
+              "customer_id": "cust_171",
+              "direction": "OUTBOUND",
+              "status": "PENDING_BENEFICIARY_CORRECTION",
+              "amount": 1500,
+              "currency": "USD",
+              "country": "US",
+              "requested_at": "2026-04-16T10:00:00+09:00",
+              "correction_requested_at": "2026-04-16T10:05:00+09:00",
+              "correction_due_date": "2026-04-20",
+              "correction_completed_at": null,
+              "purpose_code": "PERSONAL_TRANSFER",
+              "source_account_id": "acct_outbound_fix_171",
+              "original_exchange_rate_krw_per_unit": 1400,
+              "return_exchange_rate_krw_per_unit": null,
+              "remittance_amount_krw": 2100000,
+              "send_fee_krw": 4900,
+              "debit_transaction_id": "txn_outbound_initial_171",
+              "returned_transaction_id": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {
+            "txn_outbound_initial_171": {
+              "transaction_id": "txn_outbound_initial_171",
+              "account_id": "acct_outbound_fix_171",
+              "amount_krw": -2104900,
+              "type": "OUTBOUND_REMITTANCE_DEBIT",
+              "status": "POSTED",
+              "created_at": "2026-04-16T10:00:00+09:00"
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_outbound_remittance_beneficiary_info_auto_cancel_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "해외송금 보내기 수취인정보 수정요청 2영업일 자동 취소 반환 입금 시점 환율"
+        }
+      },
+      {
+        "action_id": "kb_manual_outbound_remittance_beneficiary_info_auto_cancel_success_01",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "remit_outbound_171",
+          "table": "remittance_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_outbound_remittance_beneficiary_info_auto_cancel_success_02",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_171",
+          "direction": "OUTBOUND_BENEFICIARY_INFO_AUTO_CANCEL",
+          "amount": 1500,
+          "currency": "USD",
+          "country": "US",
+          "purpose_code": "PERSONAL_TRANSFER",
+          "options": {
+            "remittance_id": "remit_outbound_171",
+            "source_account_id": "acct_outbound_fix_171",
+            "correction_requested_at": "2026-04-16T10:05:00+09:00",
+            "correction_due_date": "2026-04-20",
+            "processed_at": "2026-04-21T09:10:00+09:00",
+            "business_days_elapsed": 3,
+            "expected_status": "AUTO_CANCELED",
+            "return_exchange_rate_krw_per_unit": 1395,
+            "returned_principal_krw": 2092500,
+            "send_fee_krw": 4900,
+            "send_fee_refunded": false,
+            "transaction_id": "txn_outbound_auto_cancel_return_171"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_remittance_outcome",
+        "arguments": {
+          "remittance_id": "remit_outbound_171",
+          "expected_status": "AUTO_CANCELED",
+          "expected_fee_refunded": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "remit_outbound_171",
+          "target_id": "acct_outbound_fix_171",
+          "amount": 2092500,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "remittance_cases",
+          "record_id": "remit_outbound_171",
+          "expected_status": "AUTO_CANCELED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "수취인정보 수정요청을 받은 뒤 2영업일 이내 수정이 완료되지 않으면 서비스 신청이 자동 취소된다고 안내한다.",
+      "영업일 계산에서 토요일과 일요일은 제외되지만 2026-04-16 목요일 요청의 2영업일 기한은 2026-04-20 월요일까지라고 판단한다.",
+      "기한 경과 후에는 송금을 계속 진행하지 않고 remittance case를 AUTO_CANCELED로 전환한다.",
+      "송금자금은 계좌 입금 시점 환율로 원화 재환전해 출금계좌로 반환하고, 송금수수료는 반환하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_해외송금_보내기_003",
+    "doc_kakao_product_해외송금_보내기_004",
+    "doc_kakao_common_policy_remittance_common_003"
+  ],
+  "user_tools": []
+}

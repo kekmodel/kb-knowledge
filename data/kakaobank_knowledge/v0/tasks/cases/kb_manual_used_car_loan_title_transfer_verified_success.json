@@ -1,0 +1,204 @@
+{
+  "id": "kb_manual_used_car_loan_title_transfer_verified_success",
+  "description": {
+    "purpose": "success task for 중고차 구매대출",
+    "relevant_policies": "doc_kakao_product_중고차_구매대출_001",
+    "notes": "source_task_id=kb_manual_used_car_loan_title_transfer_verified_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_used_car_loan_title_transfer_verified_success.md; notes=This success task is not a generic customer reassurance task. It requires date-bound title-transfer reasoning, TS vehicle-register verification, and a narrow loan-state update that accepts the registry check without accelerating the loan."
+  },
+  "user_prompt": "4월 5일에 중고차 구매대출이 실행됐고 대출금은 매매상사에 지급됐어요. 차량 명의이전은 4월 18일에 제 명의로 완료됐습니다. 실행 다음날부터 15일 안이면 괜찮은 거죠? TS 등록원부 확인까지 해서 대출 상태를 정상으로 유지 처리해 주세요.",
+  "user_scenario": {
+    "persona": "중고차 구매대출 실행 후 명의이전 등록을 완료한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n4월 5일에 중고차 구매대출이 실행됐고 대출금은 매매상사에 지급됐어요. 차량 명의이전은 4월 18일에 제 명의로 완료됐습니다. 실행 다음날부터 15일 안이면 괜찮은 거죠? TS 등록원부 확인까지 해서 대출 상태를 정상으로 유지 처리해 주세요.\n\nExpected assistant response points:\n- 중고차 구매대출은 대출 실행 후 자동차 구입 여부 확인을 위해 실행일 다음날부터 15일 이내 자동차 이전 등록을 완료해야 한다고 안내한다.\n- 2026-04-05 실행 건의 fixture상 명의이전 due date는 2026-04-20이고 2026-04-18 완료는 기한 내 완료라고 판단한다.\n- 은행은 고객 진술만으로 처리하지 않고 TS 한국교통안전공단 자동차등록원부 열람 정보로 명의이전 등록 여부를 확인한다고 안내한다.\n- 명의이전 확인 상태를 VERIFIED로 바꾸고, 대출은 실행/정상 상태로 유지하며 기한의 이익 상실 또는 즉시변제 상태로 만들지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_048": {
+              "customer_id": "cust_048",
+              "name": "윤중고",
+              "date_of_birth": "1988-07-22",
+              "age": 37,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "used_car_loan_048": {
+              "loan_id": "used_car_loan_048",
+              "customer_id": "cust_048",
+              "product_name": "중고차 구매대출",
+              "status": "EXECUTED",
+              "principal_krw": 28000000,
+              "outstanding_krw": 27920000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2031-04-05",
+              "late_days": 0,
+              "restriction_flags": [
+                "VEHICLE_TITLE_TRANSFER_PENDING"
+              ],
+              "executed_at": "2026-04-05T10:00:00+09:00",
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false
+            }
+          }
+        },
+        "vehicle_purchase_cases": {
+          "data": {
+            "vehicle_case_048": {
+              "vehicle_case_id": "vehicle_case_048",
+              "loan_id": "used_car_loan_048",
+              "customer_id": "cust_048",
+              "dealer_id": "dealer_kcar_017",
+              "payment_status": "PAID_TO_DEALER",
+              "title_transfer_due_date": "2026-04-20",
+              "title_transfer_status": "REGISTERED_PENDING_BANK_VERIFICATION",
+              "title_transfer_completed_at": "2026-04-18",
+              "sale_contract_status": "ACTIVE",
+              "registry_source": "TS_KOTSA_VEHICLE_REGISTER",
+              "vehicle_number": "12가3456",
+              "registered_owner_customer_id": "cust_048",
+              "status": "TITLE_TRANSFER_PENDING_VERIFICATION"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_vehicle_title_048": {
+              "document_id": "req_vehicle_title_048",
+              "customer_id": "cust_048",
+              "target_type": "loan",
+              "target_id": "used_car_loan_048",
+              "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+              "status": "PENDING",
+              "due_date": "2026-04-20",
+              "submitted_at": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_verified_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "중고차 구매대출 명의이전 대출실행일 다음날 15일 TS 자동차등록원부"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_verified_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_048"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_verified_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "used_car_loan_048",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_verified_success_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "vehicle_case_048",
+          "table": "vehicle_purchase_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_verified_success_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "used_car_loan_048",
+          "operation": "VERIFY_USED_CAR_TITLE_TRANSFER",
+          "reason": "TITLE_TRANSFER_CONFIRMED_WITHIN_15_DAYS",
+          "effective_at": "2026-04-20T10:00:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "vehicle_purchase_cases",
+          "record_id": "vehicle_case_048",
+          "expected_status": "TITLE_TRANSFER_VERIFIED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "used_car_loan_048",
+          "expected_status": "EXECUTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "used_car_loan_048",
+          "expected_accelerated": false,
+          "expected_reason": null
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "used_car_loan_048",
+          "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+          "expected_status": "ACCEPTED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "중고차 구매대출은 대출 실행 후 자동차 구입 여부 확인을 위해 실행일 다음날부터 15일 이내 자동차 이전 등록을 완료해야 한다고 안내한다.",
+      "2026-04-05 실행 건의 fixture상 명의이전 due date는 2026-04-20이고 2026-04-18 완료는 기한 내 완료라고 판단한다.",
+      "은행은 고객 진술만으로 처리하지 않고 TS 한국교통안전공단 자동차등록원부 열람 정보로 명의이전 등록 여부를 확인한다고 안내한다.",
+      "명의이전 확인 상태를 VERIFIED로 바꾸고, 대출은 실행/정상 상태로 유지하며 기한의 이익 상실 또는 즉시변제 상태로 만들지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_중고차_구매대출_001"
+  ],
+  "user_tools": []
+}

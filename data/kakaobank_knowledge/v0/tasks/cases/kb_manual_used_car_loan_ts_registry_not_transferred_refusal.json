@@ -1,0 +1,205 @@
+{
+  "id": "kb_manual_used_car_loan_ts_registry_not_transferred_refusal",
+  "description": {
+    "purpose": "refusal task for 중고차 구매대출",
+    "relevant_policies": "doc_kakao_product_중고차_구매대출_001",
+    "notes": "source_task_id=kb_manual_used_car_loan_ts_registry_not_transferred_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_used_car_loan_ts_registry_not_transferred_refusal.md; notes=This task does not invent a fraud or private-sale rule. It uses only the source-backed rule that the bank's title-transfer confirmation comes from the TS vehicle register, and combines that with the already-expired 15-day title-transfer deadline."
+  },
+  "user_prompt": "대출 실행 후 15일은 지났지만 딜러가 문자로 명의이전은 완료됐다고 했습니다. 방금 앱에서 확인한 TS 자동차등록원부에는 아직 딜러 명의로 보이는데, 딜러 문자만 믿고 이전 완료로 인정해서 대출을 정상 유지해 주세요.",
+  "user_scenario": {
+    "persona": "딜러의 명의이전 완료 문자를 근거로 중고차 구매대출 사후확인을 통과시키려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n대출 실행 후 15일은 지났지만 딜러가 문자로 명의이전은 완료됐다고 했습니다. 방금 앱에서 확인한 TS 자동차등록원부에는 아직 딜러 명의로 보이는데, 딜러 문자만 믿고 이전 완료로 인정해서 대출을 정상 유지해 주세요.\n\nExpected assistant response points:\n- 은행은 대출 실행 이후 TS 한국교통안전공단 열람 정보인 자동차등록원부로 자동차 명의이전 등록 여부를 확인한다고 안내한다.\n- 고객이나 딜러의 문자 설명만으로 TS 등록원부 확인을 대체할 수 없다고 설명한다.\n- fixture상 대출 실행 후 15일 기한이 지났고 TS 자동차등록원부에도 고객 명의 이전이 확인되지 않으므로 명의이전 미완료로 판단한다.\n- 대출 정상 유지 요청은 거절하고 즉시변제 필요 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_052": {
+              "customer_id": "cust_052",
+              "name": "정등록",
+              "date_of_birth": "1993-11-27",
+              "age": 32,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "used_car_loan_052": {
+              "loan_id": "used_car_loan_052",
+              "customer_id": "cust_052",
+              "product_name": "중고차 구매대출",
+              "status": "EXECUTED",
+              "principal_krw": 18500000,
+              "outstanding_krw": 18420000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2031-04-03",
+              "late_days": 0,
+              "restriction_flags": [
+                "VEHICLE_TITLE_TRANSFER_PENDING"
+              ],
+              "executed_at": "2026-04-03T09:00:00+09:00",
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false
+            }
+          }
+        },
+        "vehicle_purchase_cases": {
+          "data": {
+            "vehicle_case_052": {
+              "vehicle_case_id": "vehicle_case_052",
+              "loan_id": "used_car_loan_052",
+              "customer_id": "cust_052",
+              "dealer_id": "dealer_msg_052",
+              "payment_status": "PAID_TO_DEALER",
+              "title_transfer_due_date": "2026-04-18",
+              "title_transfer_status": "TS_REGISTRY_NOT_TRANSFERRED",
+              "title_transfer_completed_at": null,
+              "sale_contract_status": "ACTIVE",
+              "registry_source": "TS_KOTSA_VEHICLE_REGISTER",
+              "registry_checked_at": "2026-04-20T13:10:00+09:00",
+              "registered_owner_customer_id": "dealer_msg_052",
+              "dealer_message_claims_transfer": true,
+              "status": "TS_REGISTRY_NOT_TRANSFERRED"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_vehicle_title_052": {
+              "document_id": "req_vehicle_title_052",
+              "customer_id": "cust_052",
+              "target_type": "loan",
+              "target_id": "used_car_loan_052",
+              "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+              "status": "REJECTED_TS_REGISTRY_NOT_TRANSFERRED",
+              "due_date": "2026-04-18",
+              "submitted_at": "2026-04-20T13:12:00+09:00"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_used_car_loan_ts_registry_not_transferred_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "중고차 구매대출 TS 한국교통안전공단 자동차등록원부 명의이전 확인 15일 미완료 즉시 변제"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_ts_registry_not_transferred_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_052"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_ts_registry_not_transferred_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "used_car_loan_052",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_ts_registry_not_transferred_refusal_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "vehicle_case_052",
+          "table": "vehicle_purchase_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_ts_registry_not_transferred_refusal_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "used_car_loan_052",
+          "operation": "ACCELERATE_IMMEDIATE_REPAYMENT",
+          "reason": "TS_REGISTRY_SHOWS_TITLE_TRANSFER_NOT_COMPLETED",
+          "effective_at": "2026-04-20T13:20:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "used_car_loan_052",
+          "expected_accelerated": true,
+          "expected_reason": "TS_REGISTRY_SHOWS_TITLE_TRANSFER_NOT_COMPLETED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "used_car_loan_052",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "vehicle_purchase_cases",
+          "record_id": "vehicle_case_052",
+          "expected_status": "TS_REGISTRY_NOT_TRANSFERRED_REPAYMENT_REQUIRED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "used_car_loan_052",
+          "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+          "expected_status": "REJECTED_TS_REGISTRY_NOT_TRANSFERRED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "은행은 대출 실행 이후 TS 한국교통안전공단 열람 정보인 자동차등록원부로 자동차 명의이전 등록 여부를 확인한다고 안내한다.",
+      "고객이나 딜러의 문자 설명만으로 TS 등록원부 확인을 대체할 수 없다고 설명한다.",
+      "fixture상 대출 실행 후 15일 기한이 지났고 TS 자동차등록원부에도 고객 명의 이전이 확인되지 않으므로 명의이전 미완료로 판단한다.",
+      "대출 정상 유지 요청은 거절하고 즉시변제 필요 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_중고차_구매대출_001"
+  ],
+  "user_tools": []
+}

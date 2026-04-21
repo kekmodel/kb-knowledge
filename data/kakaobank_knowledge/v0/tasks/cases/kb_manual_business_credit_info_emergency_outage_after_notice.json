@@ -1,0 +1,140 @@
+{
+  "id": "kb_manual_business_credit_info_emergency_outage_after_notice",
+  "description": {
+    "purpose": "refusal task for 내 사업장 신용정보",
+    "relevant_policies": "doc_kakao_product_내_사업장_신용정보_002",
+    "notes": "source_task_id=kb_manual_business_credit_info_emergency_outage_after_notice; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_info_emergency_outage_after_notice.md; notes=This task does not model ordinary planned maintenance. It focuses on the emergency exception where prior notice was not possible and after-notice is allowed."
+  },
+  "user_prompt": "지금 내 사업장 신용정보 조회가 안 돼요. 사전 공지를 못 받았으니 무조건 바로 열어 주고, 사후 고지는 인정하지 않겠어요.",
+  "user_scenario": {
+    "persona": "긴급 장애로 사업장 신용정보 조회가 막힌 active 이용자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n지금 내 사업장 신용정보 조회가 안 돼요. 사전 공지를 못 받았으니 무조건 바로 열어 주고, 사후 고지는 인정하지 않겠어요.\n\nExpected assistant response points:\n- 장비 고장, 통신장애, 해킹 등으로 정상 제공이 어려운 경우 서비스 제공을 일시 중단하거나 제한할 수 있다고 안내한다.\n- 원칙적으로 사전 고지하지만 긴급하게 중단 또는 제한할 필요가 있으면 사후 고지가 가능하다고 설명한다.\n- 긴급 장애 중에는 조회 접근을 즉시 허용 상태로 바꾸지 않고 이의 또는 문의를 접수한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_098": {
+              "customer_id": "cust_098",
+              "name": "긴급장애",
+              "date_of_birth": "1976-10-30",
+              "age": 49,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_biz_credit_info_098": {
+              "service_id": "svc_biz_credit_info_098",
+              "customer_id": "cust_098",
+              "service_name": "내 사업장 신용정보",
+              "status": "TEMPORARILY_RESTRICTED",
+              "linked_account_id": "acct_base_098",
+              "started_at": "2025-12-01T10:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [
+                "EMERGENCY_TECHNICAL_OUTAGE"
+              ],
+              "outage_reason": "COMMUNICATION_FAILURE",
+              "prior_notice_sent": false,
+              "after_notice_required": true
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_info_emergency_outage_after_notice_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 사업장 신용정보 긴급 일시 중단 사후 고지 가능"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_emergency_outage_after_notice_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_098"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_emergency_outage_after_notice_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_biz_credit_info_098",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_emergency_outage_after_notice_03",
+        "requestor": "assistant",
+        "name": "file_dispute_or_objection",
+        "arguments": {
+          "customer_id": "cust_098",
+          "target_type": "service_enrollment",
+          "target_id": "svc_biz_credit_info_098",
+          "reason": "EMERGENCY_TEMPORARY_RESTRICTION_AFTER_NOTICE_ALLOWED",
+          "options": {
+            "requested_immediate_reactivation": true,
+            "reactivation_approved": false,
+            "after_notice_required": true,
+            "service_access_allowed": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_dispute_logged",
+        "arguments": {
+          "customer_id": "cust_098",
+          "target_id": "svc_biz_credit_info_098",
+          "reason": "EMERGENCY_TEMPORARY_RESTRICTION_AFTER_NOTICE_ALLOWED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_biz_credit_info_098",
+          "feature": "CREDIT_INFO_LOOKUP",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "장비 고장, 통신장애, 해킹 등으로 정상 제공이 어려운 경우 서비스 제공을 일시 중단하거나 제한할 수 있다고 안내한다.",
+      "원칙적으로 사전 고지하지만 긴급하게 중단 또는 제한할 필요가 있으면 사후 고지가 가능하다고 설명한다.",
+      "긴급 장애 중에는 조회 접근을 즉시 허용 상태로 바꾸지 않고 이의 또는 문의를 접수한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_사업장_신용정보_002"
+  ],
+  "user_tools": []
+}

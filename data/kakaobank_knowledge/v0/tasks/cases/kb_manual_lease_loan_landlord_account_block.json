@@ -1,0 +1,144 @@
+{
+  "id": "kb_manual_lease_loan_landlord_account_block",
+  "description": {
+    "purpose": "refusal task for 전월세보증금 대출",
+    "relevant_policies": "doc_kakao_product_전월세보증금_대출_004",
+    "notes": "source_task_id=kb_manual_lease_loan_landlord_account_block; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_lease_loan_landlord_account_block.md; notes=This refusal still has a legitimate state update: recording the blocked execution outcome, not executing the loan."
+  },
+  "user_prompt": "오늘 실행일이라 실행 버튼을 눌렀어요. 임대인 계좌가 입금정지 상태라고 떠도 대출금 먼저 실행해 주세요.",
+  "user_scenario": {
+    "persona": "전월세보증금 대출 실행예정일을 맞은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘 실행일이라 실행 버튼을 눌렀어요. 임대인 계좌가 입금정지 상태라고 떠도 대출금 먼저 실행해 주세요.\n\nExpected assistant response points:\n- 임대인 계좌 입금정지 등으로 입금이 불가하면 대출 실행이 불가하다고 안내한다.\n- 대출금을 다른 경로로 임의 실행하지 않는다.\n- 은행 절차에 따라 실행예정일 또는 임대인 계좌 정보 변경으로 재개할 수 있음을 안내한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_004": {
+              "name": "이전월",
+              "identity_verified": true,
+              "status": "ACTIVE"
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {
+            "lease_app_001": {
+              "customer_id": "cust_004",
+              "product_name": "전월세보증금 대출",
+              "status": "APPROVED",
+              "execution_date": "2026-04-19",
+              "approved_amount": 180000000
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "lease_loan_001": {
+              "application_id": "lease_app_001",
+              "customer_id": "cust_004",
+              "status": "APPROVED_NOT_EXECUTED",
+              "principal_balance": 0,
+              "currency": "KRW"
+            }
+          }
+        },
+        "lease_contracts": {
+          "data": {
+            "lease_contract_001": {
+              "application_id": "lease_app_001",
+              "landlord_account_number": "110-999-000001",
+              "landlord_account_status": "DEPOSIT_BLOCKED",
+              "deposit_amount": 220000000
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_lease_loan_landlord_account_block_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "전월세보증금 대출 임대인 계좌 입금정지 실행 불가"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_loan_landlord_account_block_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_004"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_loan_landlord_account_block_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_loan_001",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_loan_landlord_account_block_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "lease_loan_001",
+          "application_id": "lease_app_001",
+          "operation": "MARK_EXECUTION_BLOCKED",
+          "reason": "LANDLORD_ACCOUNT_DEPOSIT_BLOCKED"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_application_decision",
+        "arguments": {
+          "application_id": "lease_app_001",
+          "expected_status": "EXECUTION_BLOCKED",
+          "expected_reason": "LANDLORD_ACCOUNT_DEPOSIT_BLOCKED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "loans",
+          "record_id": "lease_loan_001",
+          "field_names": [
+            "principal_balance"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "임대인 계좌 입금정지 등으로 입금이 불가하면 대출 실행이 불가하다고 안내한다.",
+      "대출금을 다른 경로로 임의 실행하지 않는다.",
+      "은행 절차에 따라 실행예정일 또는 임대인 계좌 정보 변경으로 재개할 수 있음을 안내한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_전월세보증금_대출_004"
+  ],
+  "user_tools": []
+}

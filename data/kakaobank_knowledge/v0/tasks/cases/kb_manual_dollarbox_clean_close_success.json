@@ -1,0 +1,152 @@
+{
+  "id": "kb_manual_dollarbox_clean_close_success",
+  "description": {
+    "purpose": "success task for 달러박스",
+    "relevant_policies": "doc_kakao_product_달러박스_004",
+    "notes": "source_task_id=kb_manual_dollarbox_clean_close_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_dollarbox_clean_close_success.md; notes=This success task pairs with the existing Travel Wallet closure-blocker refusal task."
+  },
+  "user_prompt": "달러박스 해지해 주세요. 잔액은 0달러이고 대기 중인 선물받기나 환불도 없고, 트래블월렛 충전 연동도 해제해 두었습니다.",
+  "user_scenario": {
+    "persona": "달러박스 잔액과 대기건을 모두 정리한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n달러박스 해지해 주세요. 잔액은 0달러이고 대기 중인 선물받기나 환불도 없고, 트래블월렛 충전 연동도 해제해 두었습니다.\n\nExpected assistant response points:\n- 이용자는 모바일앱 등으로 서비스 이용계약을 해지할 수 있다고 안내한다.\n- 해지를 위해 달러박스 잔액을 0원으로 만들어야 한다고 확인한다.\n- 잔액, 대기 선물, 대기 환불, 트래블월렛 연동 등 차단 조건이 없으므로 달러박스를 닫는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_129": {
+              "customer_id": "cust_129",
+              "name": "정리해지",
+              "date_of_birth": "1979-12-30",
+              "age": 46,
+              "residency": "KR",
+              "citizenship": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_129": {
+              "account_id": "acct_base_129",
+              "customer_id": "cust_129",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 810000,
+              "currency": "KRW",
+              "linked_service_ids": [
+                "box_dollar_129"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_dollar_129": {
+              "box_id": "box_dollar_129",
+              "customer_id": "cust_129",
+              "product_name": "달러박스",
+              "base_account_id": "acct_base_129",
+              "status": "ACTIVE",
+              "balance": 0,
+              "currency": "USD",
+              "limit_amount": 10000,
+              "pending_outbound_gift_ids": [],
+              "pending_inbound_gift_ids": [],
+              "pending_refund_ids": [],
+              "travelwallet_link_status": "NONE",
+              "restriction_flags": []
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "remittance_cases": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_dollarbox_clean_close_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "달러박스 해지 모바일앱 잔액 0 대기 선물 환불 트래블월렛 연동 없음"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_clean_close_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_129"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_clean_close_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_dollar_129",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_clean_close_success_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_129",
+          "target_id": "box_dollar_129",
+          "close_type": "CLOSE_DOLLARBOX",
+          "reason": "USER_REQUEST_ZERO_BALANCE_NO_BLOCKERS",
+          "options": {
+            "balance_usd": 0,
+            "pending_gifts": false,
+            "pending_refunds": false,
+            "travelwallet_link_active": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_dollar_129",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "이용자는 모바일앱 등으로 서비스 이용계약을 해지할 수 있다고 안내한다.",
+      "해지를 위해 달러박스 잔액을 0원으로 만들어야 한다고 확인한다.",
+      "잔액, 대기 선물, 대기 환불, 트래블월렛 연동 등 차단 조건이 없으므로 달러박스를 닫는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_달러박스_004"
+  ],
+  "user_tools": []
+}

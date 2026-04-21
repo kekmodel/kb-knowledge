@@ -1,0 +1,203 @@
+{
+  "id": "kb_manual_piggy_bank_coin_saving_transfers_change",
+  "description": {
+    "purpose": "success task for 저금통",
+    "relevant_policies": "doc_kakao_product_저금통_002, doc_kakao_product_저금통_003",
+    "notes": "source_task_id=kb_manual_piggy_bank_coin_saving_transfers_change; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_piggy_bank_coin_saving_transfers_change.md; notes=This task checks the positive side of the coin-saving boundary. The transfer happens because the saving-time base-account balance is 1,500 KRW, not 1,000 KRW or lower."
+  },
+  "user_prompt": "동전모으기가 켜져 있어요. 어제 연결 입출금통장 최종잔액은 15,300원이었고 오늘 저축시점 잔액은 1,500원이에요. 오늘이 월요일이면 저금통에 들어갈 잔돈을 계산해서 실행해 주세요.",
+  "user_scenario": {
+    "persona": "동전모으기 자동저축 결과를 확인하며 실행을 요청하는 저금통 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n동전모으기가 켜져 있어요. 어제 연결 입출금통장 최종잔액은 15,300원이었고 오늘 저축시점 잔액은 1,500원이에요. 오늘이 월요일이면 저금통에 들어갈 잔돈을 계산해서 실행해 주세요.\n\nExpected assistant response points:\n- 동전모으기는 연결 입출금통장 전일 최종잔액의 1,000원 미만 잔돈을 월요일부터 금요일까지 저축한다고 안내한다.\n- 저축시점 연결 입출금통장 잔액이 1,000원 이하이면 실행하지 않지만, 현재 잔액 1,500원은 그 제한에 걸리지 않는다고 확인한다.\n- 전일 최종잔액 15,300원의 1,000원 미만 잔돈인 300원을 연결 입출금통장에서 저금통으로 이체한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_039": {
+              "customer_id": "cust_039",
+              "name": "고동전",
+              "date_of_birth": "1995-06-09",
+              "age": 30,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_piggy_base_039": {
+              "account_id": "acct_piggy_base_039",
+              "customer_id": "cust_039",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 1500,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "box_piggy_039",
+                "auto_coin_039"
+              ],
+              "restriction_flags": [],
+              "previous_day_final_balance_krw": 15300
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_piggy_039": {
+              "box_id": "box_piggy_039",
+              "customer_id": "cust_039",
+              "product_name": "저금통",
+              "base_account_id": "acct_piggy_base_039",
+              "status": "ACTIVE",
+              "balance": 42000,
+              "currency": "KRW",
+              "limit_amount": 100000,
+              "restriction_flags": [],
+              "auto_savings_services": [
+                "auto_coin_039"
+              ]
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_coin_039": {
+              "auto_transfer_id": "auto_coin_039",
+              "source_account_id": "acct_piggy_base_039",
+              "target_id": "box_piggy_039",
+              "status": "ACTIVE",
+              "schedule": {
+                "type": "PIGGY_BANK_COIN_SAVING",
+                "weekdays": [
+                  "MON",
+                  "TUE",
+                  "WED",
+                  "THU",
+                  "FRI"
+                ],
+                "uses_previous_day_under_1000_remainder": true
+              },
+              "amount_krw": null,
+              "success_count": 17,
+              "failed_count": 0,
+              "last_run_at": "2026-04-17T09:00:00+09:00"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_piggy_bank_coin_saving_transfers_change_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "저금통 동전모으기 전일 최종잔액 1천원 미만 저축시점 잔액 1천원 이하 실시 안 함"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_coin_saving_transfers_change_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_039"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_coin_saving_transfers_change_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_piggy_base_039",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_coin_saving_transfers_change_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_piggy_039",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_coin_saving_transfers_change_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "acct_piggy_base_039",
+          "target_id": "box_piggy_039",
+          "amount": 300,
+          "currency": "KRW",
+          "transaction_type": "PIGGY_BANK_COIN_SAVING",
+          "previous_day_final_balance_krw": 15300,
+          "saving_time_source_balance_krw": 1500
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_piggy_base_039",
+          "target_id": "box_piggy_039",
+          "amount": 300,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_auto_transfer_count",
+        "arguments": {
+          "auto_transfer_id": "auto_coin_039",
+          "expected_success_count": 18,
+          "expected_failed_count": 0
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_piggy_039",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "동전모으기는 연결 입출금통장 전일 최종잔액의 1,000원 미만 잔돈을 월요일부터 금요일까지 저축한다고 안내한다.",
+      "저축시점 연결 입출금통장 잔액이 1,000원 이하이면 실행하지 않지만, 현재 잔액 1,500원은 그 제한에 걸리지 않는다고 확인한다.",
+      "전일 최종잔액 15,300원의 1,000원 미만 잔돈인 300원을 연결 입출금통장에서 저금통으로 이체한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_저금통_002",
+    "doc_kakao_product_저금통_003"
+  ],
+  "user_tools": []
+}

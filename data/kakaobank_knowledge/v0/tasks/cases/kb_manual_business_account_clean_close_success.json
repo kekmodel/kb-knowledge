@@ -1,0 +1,152 @@
+{
+  "id": "kb_manual_business_account_clean_close_success",
+  "description": {
+    "purpose": "success task for 개인사업자통장",
+    "relevant_policies": "doc_kakao_product_개인사업자통장_002",
+    "notes": "source_task_id=kb_manual_business_account_clean_close_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_account_clean_close_success.md; notes=This task complements the existing linked-loan close refusal by requiring the positive closure path when all blockers have already been cleared."
+  },
+  "user_prompt": "사업을 정리해서 개인사업자통장을 닫고 싶어요. 자동이체랑 카드 결제계좌 연결은 다 해제했고, 이 통장으로 연결된 대출도 없고 잔액도 0원입니다.",
+  "user_scenario": {
+    "persona": "사업을 정리하며 개인사업자통장을 닫으려는 소매업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n사업을 정리해서 개인사업자통장을 닫고 싶어요. 자동이체랑 카드 결제계좌 연결은 다 해제했고, 이 통장으로 연결된 대출도 없고 잔액도 0원입니다.\n\nExpected assistant response points:\n- 개인사업자통장 해지는 모바일앱을 통해 가능하다고 안내한다.\n- 결제성 거래, 실명확인 기반 상품, 대출 연결계좌 제한이 없는지 확인한다.\n- 초기 상태상 연결 서비스와 대출 연결이 없고 잔액이 0원이므로 계좌를 정상 해지한다.\n- 해지 후 계좌 상태가 `CLOSED`가 되도록 처리한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_064": {
+              "customer_id": "cust_064",
+              "name": "조소매",
+              "date_of_birth": "1982-07-18",
+              "age": 43,
+              "residency": "KR",
+              "employment_type": "SOLE_PROPRIETOR",
+              "identity_verified": true,
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_064": {
+              "business_id": "biz_064",
+              "customer_id": "cust_064",
+              "business_name": "조소매상회",
+              "registration_status": "CLOSING",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "business_purpose": "RETAIL"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_biz_064": {
+              "account_id": "acct_biz_064",
+              "customer_id": "cust_064",
+              "product_name": "개인사업자통장",
+              "status": "ACTIVE",
+              "balance_krw": 0,
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": [],
+              "linked_loan_id": null,
+              "business_id": "biz_064"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_account_clean_close_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "개인사업자통장 해지 모바일앱 자동이체 카드 결제계좌 실명확인 기반 상품 대출 연결계좌"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_account_clean_close_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_064"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_account_clean_close_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_biz_064",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_account_clean_close_success_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_064",
+          "target_id": "acct_biz_064",
+          "close_type": "NORMAL_CLOSE",
+          "reason": "NO_PAYMENT_IDENTITY_PRODUCT_OR_LOAN_LINKS"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_biz_064",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_biz_064",
+          "field_names": [
+            "balance_krw",
+            "linked_service_ids",
+            "restriction_flags"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "개인사업자통장 해지는 모바일앱을 통해 가능하다고 안내한다.",
+      "결제성 거래, 실명확인 기반 상품, 대출 연결계좌 제한이 없는지 확인한다.",
+      "초기 상태상 연결 서비스와 대출 연결이 없고 잔액이 0원이므로 계좌를 정상 해지한다.",
+      "해지 후 계좌 상태가 `CLOSED`가 되도록 처리한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_개인사업자통장_002"
+  ],
+  "user_tools": []
+}

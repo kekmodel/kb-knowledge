@@ -1,0 +1,106 @@
+# KakaoBank tau2 task export
+
+- status: v0 DB-delta task export for the standalone assistant runner
+- mode: `v0`
+- exported tasks: 123
+- skipped tasks: 84
+- skipped user-tool tasks: 4
+- skipped no-DB-delta tasks: 80
+- tasks dir: `data/kakaobank_knowledge/v0/tasks/cases`
+- aggregate: `data/kakaobank_knowledge/v0/tasks/tasks.json`
+
+## Runtime Status
+
+- This export contains task specs and per-task `initialization_data` consumed by the v0 replay/evaluation runner.
+- The empty domain `db.json` is stored under `data/kakaobank_knowledge/v0/tasks/db.json`; assistant retrieval uses `data/kakaobank_knowledge/v0/knowledge_base/documents`.
+- OpenAI-compatible evaluation is provided by the standalone KakaoBank runner, with `bm25_grep` as the default retrieval config.
+- v0 keeps only tasks whose gold replay changes the business DB final hash.
+- Future interactive and user-tool tasks stay outside this v0 single-turn DB-delta export.
+
+## Skipped in v0: user tools
+- `kb_manual_child_account_limit_release_document_user_tool`
+- `kb_manual_demand_deposit_limit_release_worker_document_user_tool`
+- `kb_manual_lease_required_document_user_tool`
+- `kb_manual_mortgage_move_in_proof_user_submission`
+
+## Skipped in v0: no business DB delta
+- `kb_manual_26week_coupon_after_opening_refusal`
+- `kb_manual_26week_emergency_withdrawal_min_balance_refusal`
+- `kb_manual_26week_legal_restriction_auto_close_refusal`
+- `kb_manual_26week_service_cancel_re_register_refusal`
+- `kb_manual_business_account_close_blocked_by_linked_loan`
+- `kb_manual_business_account_non_primary_rep_opening_refusal`
+- `kb_manual_business_account_piggybank_enrollment_refusal`
+- `kb_manual_business_account_service_linked_conversion_refusal`
+- `kb_manual_business_credit_info_business_auth_fail_refusal`
+- `kb_manual_business_credit_info_inactive_registration_refusal`
+- `kb_manual_business_credit_info_nice_approval_denied_refusal`
+- `kb_manual_business_credit_info_nice_terms_declined_refusal`
+- `kb_manual_business_credit_info_no_demand_deposit_refusal`
+- `kb_manual_business_credit_info_non_primary_rep_refusal`
+- `kb_manual_business_credit_info_push_problem_alerts_restricted`
+- `kb_manual_child_account_assistant_rep_transfer_refusal`
+- `kb_manual_child_account_close_with_active_child_product_refusal`
+- `kb_manual_child_account_other_service_link_refusal`
+- `kb_manual_child_savings_age18_auto_extension_refusal`
+- `kb_manual_child_savings_assistant_agent_emergency_withdrawal_refusal`
+- `kb_manual_child_savings_opening_requires_child_account_refusal`
+- `kb_manual_child_savings_tax_free_auto_extension_refusal`
+- `kb_manual_credit_loan_agreement_rate_cut_refusal`
+- `kb_manual_credit_loan_comparison_contract_data_affiliate_refusal`
+- `kb_manual_credit_loan_comparison_direct_contract_refusal`
+- `kb_manual_credit_loan_comparison_market_scope_refusal`
+- `kb_manual_credit_loan_inherited_home_no_acceleration`
+- `kb_manual_credit_loan_joint_single_bank_repayment_refusal`
+- `kb_manual_demand_deposit_close_blocked_by_linked_services`
+- `kb_manual_demand_deposit_restriction_close_refusal`
+- `kb_manual_dollarbox_atm_below_minimum_refusal`
+- `kb_manual_dollarbox_daily_deposit_limit_refusal`
+- `kb_manual_dollarbox_group_account_opening_refusal`
+- `kb_manual_dollarbox_pending_return_no_explanation_refusal`
+- `kb_manual_dollarbox_travelwallet_link_blocks_close`
+- `kb_manual_dollarbox_travelwallet_unlinked_refusal`
+- `kb_manual_fixed_deposit_coupon_redeposit_rate_refusal`
+- `kb_manual_fixed_deposit_tax_free_auto_extension_refusal`
+- `kb_manual_free_savings_auto_close_legal_restriction_refusal`
+- `kb_manual_free_savings_emergency_withdrawal_min_balance_refusal`
+- `kb_manual_free_savings_tax_free_auto_extension_refusal`
+- `kb_manual_group_account_member_join_limit_refusal`
+- `kb_manual_group_account_owner_close_with_members_refusal`
+- `kb_manual_group_account_recent_30d_opening_refusal`
+- `kb_manual_lease_contract_revision_after_submission_refusal`
+- `kb_manual_mini_atm_withdrawal_age12_refusal`
+- `kb_manual_mini_duplicate_opening_refusal`
+- `kb_manual_mini_refund_fee_insufficient_close_refusal`
+- `kb_manual_mini_savings_holding_limit_refusal`
+- `kb_manual_mini_under14_no_guardian_consent_refusal`
+- `kb_manual_minicard_foreign_currency_merchant_refusal`
+- `kb_manual_minicard_harmful_industry_payment_refusal`
+- `kb_manual_minicard_tax_public_fee_payment_refusal`
+- `kb_manual_mortgage_comparison_contract_data_partner_refusal`
+- `kb_manual_mortgage_comparison_direct_contract_refusal`
+- `kb_manual_mortgage_comparison_market_scope_refusal`
+- `kb_manual_my_credit_info_affiliate_terms_refusal`
+- `kb_manual_my_credit_info_certificate_failure_score_up_refusal`
+- `kb_manual_my_credit_info_non_korean_customer_refusal`
+- `kb_manual_one_month_savings_coupon_after_opening_refusal`
+- `kb_manual_one_month_savings_legal_restriction_auto_close_refusal`
+- `kb_manual_one_month_savings_second_same_day_nonlinked_adversarial`
+- `kb_manual_piggy_bank_group_account_opening_refusal`
+- `kb_manual_piggy_bank_partial_withdrawal_refusal`
+- `kb_manual_record_book_base_account_change_refusal`
+- `kb_manual_record_book_external_deposit_refusal`
+- `kb_manual_record_book_group_account_base_opening_refusal`
+- `kb_manual_record_book_monthly_limit_refusal`
+- `kb_manual_record_book_section_transfer_refusal`
+- `kb_manual_safebox_duplicate_base_account_refusal`
+- `kb_manual_safebox_external_withdrawal_refusal`
+- `kb_manual_safebox_legal_restriction_close_refusal`
+- `kb_manual_safebox_limit_decrease_after_increase_refusal`
+- `kb_manual_smoke_safebox_external_deposit_refusal`
+- `kb_manual_special_fixed_deposit_auto_extension_refusal`
+- `kb_manual_vat_box_duplicate_business_number_refusal`
+- `kb_manual_vat_box_external_withdrawal_refusal`
+- `kb_manual_vat_box_legal_restriction_close_refusal`
+- `kb_manual_vat_box_tax_exempt_report_access_refusal`
+- `kb_manual_vat_box_ten_percent_insufficient_balance_no_partial`

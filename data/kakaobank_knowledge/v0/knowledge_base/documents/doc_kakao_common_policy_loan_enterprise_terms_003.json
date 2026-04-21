@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_common_policy_loan_enterprise_terms_003",
+  "title": "KakaoBank Common Policy Facts: loan_enterprise_terms (part 3)",
+  "content": "Common policy layer: loan_enterprise_terms\nApplies to products: 개인사업자 신용대출\nSource review file: data/curated/common_policy/loan_common_policy.review.md\n\n## 기업용 은행여신거래기본약관 fact\n\n- `enterprise_material_change_notice`: 채무자는 신용상태 또는 담보상황의 중대한 변화를 자발적으로 통지해야 함\n  - Evidence: `은행여신거래기본약관(기업용).md:97`\n- `enterprise_terms_change`: 법령, 금융사정, 거래상황 변화에 따라 여신거래조건을 변경할 수 있는 원칙과 절차가 적용\n  - Evidence: `은행여신거래기본약관(기업용).md:101`\n- `enterprise_law_applies_korean_law`: 여신거래의 이행장소와 적용법은 내국인이 아니더라도 국내법 적용\n  - Evidence: `은행여신거래기본약관(기업용).md:105`\n- `enterprise_court_jurisdiction`: 민사소송법상 관할법원 및 채권관리 이관 후 관할법원을 정함\n  - Evidence: `은행여신거래기본약관(기업용).md:113`"
+}

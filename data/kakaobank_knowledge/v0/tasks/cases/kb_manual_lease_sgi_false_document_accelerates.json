@@ -1,0 +1,197 @@
+{
+  "id": "kb_manual_lease_sgi_false_document_accelerates",
+  "description": {
+    "purpose": "refusal task for 전월세보증금 대출",
+    "relevant_policies": "doc_kakao_product_전월세보증금_대출_005",
+    "notes": "source_task_id=kb_manual_lease_sgi_false_document_accelerates; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_lease_sgi_false_document_accelerates.md; notes=This task differs from missing-document refusals: a document was submitted, but the submitted material is confirmed false after execution, triggering acceleration rather than simple execution blocking."
+  },
+  "user_prompt": "SGI 전월세보증금 대출 실행 전에 낸 기존대출 상환영수증이 허위라고 연락받았어요. 그래도 대출은 이미 실행됐으니 정상 유지하고, 자료만 다시 내게 해 주세요.",
+  "user_scenario": {
+    "persona": "SGI 전월세보증금 대출 실행 후 제출자료 허위가 확인된 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\nSGI 전월세보증금 대출 실행 전에 낸 기존대출 상환영수증이 허위라고 연락받았어요. 그래도 대출은 이미 실행됐으니 정상 유지하고, 자료만 다시 내게 해 주세요.\n\nExpected assistant response points:\n- SGI 대출에서 제출자료가 허위인 경우 은행이 기한의 이익을 상실시킬 수 있다고 안내한다.\n- 이미 실행된 대출이라도 허위자료 확인은 정상 유지 사유가 아니라고 설명한다.\n- 대출을 기한이익상실/즉시상환 필요 상태로 변경한다.\n- 해당 제출자료 상태를 허위 확인 상태로 남긴다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_094": {
+              "customer_id": "cust_094",
+              "name": "허자료",
+              "date_of_birth": "1984-12-25",
+              "age": 41,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "lease_loan_094": {
+              "loan_id": "lease_loan_094",
+              "customer_id": "cust_094",
+              "product_name": "전월세보증금 대출",
+              "status": "EXECUTED",
+              "guarantee_provider": "SGI",
+              "principal_krw": 160000000,
+              "outstanding_krw": 160000000,
+              "principal_balance": 160000000,
+              "repayment_mode": "BULLET_OR_INSTALLMENT_BY_CONTRACT",
+              "maturity_date": "2028-03-02",
+              "late_days": 0,
+              "restriction_flags": [],
+              "executed_at": "2026-03-02",
+              "currency": "KRW",
+              "accelerated": false,
+              "acceleration_reason": null
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_doc_094": {
+              "document_id": "req_doc_094",
+              "customer_id": "cust_094",
+              "loan_id": "lease_loan_094",
+              "target_type": "loan",
+              "target_id": "lease_loan_094",
+              "document_type": "OLD_LOAN_FULL_REPAYMENT_PROOF",
+              "status": "FALSE_DOCUMENT_CONFIRMED",
+              "due_date": "2026-03-02",
+              "submitted_at": "2026-03-01T13:40:00+09:00",
+              "verified_at": "2026-04-20T09:30:00+09:00",
+              "finding": "REPAYMENT_RECEIPT_FORGED"
+            }
+          }
+        },
+        "lease_contracts": {
+          "data": {
+            "lease_contract_094": {
+              "lease_id": "lease_contract_094",
+              "loan_id": "lease_loan_094",
+              "landlord_account_status": "NORMAL",
+              "move_in_due_date": "2026-03-05",
+              "resident_registration_status": "REGISTERED",
+              "deposit_return_claim_status": "ASSIGNED_TO_BANK",
+              "guarantee_provider": "SGI",
+              "refinance_condition": true,
+              "old_loan_repayment_verified_by_bank": false,
+              "false_document_confirmed": true,
+              "status": "FALSE_DOCUMENT_CONFIRMED"
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_lease_sgi_false_document_accelerates_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "SGI 전월세보증금 대출 제출자료 허위 기한의 이익 상실 기존대출 상환영수증"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_false_document_accelerates_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_094"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_false_document_accelerates_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_loan_094",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_false_document_accelerates_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "req_doc_094",
+          "table": "required_documents"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_false_document_accelerates_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "lease_loan_094",
+          "operation": "ACCELERATE_FOR_SGI_FALSE_DOCUMENT",
+          "reason": "SGI_SUBMITTED_DOCUMENT_FALSE",
+          "effective_at": "2026-04-20T16:45:00+09:00",
+          "options": {
+            "document_id": "req_doc_094",
+            "document_type": "OLD_LOAN_FULL_REPAYMENT_PROOF",
+            "document_status": "FALSE_DOCUMENT_CONFIRMED",
+            "guarantee_provider": "SGI",
+            "finding": "REPAYMENT_RECEIPT_FORGED",
+            "immediate_repayment_required": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "lease_loan_094",
+          "expected_accelerated": true,
+          "expected_reason": "SGI_SUBMITTED_DOCUMENT_FALSE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "lease_loan_094",
+          "document_type": "OLD_LOAN_FULL_REPAYMENT_PROOF",
+          "expected_status": "FALSE_DOCUMENT_CONFIRMED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "lease_contracts",
+          "record_id": "lease_contract_094",
+          "expected_status": "FALSE_DOCUMENT_CONFIRMED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "SGI 대출에서 제출자료가 허위인 경우 은행이 기한의 이익을 상실시킬 수 있다고 안내한다.",
+      "이미 실행된 대출이라도 허위자료 확인은 정상 유지 사유가 아니라고 설명한다.",
+      "대출을 기한이익상실/즉시상환 필요 상태로 변경한다.",
+      "해당 제출자료 상태를 허위 확인 상태로 남긴다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_전월세보증금_대출_005"
+  ],
+  "user_tools": []
+}

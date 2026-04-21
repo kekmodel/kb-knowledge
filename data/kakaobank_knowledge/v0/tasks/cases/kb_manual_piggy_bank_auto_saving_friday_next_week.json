@@ -1,0 +1,169 @@
+{
+  "id": "kb_manual_piggy_bank_auto_saving_friday_next_week",
+  "description": {
+    "purpose": "success task for 저금통",
+    "relevant_policies": "doc_kakao_product_저금통_003",
+    "notes": "source_task_id=kb_manual_piggy_bank_auto_saving_friday_next_week; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_piggy_bank_auto_saving_friday_next_week.md; notes=This task focuses on the subtle timing boundary: the correct rule is created, but the first eligible Saturday is one week later."
+  },
+  "user_prompt": "오늘이 2026년 4월 24일 금요일인데 저금통 자동모으기를 기본 구간으로 켜 주세요. 내일 토요일부터 바로 빠져나가게 해도 되죠?",
+  "user_scenario": {
+    "persona": "금요일에 저금통 자동모으기를 새로 켜려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘이 2026년 4월 24일 금요일인데 저금통 자동모으기를 기본 구간으로 켜 주세요. 내일 토요일부터 바로 빠져나가게 해도 되죠?\n\nExpected assistant response points:\n- 자동모으기는 매주 토요일에 실시되지만 금요일부터 일요일까지 신청하면 다음 주부터 저축이 시작된다고 안내한다.\n- 기본 저축 구간은 1,000원 이상 5,000원 이하라고 설명한다.\n- 자동모으기 rule은 생성하되 첫 실행일을 2026년 4월 25일이 아니라 다음 주 토요일인 2026년 5월 2일로 설정한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_226": {
+              "customer_id": "cust_226",
+              "name": "금요일저축",
+              "date_of_birth": "1992-07-18",
+              "age": 33,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_piggy_base_226": {
+              "account_id": "acct_piggy_base_226",
+              "customer_id": "cust_226",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 380000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "box_piggy_226"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_piggy_226": {
+              "box_id": "box_piggy_226",
+              "customer_id": "cust_226",
+              "product_name": "저금통",
+              "base_account_id": "acct_piggy_base_226",
+              "status": "ACTIVE",
+              "balance": 28000,
+              "currency": "KRW",
+              "limit_amount": 100000,
+              "restriction_flags": [],
+              "auto_savings_services": []
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_piggy_bank_auto_saving_friday_next_week_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "저금통 자동모으기 금요일 신청 다음 주부터 매주 토요일 기본 구간 1천원 5천원"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_auto_saving_friday_next_week_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_226"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_auto_saving_friday_next_week_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_piggy_226",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_auto_saving_friday_next_week_03",
+        "requestor": "assistant",
+        "name": "configure_auto_transfer",
+        "arguments": {
+          "source_account_id": "acct_piggy_base_226",
+          "target_id": "box_piggy_226",
+          "schedule": {
+            "type": "PIGGY_BANK_AUTO_SAVING",
+            "weekdays": [
+              "SAT"
+            ],
+            "applied_at": "2026-04-24T10:00:00+09:00",
+            "requested_on_weekday": "FRI",
+            "first_run_date": "2026-05-02",
+            "holiday_irrelevant": true
+          },
+          "amount_krw": null,
+          "operation": "CREATE",
+          "options": {
+            "auto_transfer_id": "auto_piggy_226",
+            "saving_range": "BASIC",
+            "min_amount_krw": 1000,
+            "max_amount_krw": 5000,
+            "not_first_run_date": "2026-04-25"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "auto_transfer_rules",
+          "record_id": "auto_piggy_226",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_piggy_226",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "자동모으기는 매주 토요일에 실시되지만 금요일부터 일요일까지 신청하면 다음 주부터 저축이 시작된다고 안내한다.",
+      "기본 저축 구간은 1,000원 이상 5,000원 이하라고 설명한다.",
+      "자동모으기 rule은 생성하되 첫 실행일을 2026년 4월 25일이 아니라 다음 주 토요일인 2026년 5월 2일로 설정한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_저금통_003"
+  ],
+  "user_tools": []
+}

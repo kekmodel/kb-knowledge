@@ -1,0 +1,154 @@
+{
+  "id": "kb_manual_safebox_request_day_interest_paid",
+  "description": {
+    "purpose": "success task for 세이프박스",
+    "relevant_policies": "doc_kakao_product_세이프박스_002",
+    "notes": "source_task_id=kb_manual_safebox_request_day_interest_paid; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_safebox_request_day_interest_paid.md; notes=This task adds a dedicated interest-payment action family because the source creates a real state transition that is distinct from deposits, withdrawals, and closure."
+  },
+  "user_prompt": "이번 달 네 번째 금요일 다음날까지 기다리지 말고 오늘 2026년 4월 20일에 세이프박스 이자를 바로 받아 주세요. 현재 계산된 이자는 5,260원이에요.",
+  "user_scenario": {
+    "persona": "월 이자지급일까지 기다리지 않고 세이프박스 이자를 바로 받고 싶은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n이번 달 네 번째 금요일 다음날까지 기다리지 말고 오늘 2026년 4월 20일에 세이프박스 이자를 바로 받아 주세요. 현재 계산된 이자는 5,260원이에요.\n\nExpected assistant response points:\n- 세이프박스 이자지급일은 매월 네 번째 금요일의 다음날 또는 고객이 이자지급을 요청한 날이라고 안내한다.\n- 이자는 이자지급일에 원금에 더해진다고 설명한다.\n- 요청일 이자지급으로 5,260원을 세이프박스 원금에 더한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_151": {
+              "customer_id": "cust_151",
+              "name": "바로이자",
+              "date_of_birth": "1983-04-20",
+              "age": 43,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_151": {
+              "account_id": "acct_base_151",
+              "customer_id": "cust_151",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 230000,
+              "currency": "KRW",
+              "linked_service_ids": [
+                "box_safe_151"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_safe_151": {
+              "box_id": "box_safe_151",
+              "customer_id": "cust_151",
+              "product_name": "세이프박스",
+              "base_account_id": "acct_base_151",
+              "status": "ACTIVE",
+              "balance": 4800000,
+              "currency": "KRW",
+              "limit_amount": 10000000,
+              "limit_increased": false,
+              "restriction_flags": [],
+              "accrued_interest_krw": 5260,
+              "last_interest_paid_at": "2026-03-29"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_safebox_request_day_interest_paid_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "세이프박스 고객 요청한 날 이자지급 원금에 더함"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_request_day_interest_paid_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_151"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_request_day_interest_paid_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_safe_151",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_request_day_interest_paid_03",
+        "requestor": "assistant",
+        "name": "request_interest_payment",
+        "arguments": {
+          "target_id": "box_safe_151",
+          "requested_at": "2026-04-20T10:00:00+09:00",
+          "options": {
+            "interest_amount_krw": 5260,
+            "add_to_principal": true,
+            "destination_id": "box_safe_151",
+            "reason": "CUSTOMER_REQUESTED_INTEREST_PAYMENT"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "interest_accrual_safe_151",
+          "target_id": "box_safe_151",
+          "amount": 5260,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_safe_151",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "세이프박스 이자지급일은 매월 네 번째 금요일의 다음날 또는 고객이 이자지급을 요청한 날이라고 안내한다.",
+      "이자는 이자지급일에 원금에 더해진다고 설명한다.",
+      "요청일 이자지급으로 5,260원을 세이프박스 원금에 더한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_세이프박스_002"
+  ],
+  "user_tools": []
+}

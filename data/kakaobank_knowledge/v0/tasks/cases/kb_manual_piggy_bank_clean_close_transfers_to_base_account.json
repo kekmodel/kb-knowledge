@@ -1,0 +1,171 @@
+{
+  "id": "kb_manual_piggy_bank_clean_close_transfers_to_base_account",
+  "description": {
+    "purpose": "success task for 저금통",
+    "relevant_policies": "doc_kakao_product_저금통_004",
+    "notes": "source_task_id=kb_manual_piggy_bank_clean_close_transfers_to_base_account; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_piggy_bank_clean_close_transfers_to_base_account.md; notes=This clean-close success is the lifecycle counterpart to the existing partial-withdrawal refusal."
+  },
+  "user_prompt": "저금통을 해지하고 싶어요. 압류나 질권 같은 출금제한은 없고, 원금 82,000원과 결산이자 430원을 연결 입출금통장으로 넣어 주세요.",
+  "user_scenario": {
+    "persona": "저금통을 해지하고 연결 입출금통장으로 돌려받으려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n저금통을 해지하고 싶어요. 압류나 질권 같은 출금제한은 없고, 원금 82,000원과 결산이자 430원을 연결 입출금통장으로 넣어 주세요.\n\nExpected assistant response points:\n- 저금통은 모바일앱을 통해 해지할 수 있다고 안내한다.\n- 해지 시 원금 및 결산이자는 연결된 카카오뱅크 입출금통장으로 이체된다고 설명한다.\n- 출금제한이 없으므로 저금통을 닫고 총 82,430원을 연결 입출금통장으로 이체한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_228": {
+              "customer_id": "cust_228",
+              "name": "비움저금",
+              "date_of_birth": "1984-02-26",
+              "age": 42,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_piggy_base_228": {
+              "account_id": "acct_piggy_base_228",
+              "customer_id": "cust_228",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 260000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "box_piggy_228"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_piggy_228": {
+              "box_id": "box_piggy_228",
+              "customer_id": "cust_228",
+              "product_name": "저금통",
+              "base_account_id": "acct_piggy_base_228",
+              "status": "ACTIVE",
+              "balance": 82000,
+              "currency": "KRW",
+              "limit_amount": 100000,
+              "restriction_flags": [],
+              "accrued_interest_krw": 430
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_piggy_bank_clean_close_transfers_to_base_account_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "저금통 해지 모바일앱 원금 결산이자 연결 입출금통장 이체"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_clean_close_transfers_to_base_account_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_228"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_clean_close_transfers_to_base_account_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_piggy_228",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_clean_close_transfers_to_base_account_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_228",
+          "target_id": "box_piggy_228",
+          "close_type": "CLOSE_PIGGY_BANK",
+          "reason": "CUSTOMER_REQUEST_NO_RESTRICTIONS",
+          "options": {
+            "base_account_id": "acct_piggy_base_228",
+            "principal_krw": 82000,
+            "settlement_interest_krw": 430,
+            "transfer_amount_krw": 82430,
+            "transfer_principal_and_interest_to_base_account": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_piggy_228",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "box_piggy_228",
+          "target_id": "acct_piggy_base_228",
+          "amount": 82430,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_piggy_base_228",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "저금통은 모바일앱을 통해 해지할 수 있다고 안내한다.",
+      "해지 시 원금 및 결산이자는 연결된 카카오뱅크 입출금통장으로 이체된다고 설명한다.",
+      "출금제한이 없으므로 저금통을 닫고 총 82,430원을 연결 입출금통장으로 이체한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_저금통_004"
+  ],
+  "user_tools": []
+}

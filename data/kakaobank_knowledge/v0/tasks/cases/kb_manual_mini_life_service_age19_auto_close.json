@@ -1,0 +1,191 @@
+{
+  "id": "kb_manual_mini_life_service_age19_auto_close",
+  "description": {
+    "purpose": "success task for 카카오뱅크 mini",
+    "relevant_policies": "doc_kakao_product_카카오뱅크_mini_003, doc_kakao_product_카카오뱅크_mini_004",
+    "notes": "source_task_id=kb_manual_mini_life_service_age19_auto_close; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mini_life_service_age19_auto_close.md; notes=This task separates mini life-service age-based closure from mini prepaid-wallet or mini-card lifecycle; only the life service enrollment should close."
+  },
+  "user_prompt": "오늘 만 19세가 됐는데 mini 생활 서비스의 시간표랑 급식 알림을 계속 쓰고 싶어요. mini를 아직 쓰고 있으니 생활 서비스도 그대로 유지해 주세요.",
+  "user_scenario": {
+    "persona": "만 19세가 된 뒤 mini 생활 서비스를 계속 쓰고 싶어 하는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘 만 19세가 됐는데 mini 생활 서비스의 시간표랑 급식 알림을 계속 쓰고 싶어요. mini를 아직 쓰고 있으니 생활 서비스도 그대로 유지해 주세요.\n\nExpected assistant response points:\n- mini 생활 서비스 가입 대상은 만 7세 이상 만 18세 이하 고객이라고 확인한다.\n- 이용자가 만 19세가 되면 mini 생활 서비스는 자동 해지된다고 안내한다.\n- 고객 요청처럼 생활 서비스를 유지하지 않고 service enrollment를 자동 해지 상태로 변경한다.\n- mini 본체 prepaid wallet 또는 mini카드 상태를 이 task에서 임의로 닫지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_256": {
+              "customer_id": "cust_256",
+              "name": "최성년",
+              "date_of_birth": "2007-04-20",
+              "age": 19,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_256": {
+              "wallet_id": "mini_wallet_256",
+              "customer_id": "cust_256",
+              "status": "ACTIVE",
+              "balance_krw": 82000,
+              "holding_limit_krw": 500000,
+              "daily_limit_krw": 200000,
+              "monthly_limit_krw": 1000000,
+              "age_band": "AGE_19_TRANSITION"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_mini_life_256": {
+              "service_id": "svc_mini_life_256",
+              "customer_id": "cust_256",
+              "service_name": "mini 생활 서비스",
+              "status": "ACTIVE",
+              "started_at": "2024-03-01T09:00:00+09:00",
+              "ended_at": null,
+              "terms_consent_active": true,
+              "features": [
+                "ALERT",
+                "TIMETABLE",
+                "MEAL_TABLE"
+              ],
+              "auto_close_reason": null
+            }
+          }
+        },
+        "cards": {
+          "data": {
+            "mini_card_256": {
+              "card_id": "mini_card_256",
+              "customer_id": "cust_256",
+              "linked_wallet_id": "mini_wallet_256",
+              "status": "ACTIVE",
+              "valid_until": "2027-06"
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mini_life_service_age19_auto_close_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "카카오뱅크 mini 생활 서비스 만 19세 자동 해지 가입 대상 만 7세 이상 만 18세 이하"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_life_service_age19_auto_close_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_256"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_life_service_age19_auto_close_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_mini_life_256",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_life_service_age19_auto_close_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_256",
+          "target_id": "svc_mini_life_256",
+          "close_type": "AUTO_CLOSE",
+          "reason": "MINI_LIFE_SERVICE_AUTO_CLOSED_AT_AGE_19",
+          "options": {
+            "age": 19,
+            "closed_features": [
+              "ALERT",
+              "TIMETABLE",
+              "MEAL_TABLE"
+            ],
+            "close_wallet": false,
+            "close_card": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_mini_life_256",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_mini_life_256",
+          "feature": "mini_life_service",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_256",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "cards",
+          "record_id": "mini_card_256",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "mini 생활 서비스 가입 대상은 만 7세 이상 만 18세 이하 고객이라고 확인한다.",
+      "이용자가 만 19세가 되면 mini 생활 서비스는 자동 해지된다고 안내한다.",
+      "고객 요청처럼 생활 서비스를 유지하지 않고 service enrollment를 자동 해지 상태로 변경한다.",
+      "mini 본체 prepaid wallet 또는 mini카드 상태를 이 task에서 임의로 닫지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_카카오뱅크_mini_003",
+    "doc_kakao_product_카카오뱅크_mini_004"
+  ],
+  "user_tools": []
+}

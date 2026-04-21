@@ -1,0 +1,174 @@
+{
+  "id": "kb_manual_my_credit_info_withdraw_consent_closes_all_services",
+  "description": {
+    "purpose": "success task for 내 신용정보",
+    "relevant_policies": "doc_kakao_product_내_신용정보_002",
+    "notes": "source_task_id=kb_manual_my_credit_info_withdraw_consent_closes_all_services; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_my_credit_info_withdraw_consent_closes_all_services.md; notes=This lifecycle task verifies that consent withdrawal is not a single-feature opt-out. It closes the entire My Credit Information service immediately."
+  },
+  "user_prompt": "내 신용정보 서비스 이용 동의를 지금 철회해 주세요. 신용정보 조회, 알림, 신용점수 올리기, 금리인하요구권 안내, 맞춤형 금융상품 안내도 모두 같이 멈추는 게 맞는지 확인해 주세요.",
+  "user_scenario": {
+    "persona": "내 신용정보를 쓰고 있지만 개인정보와 제휴 약관 동의를 철회하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n내 신용정보 서비스 이용 동의를 지금 철회해 주세요. 신용정보 조회, 알림, 신용점수 올리기, 금리인하요구권 안내, 맞춤형 금융상품 안내도 모두 같이 멈추는 게 맞는지 확인해 주세요.\n\nExpected assistant response points:\n- 이용자는 언제든지 카카오뱅크 앱 등을 통해 서비스 이용 동의를 철회할 수 있다고 안내한다.\n- 동의 철회 시 이용계약이 즉시 해지된다고 설명한다.\n- 해지하면 제3조의 서비스 종류 전체가 일괄 해지되므로 기존 service enrollment를 닫고 주요 기능 접근을 차단한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_117": {
+              "customer_id": "cust_117",
+              "name": "철회고객",
+              "date_of_birth": "1985-11-09",
+              "age": 40,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {
+            "consent_my_credit_terms_117": {
+              "consent_id": "consent_my_credit_terms_117",
+              "customer_id": "cust_117",
+              "consent_type": "MY_CREDIT_INFO_KAKAOBANK_TERMS",
+              "status": "ACTIVE",
+              "effective_at": "2026-01-14T09:00:00+09:00",
+              "expires_at": null
+            },
+            "consent_kcb_allcredit_117": {
+              "consent_id": "consent_kcb_allcredit_117",
+              "customer_id": "cust_117",
+              "consent_type": "KCB_ALLCREDIT_TERMS",
+              "status": "ACTIVE",
+              "effective_at": "2026-01-14T09:00:00+09:00",
+              "expires_at": null
+            },
+            "consent_nice_jikimi_117": {
+              "consent_id": "consent_nice_jikimi_117",
+              "customer_id": "cust_117",
+              "consent_type": "NICE_JIKIMI_TERMS",
+              "status": "ACTIVE",
+              "effective_at": "2026-01-14T09:00:00+09:00",
+              "expires_at": null
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_my_credit_info_117": {
+              "service_id": "svc_my_credit_info_117",
+              "customer_id": "cust_117",
+              "service_name": "내 신용정보",
+              "status": "ACTIVE",
+              "started_at": "2026-01-14T09:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "provided_services": [
+                "CREDIT_INFO_LOOKUP",
+                "CREDIT_INFO_ALERT",
+                "CREDIT_SCORE_UP",
+                "RATE_CUT_NOTICE",
+                "CUSTOM_FINANCIAL_PRODUCT_NOTICE"
+              ]
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_my_credit_info_withdraw_consent_closes_all_services_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 신용정보 이용 동의 철회 즉시 해지 일괄 해지"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_withdraw_consent_closes_all_services_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_117"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_withdraw_consent_closes_all_services_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_my_credit_info_117",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_withdraw_consent_closes_all_services_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_117",
+          "target_id": "svc_my_credit_info_117",
+          "close_type": "WITHDRAW_SERVICE_CONSENT",
+          "reason": "USER_WITHDREW_MY_CREDIT_INFO_CONSENT",
+          "options": {
+            "effective_immediately": true,
+            "all_service_features_closed": true,
+            "affected_features": [
+              "CREDIT_INFO_LOOKUP",
+              "CREDIT_INFO_ALERT",
+              "CREDIT_SCORE_UP",
+              "RATE_CUT_NOTICE",
+              "CUSTOM_FINANCIAL_PRODUCT_NOTICE"
+            ]
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_my_credit_info_117",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_my_credit_info_117",
+          "feature": "CREDIT_INFO_LOOKUP",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "이용자는 언제든지 카카오뱅크 앱 등을 통해 서비스 이용 동의를 철회할 수 있다고 안내한다.",
+      "동의 철회 시 이용계약이 즉시 해지된다고 설명한다.",
+      "해지하면 제3조의 서비스 종류 전체가 일괄 해지되므로 기존 service enrollment를 닫고 주요 기능 접근을 차단한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_신용정보_002"
+  ],
+  "user_tools": []
+}

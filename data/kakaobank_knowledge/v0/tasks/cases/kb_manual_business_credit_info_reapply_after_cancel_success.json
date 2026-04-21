@@ -1,0 +1,205 @@
+{
+  "id": "kb_manual_business_credit_info_reapply_after_cancel_success",
+  "description": {
+    "purpose": "success task for 내 사업장 신용정보",
+    "relevant_policies": "doc_kakao_product_내_사업장_신용정보_001, doc_kakao_product_내_사업장_신용정보_003",
+    "notes": "source_task_id=kb_manual_business_credit_info_reapply_after_cancel_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_info_reapply_after_cancel_success.md; notes=This task is deliberately paired with consent-withdrawal closure. Cancellation does not permanently bar a customer from reapplying when ordinary prerequisites and affiliate consent/approval are satisfied again."
+  },
+  "user_prompt": "전에 내 사업장 신용정보를 해지했는데 다시 가입하고 싶어요. 사업자등록은 정상이고 제 명의 입출금통장도 그대로 있어요. 카카오뱅크 약관과 NICE 약관도 다시 동의할게요.",
+  "user_scenario": {
+    "persona": "이전에 서비스를 해지했지만 다시 정상 조건을 갖추고 재가입하려는 개인사업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n전에 내 사업장 신용정보를 해지했는데 다시 가입하고 싶어요. 사업자등록은 정상이고 제 명의 입출금통장도 그대로 있어요. 카카오뱅크 약관과 NICE 약관도 다시 동의할게요.\n\nExpected assistant response points:\n- 서비스 해지 이후에도 언제든지 다시 가입 신청할 수 있다고 안내한다.\n- 재가입에도 일반 가입 조건과 제휴 신용정보회사 약관 동의 및 NICE 승인이 필요하다고 확인한다.\n- 조건이 충족되면 새 service enrollment와 새 consent record를 활성 상태로 만든다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_099": {
+              "customer_id": "cust_099",
+              "name": "재가입",
+              "date_of_birth": "1980-03-18",
+              "age": 46,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_099": {
+              "business_id": "biz_099",
+              "customer_id": "cust_099",
+              "business_name": "재가입 문구",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "business_purpose": "RETAIL_STORE"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_099": {
+              "account_id": "acct_base_099",
+              "customer_id": "cust_099",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 2440000,
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {
+            "consent_biz_credit_info_terms_099_old": {
+              "consent_id": "consent_biz_credit_info_terms_099_old",
+              "customer_id": "cust_099",
+              "consent_type": "BUSINESS_CREDIT_INFO_KAKAOBANK_TERMS",
+              "status": "WITHDRAWN",
+              "effective_at": "2025-08-01T09:00:00+09:00",
+              "expires_at": "2026-01-15T15:00:00+09:00"
+            },
+            "consent_nice_owner_credit_099_old": {
+              "consent_id": "consent_nice_owner_credit_099_old",
+              "customer_id": "cust_099",
+              "consent_type": "NICE_OWNER_CREDIT_MANAGEMENT_TERMS",
+              "status": "WITHDRAWN",
+              "effective_at": "2025-08-01T09:00:00+09:00",
+              "expires_at": "2026-01-15T15:00:00+09:00"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_biz_credit_info_099_old": {
+              "service_id": "svc_biz_credit_info_099_old",
+              "customer_id": "cust_099",
+              "service_name": "내 사업장 신용정보",
+              "status": "CLOSED",
+              "linked_account_id": "acct_base_099",
+              "business_id": "biz_099",
+              "started_at": "2025-08-01T09:00:00+09:00",
+              "ended_at": "2026-01-15T15:00:00+09:00",
+              "restriction_flags": [],
+              "close_reason": "USER_WITHDREW_CONSENT"
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_info_reapply_after_cancel_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 사업장 신용정보 해지 이후 언제든지 재가입 신청 NICE 승인"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_reapply_after_cancel_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_099"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_reapply_after_cancel_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_biz_credit_info_099_old",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_reapply_after_cancel_success_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_099",
+          "product_name": "내 사업장 신용정보",
+          "source_account_id": "acct_base_099",
+          "options": {
+            "service_id": "svc_biz_credit_info_099_reapply",
+            "business_id": "biz_099",
+            "operation": "REENROLL_SERVICE",
+            "kakaobank_terms_consent_id": "consent_biz_credit_info_terms_099_new",
+            "nice_terms_consent_id": "consent_nice_owner_credit_099_new",
+            "nice_approval_status": "APPROVED",
+            "previous_service_id": "svc_biz_credit_info_099_old",
+            "provided_services": [
+              "SOHO_CREDIT_SCORE",
+              "CREDIT_INFO_LOOKUP",
+              "BUSINESS_CREDIT_REPORT",
+              "CREDIT_CHANGE_ALERT",
+              "SOHO_SCORE_CHANGE_ALERT"
+            ]
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_biz_credit_info_099_reapply",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "consents",
+          "record_id": "consent_biz_credit_info_terms_099_new",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "consents",
+          "record_id": "consent_nice_owner_credit_099_new",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "서비스 해지 이후에도 언제든지 다시 가입 신청할 수 있다고 안내한다.",
+      "재가입에도 일반 가입 조건과 제휴 신용정보회사 약관 동의 및 NICE 승인이 필요하다고 확인한다.",
+      "조건이 충족되면 새 service enrollment와 새 consent record를 활성 상태로 만든다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_사업장_신용정보_001",
+    "doc_kakao_product_내_사업장_신용정보_003"
+  ],
+  "user_tools": []
+}

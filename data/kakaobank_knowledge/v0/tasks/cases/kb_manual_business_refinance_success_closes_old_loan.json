@@ -1,0 +1,175 @@
+{
+  "id": "kb_manual_business_refinance_success_closes_old_loan",
+  "description": {
+    "purpose": "success task for 개인사업자 신용대출",
+    "relevant_policies": "doc_kakao_common_policy_business_credit_refinance_common_001",
+    "notes": "source_task_id=kb_manual_business_refinance_success_closes_old_loan; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_refinance_success_closes_old_loan.md; notes=This success task is the counterpart to the repayment-failure refusal task: the agent must verify eligibility, complete the delegated old-loan repayment, close the old loan, and activate the new loan."
+  },
+  "user_prompt": "제 명의 개인사업자 운전자금 대출을 카카오뱅크 개인사업자 신용대출로 갈아타려고 해요. 위험 고지도 확인했고 기존 대출 상환까지 한 번에 진행해 주세요.",
+  "user_scenario": {
+    "persona": "카카오뱅크 개인사업자 신용대출로 타행 운전자금 대출을 갈아타려는 음식점 사장",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 명의 개인사업자 운전자금 대출을 카카오뱅크 개인사업자 신용대출로 갈아타려고 해요. 위험 고지도 확인했고 기존 대출 상환까지 한 번에 진행해 주세요.\n\nExpected assistant response points:\n- 개인사업자 신용대출 대환대출서비스는 본인명의 개인사업자 신용대출을 조회해 기존대출 상환과 신규대출 실행을 할 수 있는 서비스라고 확인한다.\n- 대상 대출이 운전자금 목적의 무담보 순수 개인사업자 신용대출인지 확인한다.\n- 고객이 위임한 상환 절차에 따라 기존 대출을 상환/종료하고 신규 카카오뱅크 대출은 정상 유지한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_007": {
+              "name": "정식당",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "age": 41,
+              "nationality": "KR"
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_002": {
+              "customer_id": "cust_007",
+              "business_name": "정식당",
+              "business_type": "SOLE_PROPRIETOR",
+              "business_status": "ACTIVE",
+              "representative_name": "정식당"
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "biz_old_loan_002": {
+              "customer_id": "cust_007",
+              "product_name": "타행 개인사업자 신용대출",
+              "status": "ACTIVE",
+              "principal_krw": 50000000,
+              "outstanding_krw": 48750000,
+              "repayment_mode": "BULLET",
+              "maturity_date": "2027-01-31",
+              "late_days": 0,
+              "restriction_flags": [],
+              "purpose": "WORKING_CAPITAL",
+              "collateral_type": "UNSECURED",
+              "institution": "OTHER_BANK",
+              "same_day_certificate_issued": false,
+              "withdrawal_right_available": false
+            },
+            "biz_new_loan_002": {
+              "customer_id": "cust_007",
+              "product_name": "개인사업자 신용대출",
+              "status": "APPROVED_PENDING_REFINANCE",
+              "principal_krw": 50000000,
+              "outstanding_krw": 0,
+              "repayment_mode": "BULLET",
+              "maturity_date": "2027-04-20",
+              "late_days": 0,
+              "restriction_flags": [
+                "PENDING_REFINANCE_EXECUTION"
+              ],
+              "purpose": "WORKING_CAPITAL",
+              "collateral_type": "UNSECURED",
+              "institution": "KAKAOBANK"
+            }
+          }
+        },
+        "refinance_requests": {
+          "data": {
+            "biz_refi_002": {
+              "customer_id": "cust_007",
+              "new_loan_id": "biz_new_loan_002",
+              "old_loan_id": "biz_old_loan_002",
+              "status": "READY_TO_REPAY_OLD_LOAN",
+              "requested_at": "2026-04-20T13:20:00+09:00",
+              "old_loan_repayment_status": "READY",
+              "cancellation_reason": null,
+              "service_type": "BUSINESS_CREDIT_REFINANCE",
+              "risk_notice_agreed": true,
+              "target_loan_purpose": "WORKING_CAPITAL"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_refinance_success_closes_old_loan_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "개인사업자 신용대출 대환대출서비스 기존대출 상환 신규대출 실행 운전자금"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_refinance_success_closes_old_loan_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_007"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_refinance_success_closes_old_loan_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "biz_old_loan_002",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_refinance_success_closes_old_loan_03",
+        "requestor": "assistant",
+        "name": "process_refinance_request",
+        "arguments": {
+          "refinance_id": "biz_refi_002",
+          "operation": "COMPLETE_OLD_LOAN_REPAYMENT_AND_ACTIVATE_NEW_LOAN",
+          "old_loan_repayment_status": "SUCCEEDED",
+          "requested_at": "2026-04-20T13:25:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_refinance_outcome",
+        "arguments": {
+          "refinance_id": "biz_refi_002",
+          "expected_status": "COMPLETED",
+          "expected_new_loan_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "biz_old_loan_002",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "개인사업자 신용대출 대환대출서비스는 본인명의 개인사업자 신용대출을 조회해 기존대출 상환과 신규대출 실행을 할 수 있는 서비스라고 확인한다.",
+      "대상 대출이 운전자금 목적의 무담보 순수 개인사업자 신용대출인지 확인한다.",
+      "고객이 위임한 상환 절차에 따라 기존 대출을 상환/종료하고 신규 카카오뱅크 대출은 정상 유지한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_common_policy_business_credit_refinance_common_001"
+  ],
+  "user_tools": []
+}

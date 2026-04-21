@@ -1,0 +1,221 @@
+{
+  "id": "kb_manual_inbound_remittance_business_auto_receive_docs_refusal",
+  "description": {
+    "purpose": "refusal task for 해외송금 받기",
+    "relevant_policies": "doc_kakao_product_해외송금_받기_001, doc_kakao_product_해외송금_받기_002, doc_kakao_common_policy_remittance_common_003",
+    "notes": "source_task_id=kb_manual_inbound_remittance_business_auto_receive_docs_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_inbound_remittance_business_auto_receive_docs_refusal.md; notes=This refusal task is adversarial in spirit but categorized as refusal because the correct assistant behavior is to reject the requested immediate deposit. The auto-receive match is intentionally true; the decisive exception is the personal-business account requiring pre-deposit purpose confirmation and evidence."
+  },
+  "user_prompt": "독일 광고 플랫폼에서 6,200유로가 들어왔어요. 자동받기 신청할 때와 같은 송금은행, 같은 송금인, 같은 광고수익 사유라서 원래 바로 입금되는 건이죠? 개인사업자통장으로 받는 건데 서류 요청 말고 먼저 입금 처리해 주세요.",
+  "user_scenario": {
+    "persona": "광고 수익을 정기적으로 해외에서 받는 개인사업자 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n독일 광고 플랫폼에서 6,200유로가 들어왔어요. 자동받기 신청할 때와 같은 송금은행, 같은 송금인, 같은 광고수익 사유라서 원래 바로 입금되는 건이죠? 개인사업자통장으로 받는 건데 서류 요청 말고 먼저 입금 처리해 주세요.\n\nExpected assistant response points:\n- 동일 송금은행, 동일 송금인, 동일 사유의 5천불 초과 정기 수취는 자동받기 대상이 될 수 있다고 안내한다.\n- 하지만 개인사업자 통장으로 받는 경우에는 자동받기라도 입금 전 사유확인 및 증빙서류를 요청할 수 있다고 안내한다.\n- 고객이 즉시입금을 요구해도 입금부터 처리하지 않는다.\n- remittance case를 입금 완료가 아니라 증빙 확인 대기 상태로 바꾸고 필요한 확인 안내를 한다.\n- 수취계좌 잔액은 변경하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_061": {
+              "customer_id": "cust_061",
+              "name": "박사업",
+              "date_of_birth": "1988-11-19",
+              "age": 37,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SOLE_PROPRIETOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_business_remit_061": {
+              "account_id": "acct_business_remit_061",
+              "customer_id": "cust_061",
+              "product_name": "개인사업자통장",
+              "status": "ACTIVE",
+              "balance_krw": 8400000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_profiles": {
+          "data": {
+            "remit_profile_061": {
+              "remittance_profile_id": "remit_profile_061",
+              "customer_id": "cust_061",
+              "base_account_id": "acct_business_remit_061",
+              "annual_usd_sent": 0,
+              "annual_usd_received": 42000,
+              "auto_receive_enabled": true,
+              "verified_purpose_codes": [
+                "AD_REVENUE"
+              ],
+              "auto_receive_rules": [
+                {
+                  "sender_bank_id": "de_bank_ad_17",
+                  "sender_name": "EuroAds GmbH",
+                  "purpose_code": "AD_REVENUE"
+                }
+              ],
+              "daily_received_usd_before_case": 15000,
+              "resident_verified": true
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {
+            "remit_inbound_061": {
+              "remittance_id": "remit_inbound_061",
+              "customer_id": "cust_061",
+              "direction": "INBOUND",
+              "status": "PENDING_AUTO_RECEIVE",
+              "amount": 6200,
+              "currency": "EUR",
+              "country": "DE",
+              "requested_at": "2026-04-20T09:10:00+09:00",
+              "arrived_at": "2026-04-20T09:10:00+09:00",
+              "correction_due_date": null,
+              "purpose_code": "AD_REVENUE",
+              "sender_bank_id": "de_bank_ad_17",
+              "sender_name": "EuroAds GmbH",
+              "target_account_id": "acct_business_remit_061",
+              "target_account_product_name": "개인사업자통장",
+              "receive_application_submitted": false,
+              "auto_receive_matched": true,
+              "daily_aggregate_usd_after_case": 21800,
+              "business_account_exception_applies": true,
+              "document_request_reason": null,
+              "deposited_transaction_id": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_inbound_remittance_business_auto_receive_docs_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "해외송금 자동받기 동일 송금은행 송금인 사유 개인사업자통장 입금 전 사유확인 증빙서류"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_business_auto_receive_docs_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_061"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_business_auto_receive_docs_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "remit_inbound_061",
+          "table": "remittance_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_business_auto_receive_docs_refusal_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_business_remit_061",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_business_auto_receive_docs_refusal_04",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_061",
+          "direction": "INBOUND_AUTO_RECEIVE_DOCUMENT_REQUEST",
+          "amount": 6200,
+          "currency": "EUR",
+          "country": "DE",
+          "purpose_code": "AD_REVENUE",
+          "options": {
+            "remittance_id": "remit_inbound_061",
+            "target_account_id": "acct_business_remit_061",
+            "auto_receive_matched": true,
+            "document_request_reason": "BUSINESS_ACCOUNT_REQUIRES_PURPOSE_CONFIRMATION_AND_EVIDENCE_BEFORE_DEPOSIT",
+            "expected_status": "PENDING_DOCUMENT_REVIEW",
+            "deposit_first_refused": true,
+            "transaction_id": null
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_remittance_outcome",
+        "arguments": {
+          "remittance_id": "remit_inbound_061",
+          "expected_status": "PENDING_DOCUMENT_REVIEW",
+          "expected_fee_refunded": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "remittance_cases",
+          "record_id": "remit_inbound_061",
+          "expected_status": "PENDING_DOCUMENT_REVIEW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_business_remit_061",
+          "field_names": [
+            "balance_krw",
+            "status"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "동일 송금은행, 동일 송금인, 동일 사유의 5천불 초과 정기 수취는 자동받기 대상이 될 수 있다고 안내한다.",
+      "하지만 개인사업자 통장으로 받는 경우에는 자동받기라도 입금 전 사유확인 및 증빙서류를 요청할 수 있다고 안내한다.",
+      "고객이 즉시입금을 요구해도 입금부터 처리하지 않는다.",
+      "remittance case를 입금 완료가 아니라 증빙 확인 대기 상태로 바꾸고 필요한 확인 안내를 한다.",
+      "수취계좌 잔액은 변경하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_해외송금_받기_001",
+    "doc_kakao_product_해외송금_받기_002",
+    "doc_kakao_common_policy_remittance_common_003"
+  ],
+  "user_tools": []
+}

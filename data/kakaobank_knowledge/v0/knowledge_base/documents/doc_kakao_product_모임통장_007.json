@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_모임통장_007",
+  "title": "KakaoBank Product Facts: 모임통장 (part 7)",
+  "content": "Product: 모임통장\nScope: product-specific reviewed facts\nCommon policy links: \n\n## 수동 검수 fact\n\n- `dispute_court`: 분쟁은 합의 해결이 원칙이며 합의 불가 시 민사소송법상 관할법원을 따름\n  - Evidence: `모임통장서비스 이용약관.md:185`, `모임통장서비스 이용약관.md:187`\n- `latest_terms_effective_date`: 모임통장서비스 이용약관 최신 부칙 시행일은 2026년 3월 30일\n  - Evidence: `모임통장서비스 이용약관.md:223`, `모임통장서비스 이용약관.md:227`\n- `latest_terms_existing_customers`: 2026년 3월 30일 개정내용은 기존 가입고객에게도 적용\n  - Evidence: `모임통장서비스 이용약관.md:229`, `모임통장서비스 이용약관.md:231`\n- `compliance_review_validity`: 서비스 설명서 준법감시인 심의필 26-0223, 유효기간 2026.03.30~2028.03.29\n  - Evidence: `모임통장서비스 설명서.md:3`\n- `complaint_channel`: 문의·민원 상담은 고객센터 1599-3333, 앱, 홈페이지에서 가능\n  - Evidence: `모임통장서비스 설명서.md:62`"
+}

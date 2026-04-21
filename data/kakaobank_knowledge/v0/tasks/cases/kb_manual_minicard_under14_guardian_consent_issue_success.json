@@ -1,0 +1,182 @@
+{
+  "id": "kb_manual_minicard_under14_guardian_consent_issue_success",
+  "description": {
+    "purpose": "success task for mini카드",
+    "relevant_policies": "doc_kakao_product_mini카드_001, doc_kakao_common_policy_card_common_001",
+    "notes": "source_task_id=kb_manual_minicard_under14_guardian_consent_issue_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_minicard_under14_guardian_consent_issue_success.md; notes=This is the positive counterpart to the existing under-14 no-consent refusal. The task requires the model to use the guardian consent state rather than refusing solely because the customer is under 14."
+  },
+  "user_prompt": "저는 만 13세이고 mini는 이미 쓰고 있어요. 부모님 법정대리인 동의도 앱에서 완료됐습니다. 첫 mini카드를 발급받고 싶어요. 최초 발급 수수료도 확인해 주세요.",
+  "user_scenario": {
+    "persona": "mini를 이미 보유하고 보호자 동의를 완료한 만 13세 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n저는 만 13세이고 mini는 이미 쓰고 있어요. 부모님 법정대리인 동의도 앱에서 완료됐습니다. 첫 mini카드를 발급받고 싶어요. 최초 발급 수수료도 확인해 주세요.\n\nExpected assistant response points:\n- mini를 보유한 만 18세 이하 본인 회원은 mini카드 발급 대상이라고 확인한다.\n- 만 14세 미만이지만 법정대리인 동의가 유효하므로 발급 절차를 진행할 수 있다고 안내한다.\n- 최초 발급은 무료라고 안내한다.\n- 새 mini카드 발급 주문을 승인하고 카드 record를 ACTIVE로 생성한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_mc_101": {
+              "customer_id": "cust_mc_101",
+              "name": "최동의",
+              "date_of_birth": "2012-06-18",
+              "age": 13,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {
+            "consent_guardian_minicard_101": {
+              "consent_id": "consent_guardian_minicard_101",
+              "customer_id": "cust_mc_101",
+              "consent_type": "LEGAL_GUARDIAN_MINICARD_ISSUE",
+              "status": "ACTIVE",
+              "effective_at": "2026-04-19T20:30:00+09:00",
+              "expires_at": "2027-04-19T20:30:00+09:00",
+              "guardian_name": "최보호",
+              "guardian_verified": true
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_mc_101": {
+              "wallet_id": "mini_wallet_mc_101",
+              "customer_id": "cust_mc_101",
+              "status": "ACTIVE",
+              "balance_krw": 83000,
+              "daily_spend_used_krw": 0,
+              "monthly_spend_used_krw": 12000,
+              "age_band": "UNDER_14"
+            }
+          }
+        },
+        "cards": {
+          "data": {}
+        },
+        "card_orders": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_minicard_under14_guardian_consent_issue_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "mini카드 만 14세 미만 법정대리인 동의 유효 최초 발급 무료 mini 보유"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_under14_guardian_consent_issue_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_mc_101"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_under14_guardian_consent_issue_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_wallet_mc_101",
+          "table": "prepaid_wallets"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_under14_guardian_consent_issue_success_03",
+        "requestor": "assistant",
+        "name": "update_card_state",
+        "arguments": {
+          "card_id": "mini_card_mc_101",
+          "operation": "ISSUE_NEW_CARD",
+          "reason": "UNDER14_WITH_VALID_LEGAL_GUARDIAN_CONSENT",
+          "requested_at": "2026-04-20T17:05:00+09:00",
+          "order_id": "card_order_mc_101",
+          "customer_id": "cust_mc_101",
+          "wallet_id": "mini_wallet_mc_101",
+          "customer_age": 13,
+          "guardian_consent_valid": true,
+          "issue_fee_krw": 0,
+          "new_status": "ACTIVE"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_consent_validity",
+        "arguments": {
+          "customer_id": "cust_mc_101",
+          "consent_type": "LEGAL_GUARDIAN_MINICARD_ISSUE",
+          "expected_valid": true
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_card_order_outcome",
+        "arguments": {
+          "card_order_id": "card_order_mc_101",
+          "expected_status": "APPROVED",
+          "expected_reason": "UNDER14_WITH_VALID_LEGAL_GUARDIAN_CONSENT"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "cards",
+          "record_id": "mini_card_mc_101",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_mc_101",
+          "field_names": [
+            "status",
+            "balance_krw"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "mini를 보유한 만 18세 이하 본인 회원은 mini카드 발급 대상이라고 확인한다.",
+      "만 14세 미만이지만 법정대리인 동의가 유효하므로 발급 절차를 진행할 수 있다고 안내한다.",
+      "최초 발급은 무료라고 안내한다.",
+      "새 mini카드 발급 주문을 승인하고 카드 record를 ACTIVE로 생성한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_mini카드_001",
+    "doc_kakao_common_policy_card_common_001"
+  ],
+  "user_tools": []
+}

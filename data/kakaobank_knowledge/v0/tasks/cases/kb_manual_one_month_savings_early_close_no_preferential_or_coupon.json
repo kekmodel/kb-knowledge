@@ -1,0 +1,173 @@
+{
+  "id": "kb_manual_one_month_savings_early_close_no_preferential_or_coupon",
+  "description": {
+    "purpose": "adversarial task for 한달적금",
+    "relevant_policies": "doc_kakao_product_한달적금_002, doc_kakao_product_한달적금_003",
+    "notes": "source_task_id=kb_manual_one_month_savings_early_close_no_preferential_or_coupon; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_one_month_savings_early_close_no_preferential_or_coupon.md; notes=The hard part is partial compliance: the bank should honor the early close request but must not carry over daily, bonus, or coupon preferential benefits."
+  },
+  "user_prompt": "한달적금에 쿠폰도 썼고 20번이나 납입했어요. 오늘 중도해지하되 매일 우대, 보너스 우대, 쿠폰 우대까지 다 반영해서 연결계좌로 넣어 주세요.",
+  "user_scenario": {
+    "persona": "쿠폰을 쓰고 20회 납입한 한달적금을 만기 전에 해지하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n한달적금에 쿠폰도 썼고 20번이나 납입했어요. 오늘 중도해지하되 매일 우대, 보너스 우대, 쿠폰 우대까지 다 반영해서 연결계좌로 넣어 주세요.\n\nExpected assistant response points:\n- 중도해지 자체는 요청에 따라 처리할 수 있으나, 만기 전에 해지하면 우대금리는 적용되지 않는다고 안내한다.\n- 금리쿠폰 우대금리도 계약기간 만료 전 중도해지한 계좌에는 제공되지 않는다고 설명한다.\n- 가입 시점 기본금리 또는 중도해지금리 기준으로만 중도해지 지급을 처리한다고 안내한다.\n- 계약은 EARLY_CLOSE로 닫되 preferential_rate_points_applied는 0.0이고 coupon_rate_applied는 false여야 한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_156": {
+              "customer_id": "cust_156",
+              "name": "조중도",
+              "date_of_birth": "1988-11-02",
+              "age": 37,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SELF_EMPLOYED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_month_base_156": {
+              "account_id": "acct_month_base_156",
+              "customer_id": "cust_156",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 88000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_one_month_156"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_one_month_156": {
+              "deposit_id": "dep_one_month_156",
+              "account_id": "acct_month_base_156",
+              "customer_id": "cust_156",
+              "product_name": "한달적금",
+              "status": "ACTIVE",
+              "opened_at": "2026-04-01",
+              "matures_at": "2026-05-02",
+              "principal_krw": 600000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_month_base_156",
+              "term_days": 31,
+              "cumulative_payment_count": 20,
+              "daily_preferential_rate_pp": "2.00",
+              "bonus_preferential_rate_pp": "1.00",
+              "coupon_applied": true,
+              "coupon_id": "coupon_month_opening_156",
+              "coupon_preferential_rate_pp": "0.30",
+              "early_close_payout_krw": 601200
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_one_month_savings_early_close_no_preferential_or_coupon_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "한달적금 중도해지 우대금리 미적용 금리쿠폰 우대 미제공 가입시점 기본금리"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_early_close_no_preferential_or_coupon_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_156"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_early_close_no_preferential_or_coupon_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_one_month_156",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_one_month_savings_early_close_no_preferential_or_coupon_03",
+        "requestor": "assistant",
+        "name": "request_maturity_or_extension",
+        "arguments": {
+          "target_id": "dep_one_month_156",
+          "operation": "EARLY_CLOSE",
+          "requested_at": "2026-04-20T13:00:00+09:00",
+          "options": {
+            "destination_account_id": "acct_month_base_156",
+            "close_type": "EARLY_CLOSE",
+            "early_close_payout_krw": 601200,
+            "preferential_rate_points_applied": 0.0,
+            "coupon_rate_applied": false,
+            "rate_policy": "EARLY_CLOSE_BASE_RATE_ONLY"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_maturity_or_close_result",
+        "arguments": {
+          "deposit_id": "dep_one_month_156",
+          "expected_status": "CLOSED",
+          "expected_close_type": "EARLY_CLOSE",
+          "expected_destination_account_id": "acct_month_base_156",
+          "expected_preferential_rate_points": 0.0,
+          "expected_coupon_rate_applied": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_one_month_156",
+          "target_id": "acct_month_base_156",
+          "amount": 601200,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "중도해지 자체는 요청에 따라 처리할 수 있으나, 만기 전에 해지하면 우대금리는 적용되지 않는다고 안내한다.",
+      "금리쿠폰 우대금리도 계약기간 만료 전 중도해지한 계좌에는 제공되지 않는다고 설명한다.",
+      "가입 시점 기본금리 또는 중도해지금리 기준으로만 중도해지 지급을 처리한다고 안내한다.",
+      "계약은 EARLY_CLOSE로 닫되 preferential_rate_points_applied는 0.0이고 coupon_rate_applied는 false여야 한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_한달적금_002",
+    "doc_kakao_product_한달적금_003"
+  ],
+  "user_tools": []
+}

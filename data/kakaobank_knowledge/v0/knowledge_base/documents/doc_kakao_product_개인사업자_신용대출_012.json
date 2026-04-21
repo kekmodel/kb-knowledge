@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_개인사업자_신용대출_012",
+  "title": "KakaoBank Product Facts: 개인사업자 신용대출 (part 12)",
+  "content": "Product: 개인사업자 신용대출\nScope: product-specific reviewed facts\nCommon policy links: loan_enterprise_terms, business_credit_refinance_common\n\n## 2차 정밀 보강 fact\n\n- `loan_switching_fallback_law`: 은행여신거래기본약관 기업용에서도 정하지 않은 사항은 다른 약정이 없으면 은행법 등 관계법령을 적용\n  - Evidence: `개인사업자 신용대출 대환대출서비스 이용약관.md:100`"
+}

@@ -1,0 +1,257 @@
+{
+  "id": "kb_manual_lease_execution_info_change_resumes_disbursement",
+  "description": {
+    "purpose": "success task for 전월세보증금 대출",
+    "relevant_policies": "doc_kakao_product_전월세보증금_대출_004",
+    "notes": "source_task_id=kb_manual_lease_execution_info_change_resumes_disbursement; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_lease_execution_info_change_resumes_disbursement.md; notes=This is the positive counterpart to the landlord-account-block refusal: it does not ignore the block, but resumes execution only after the bank-procedure information change has been approved."
+  },
+  "user_prompt": "지난 실행일에는 임대인 계좌 입금정지 때문에 전월세보증금 대출 실행이 막혔어요. 은행 절차에 따라 실행예정일을 오늘 2026년 4월 23일로 바꾸고 새 임대인 계좌도 검증 완료됐습니다. 이제 승인된 1억 7천만원을 새 임대인 계좌로 실행해 주세요.",
+  "user_scenario": {
+    "persona": "임대인 계좌 입금정지로 한 번 실행이 막힌 뒤 은행 절차로 정보를 바꾼 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n지난 실행일에는 임대인 계좌 입금정지 때문에 전월세보증금 대출 실행이 막혔어요. 은행 절차에 따라 실행예정일을 오늘 2026년 4월 23일로 바꾸고 새 임대인 계좌도 검증 완료됐습니다. 이제 승인된 1억 7천만원을 새 임대인 계좌로 실행해 주세요.\n\nExpected assistant response points:\n- 임대인 계좌 입금정지 등으로 입금이 불가하면 대출실행이 불가하다고 확인한다.\n- 그 경우 은행이 정한 절차에 따라 실행예정일과 임대인 계좌 정보를 변경해 실행을 재개할 수 있다고 설명한다.\n- 새 실행예정일과 새 임대인 계좌가 검증된 상태이므로 기존 blocked 상태를 재개하고 170,000,000원을 새 임대인 계좌로 실행한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_229": {
+              "customer_id": "cust_229",
+              "name": "재실행",
+              "date_of_birth": "1986-08-02",
+              "age": 39,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {
+            "lease_app_229": {
+              "application_id": "lease_app_229",
+              "customer_id": "cust_229",
+              "product_name": "전월세보증금 대출",
+              "status": "EXECUTION_BLOCKED",
+              "requested_amount_krw": 170000000,
+              "approved_amount_krw": 170000000,
+              "screening_result": "APPROVED",
+              "execution_date": "2026-04-18",
+              "selected_terms": {
+                "purpose": "GENERAL_LEASE_DEPOSIT",
+                "refinance_condition": false,
+                "landlord_account_id": "landlord_acct_229_old"
+              },
+              "execution_block_reason": "LANDLORD_ACCOUNT_DEPOSIT_BLOCKED"
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "lease_loan_229": {
+              "loan_id": "lease_loan_229",
+              "application_id": "lease_app_229",
+              "customer_id": "cust_229",
+              "product_name": "전월세보증금 대출",
+              "status": "APPROVED_NOT_EXECUTED",
+              "principal_krw": 170000000,
+              "outstanding_krw": 0,
+              "principal_balance": 0,
+              "repayment_mode": "BULLET_OR_INSTALLMENT_BY_CONTRACT",
+              "maturity_date": "2028-04-23",
+              "late_days": 0,
+              "restriction_flags": [],
+              "currency": "KRW",
+              "execution_block_reason": "LANDLORD_ACCOUNT_DEPOSIT_BLOCKED",
+              "executed_at": null
+            }
+          }
+        },
+        "lease_contracts": {
+          "data": {
+            "lease_contract_229": {
+              "contract_id": "lease_contract_229",
+              "application_id": "lease_app_229",
+              "loan_id": "lease_loan_229",
+              "tenant_customer_id": "cust_229",
+              "landlord_account_id": "landlord_acct_229_old",
+              "landlord_account_number": "110-229-000001",
+              "landlord_account_status": "DEPOSIT_BLOCKED",
+              "lease_deposit_amount_krw": 220000000,
+              "move_in_address": "서울특별시 성동구 뚝섬로 229",
+              "execution_button_pressed": true,
+              "preexisting_acceleration_reason": null,
+              "refinance_condition": false,
+              "execution_info_change_status": "APPROVED",
+              "updated_execution_date": "2026-04-23",
+              "updated_landlord_account_id": "landlord_acct_229_new",
+              "updated_landlord_account_status": "ACTIVE"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "landlord_acct_229_old": {
+              "account_id": "landlord_acct_229_old",
+              "customer_id": "landlord_229",
+              "product_name": "임대인 수취계좌",
+              "status": "DEPOSIT_BLOCKED",
+              "balance_krw": 0,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": [
+                "DEPOSIT_BLOCKED"
+              ]
+            },
+            "landlord_acct_229_new": {
+              "account_id": "landlord_acct_229_new",
+              "customer_id": "landlord_229",
+              "product_name": "임대인 수취계좌",
+              "status": "ACTIVE",
+              "balance_krw": 0,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "required_documents": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_lease_execution_info_change_resumes_disbursement_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "전월세보증금 대출 임대인 계좌 입금정지 실행 불가 실행예정일 임대인 계좌 변경 실행 재개"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_execution_info_change_resumes_disbursement_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_229"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_execution_info_change_resumes_disbursement_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_loan_229",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_execution_info_change_resumes_disbursement_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_contract_229",
+          "table": "lease_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_execution_info_change_resumes_disbursement_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "lease_loan_229",
+          "application_id": "lease_app_229",
+          "operation": "RESUME_EXECUTION_WITH_UPDATED_LANDLORD_ACCOUNT",
+          "reason": "EXECUTION_INFO_CHANGE_RETRY_SUCCEEDED",
+          "effective_at": "2026-04-23T10:30:00+09:00",
+          "options": {
+            "old_landlord_account_id": "landlord_acct_229_old",
+            "new_landlord_account_id": "landlord_acct_229_new",
+            "updated_execution_date": "2026-04-23",
+            "new_landlord_account_status": "ACTIVE",
+            "preexisting_acceleration_reason": null,
+            "disbursement_amount_krw": 170000000,
+            "required_document_to_create": {
+              "document_id": "req_doc_229",
+              "document_type": "RESIDENT_REGISTRATION_WITH_MOVE_IN",
+              "status": "PENDING",
+              "deadline": "2026-05-23"
+            }
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_application_decision",
+        "arguments": {
+          "application_id": "lease_app_229",
+          "expected_status": "EXECUTED",
+          "expected_reason": "EXECUTION_INFO_CHANGE_RETRY_SUCCEEDED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "lease_loan_229",
+          "expected_status": "EXECUTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "lease_loan_229",
+          "target_id": "landlord_acct_229_new",
+          "amount": 170000000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "lease_loan_229",
+          "document_type": "RESIDENT_REGISTRATION_WITH_MOVE_IN",
+          "expected_status": "PENDING"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "임대인 계좌 입금정지 등으로 입금이 불가하면 대출실행이 불가하다고 확인한다.",
+      "그 경우 은행이 정한 절차에 따라 실행예정일과 임대인 계좌 정보를 변경해 실행을 재개할 수 있다고 설명한다.",
+      "새 실행예정일과 새 임대인 계좌가 검증된 상태이므로 기존 blocked 상태를 재개하고 170,000,000원을 새 임대인 계좌로 실행한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_전월세보증금_대출_004"
+  ],
+  "user_tools": []
+}

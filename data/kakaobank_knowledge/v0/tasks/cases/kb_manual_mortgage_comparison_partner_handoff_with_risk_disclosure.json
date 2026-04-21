@@ -1,0 +1,196 @@
+{
+  "id": "kb_manual_mortgage_comparison_partner_handoff_with_risk_disclosure",
+  "description": {
+    "purpose": "success task for 주택담보대출 비교하기",
+    "relevant_policies": "doc_kakao_product_주택담보대출_비교하기_001, doc_kakao_product_주택담보대출_비교하기_003, doc_kakao_product_주택담보대출_비교하기_005",
+    "notes": "source_task_id=kb_manual_mortgage_comparison_partner_handoff_with_risk_disclosure; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mortgage_comparison_partner_handoff_with_risk_disclosure.md; notes=This success task rewards the narrow allowed mutation: a mortgage comparison-service partner handoff/application record. It also forces the agent to communicate that the quote is non-final and that mortgage collateral enforcement risk remains relevant."
+  },
+  "user_prompt": "주택담보대출 비교하기에서 한강은행 아파트담보대출 조건이 연 4.25%, 한도 4억 5천만원으로 보여요. 이 조건이 최종 확정은 아니고 담보권 설정 위험도 있다는 건 이해했어요. 4억 2천만원 주택구입자금으로 제휴사 신청 서류 전달을 진행해 주세요.",
+  "user_scenario": {
+    "persona": "주택담보대출 비교하기에서 제휴사 조건을 보고 신청 전달을 원하는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n주택담보대출 비교하기에서 한강은행 아파트담보대출 조건이 연 4.25%, 한도 4억 5천만원으로 보여요. 이 조건이 최종 확정은 아니고 담보권 설정 위험도 있다는 건 이해했어요. 4억 2천만원 주택구입자금으로 제휴사 신청 서류 전달을 진행해 주세요.\n\nExpected assistant response points:\n- 주택담보대출 비교하기는 제휴사가 제시하는 금리와 한도 등 대출조건 비교·열람 및 신청 관련 서류 전달 서비스를 제공한다고 안내한다.\n- 비교서비스에 표시된 금리와 한도는 확정 조건이 아니며 제휴사 심사와 실제 계약 시 달라질 수 있다고 설명한다.\n- 주택담보대출은 담보부동산에 근저당권 등 담보권이 설정될 수 있고, 변제기 도래 또는 기한의 이익 상실 후 상환하지 않으면 담보주택 소유권 상실 위험이 있다고 안내한다.\n- 서비스 약관, 개인신용정보, 제3자 제공 동의와 비교 세션을 확인한 뒤 제휴사 신청 handoff record를 만든다.\n- 카카오뱅크 직접 대출 계약이나 실행 loan record를 만들지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_046": {
+              "customer_id": "cust_046",
+              "name": "송비교",
+              "date_of_birth": "1987-05-06",
+              "age": 38,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "comparison_sessions": {
+          "data": {
+            "cmp_mortgage_046": {
+              "comparison_id": "cmp_mortgage_046",
+              "customer_id": "cust_046",
+              "service_type": "MORTGAGE_LOAN",
+              "status": "QUOTE_VIEWED",
+              "partner_id": "partner_hangang_bank",
+              "partner_name": "한강은행",
+              "partner_product_id": "hangang_apartment_mortgage_2026",
+              "quoted_rate": "4.25%",
+              "quoted_limit_krw": 450000000,
+              "requested_amount_krw": 420000000,
+              "purpose": "주택구입자금",
+              "home_type": "APARTMENT",
+              "service_terms_consent": true,
+              "personal_credit_info_consent": true,
+              "third_party_info_consent": true,
+              "kakaobank_service_approved": true,
+              "quote_generated_at": "2026-04-20T10:40:00+09:00",
+              "quote_expires_at": "2026-04-20T23:59:59+09:00",
+              "final_contract_id": null
+            }
+          }
+        },
+        "mortgage_collateral": {
+          "data": {
+            "collateral_cmp_046": {
+              "collateral_id": "collateral_cmp_046",
+              "customer_id": "cust_046",
+              "comparison_id": "cmp_mortgage_046",
+              "home_type": "APARTMENT",
+              "address": "서울특별시 성동구 성수동 101",
+              "owner_customer_id": "cust_046",
+              "estimated_value_krw": 700000000,
+              "status": "QUOTE_COLLATERAL_REVIEWED",
+              "mortgage_right_setup_possible": true
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {}
+        },
+        "loans": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mortgage_comparison_partner_handoff_with_risk_disclosure_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "주택담보대출 비교하기 제휴사 신청 서류 전달 금리 한도 확정 아님 담보권 소유권 상실 위험"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_comparison_partner_handoff_with_risk_disclosure_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_046"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_comparison_partner_handoff_with_risk_disclosure_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "cmp_mortgage_046",
+          "table": "comparison_sessions"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_comparison_partner_handoff_with_risk_disclosure_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "collateral_cmp_046",
+          "table": "mortgage_collateral"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_comparison_partner_handoff_with_risk_disclosure_04",
+        "requestor": "assistant",
+        "name": "create_loan_application",
+        "arguments": {
+          "application_id": "cmp_mortgage_app_046",
+          "customer_id": "cust_046",
+          "product_name": "주택담보대출 비교하기",
+          "comparison_id": "cmp_mortgage_046",
+          "requested_amount_krw": 420000000,
+          "purpose": "주택구입자금",
+          "partner_id": "partner_hangang_bank",
+          "expected_status": "PARTNER_HANDOFF_CREATED"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_application_decision",
+        "arguments": {
+          "application_id": "cmp_mortgage_app_046",
+          "expected_status": "PARTNER_HANDOFF_CREATED",
+          "expected_reason": "QUOTE_NON_FINAL_PARTNER_CONTRACT_REQUIRED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "comparison_sessions",
+          "record_id": "cmp_mortgage_046",
+          "field_names": [
+            "quoted_rate",
+            "quoted_limit_krw",
+            "final_contract_id"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "mortgage_collateral",
+          "record_id": "collateral_cmp_046",
+          "field_names": [
+            "estimated_value_krw",
+            "status",
+            "mortgage_right_setup_possible"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "주택담보대출 비교하기는 제휴사가 제시하는 금리와 한도 등 대출조건 비교·열람 및 신청 관련 서류 전달 서비스를 제공한다고 안내한다.",
+      "비교서비스에 표시된 금리와 한도는 확정 조건이 아니며 제휴사 심사와 실제 계약 시 달라질 수 있다고 설명한다.",
+      "주택담보대출은 담보부동산에 근저당권 등 담보권이 설정될 수 있고, 변제기 도래 또는 기한의 이익 상실 후 상환하지 않으면 담보주택 소유권 상실 위험이 있다고 안내한다.",
+      "서비스 약관, 개인신용정보, 제3자 제공 동의와 비교 세션을 확인한 뒤 제휴사 신청 handoff record를 만든다.",
+      "카카오뱅크 직접 대출 계약이나 실행 loan record를 만들지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_주택담보대출_비교하기_001",
+    "doc_kakao_product_주택담보대출_비교하기_003",
+    "doc_kakao_product_주택담보대출_비교하기_005"
+  ],
+  "user_tools": []
+}

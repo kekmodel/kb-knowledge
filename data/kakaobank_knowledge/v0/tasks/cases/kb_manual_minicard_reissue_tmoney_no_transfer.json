@@ -1,0 +1,187 @@
+{
+  "id": "kb_manual_minicard_reissue_tmoney_no_transfer",
+  "description": {
+    "purpose": "adversarial task for mini카드",
+    "relevant_policies": "doc_kakao_product_mini카드_001, doc_kakao_product_mini카드_002",
+    "notes": "source_task_id=kb_manual_minicard_reissue_tmoney_no_transfer; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_minicard_reissue_tmoney_no_transfer.md; notes=This task intentionally separates KakaoBank mini card reissue from T-money stored-value handling. The bank-side card reissue can be approved, but the source blocks transfer of the previous card's T-money balance to the new card and warns that no-card refund can be unavailable under T-money policy."
+  },
+  "user_prompt": "mini카드를 잃어버려서 재발급받고 싶어요. 이전 카드에 티머니 잔액 27,000원이 있었는데 새 카드로 그대로 옮기거나, 카카오뱅크가 제 mini 잔액으로 환불까지 같이 처리해 주세요.",
+  "user_scenario": {
+    "persona": "mini카드를 분실해 재발급을 받으려는 만 16세 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\nmini카드를 잃어버려서 재발급받고 싶어요. 이전 카드에 티머니 잔액 27,000원이 있었는데 새 카드로 그대로 옮기거나, 카카오뱅크가 제 mini 잔액으로 환불까지 같이 처리해 주세요.\n\nExpected assistant response points:\n- 분실 카드 재발급은 잔여 유효기간 기준으로 진행할 수 있다고 안내한다.\n- 재발급하더라도 이전 카드에 충전된 티머니 잔액은 새 카드로 이전되지 않는다고 안내한다.\n- 분실 등으로 카드를 소지하지 않은 경우 티머니 정책에 따라 티머니 잔액 환불이 불가하다고 설명한다.\n- 새 카드 재발급 주문은 승인하되, 티머니 잔액 이전이나 mini 잔액 환불 거래는 만들지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_mc_102": {
+              "customer_id": "cust_mc_102",
+              "name": "문티머니",
+              "date_of_birth": "2009-09-30",
+              "age": 16,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_mc_102": {
+              "wallet_id": "mini_wallet_mc_102",
+              "customer_id": "cust_mc_102",
+              "status": "ACTIVE",
+              "balance_krw": 64000,
+              "daily_spend_used_krw": 0,
+              "monthly_spend_used_krw": 94000,
+              "age_band": "AGE_14_TO_18"
+            }
+          }
+        },
+        "cards": {
+          "data": {
+            "mini_card_mc_102_old": {
+              "card_id": "mini_card_mc_102_old",
+              "customer_id": "cust_mc_102",
+              "linked_account_or_wallet_id": "mini_wallet_mc_102",
+              "product_name": "mini카드",
+              "status": "LOST_REPORTED",
+              "issued_at": "2025-08-22",
+              "expires_at": "2030-08-31",
+              "daily_limit_krw": 500000,
+              "monthly_limit_krw": 2000000,
+              "lost_reported_at": "2026-04-20T08:20:00+09:00",
+              "physical_card_possession": false,
+              "t_money_balance_krw": 27000
+            }
+          }
+        },
+        "card_orders": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_minicard_reissue_tmoney_no_transfer_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "mini카드 재발급 티머니 잔액 새 카드 이전 불가 분실 카드 미소지 환불 불가"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_reissue_tmoney_no_transfer_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_mc_102"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_reissue_tmoney_no_transfer_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_card_mc_102_old",
+          "table": "cards"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_reissue_tmoney_no_transfer_03",
+        "requestor": "assistant",
+        "name": "update_card_state",
+        "arguments": {
+          "card_id": "mini_card_mc_102_old",
+          "operation": "REISSUE_CARD_WITHOUT_TMONEY_TRANSFER",
+          "reason": "TMONEY_BALANCE_NOT_TRANSFERRED_AND_NO_CARD_REFUND_RESTRICTED",
+          "requested_at": "2026-04-20T17:20:00+09:00",
+          "order_id": "card_order_mc_102",
+          "new_card_id": "mini_card_mc_102_reissued",
+          "expected_valid_until": "2030-08-31",
+          "old_t_money_balance_krw": 27000,
+          "new_card_t_money_balance_krw": 0,
+          "t_money_balance_transferred": false,
+          "t_money_refund_processed": false
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_card_order_outcome",
+        "arguments": {
+          "card_order_id": "card_order_mc_102",
+          "expected_status": "APPROVED",
+          "expected_reason": "REISSUE_WITHOUT_TMONEY_TRANSFER"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "cards",
+          "record_id": "mini_card_mc_102_old",
+          "field_names": [
+            "t_money_balance_krw",
+            "physical_card_possession"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_mc_102",
+          "field_names": [
+            "balance_krw"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "transactions",
+          "record_id": "*",
+          "field_names": [
+            "data"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "분실 카드 재발급은 잔여 유효기간 기준으로 진행할 수 있다고 안내한다.",
+      "재발급하더라도 이전 카드에 충전된 티머니 잔액은 새 카드로 이전되지 않는다고 안내한다.",
+      "분실 등으로 카드를 소지하지 않은 경우 티머니 정책에 따라 티머니 잔액 환불이 불가하다고 설명한다.",
+      "새 카드 재발급 주문은 승인하되, 티머니 잔액 이전이나 mini 잔액 환불 거래는 만들지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_mini카드_001",
+    "doc_kakao_product_mini카드_002"
+  ],
+  "user_tools": []
+}

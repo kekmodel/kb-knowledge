@@ -1,0 +1,183 @@
+{
+  "id": "kb_manual_business_credit_info_primary_rep_enrolls_service",
+  "description": {
+    "purpose": "success task for 내 사업장 신용정보",
+    "relevant_policies": "doc_kakao_product_내_사업장_신용정보_001, doc_kakao_product_내_사업장_신용정보_003",
+    "notes": "source_task_id=kb_manual_business_credit_info_primary_rep_enrolls_service; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_info_primary_rep_enrolls_service.md; notes=The task requires the agent to combine KakaoBank eligibility, joint-business representative status, demand-deposit account presence, affiliate terms consent, and NICE approval before enrolling the service."
+  },
+  "user_prompt": "제 공동사업장은 제가 사업자등록증명원상 주대표자이고, 카카오뱅크 입출금통장도 제 명의로 있어요. 내 사업장 신용정보 서비스에 가입하고 NICE 약관도 동의할게요.",
+  "user_scenario": {
+    "persona": "공동사업장의 사업자등록증명원상 주대표자인 개인사업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 공동사업장은 제가 사업자등록증명원상 주대표자이고, 카카오뱅크 입출금통장도 제 명의로 있어요. 내 사업장 신용정보 서비스에 가입하고 NICE 약관도 동의할게요.\n\nExpected assistant response points:\n- 사업자등록증을 소지한 만 19세 이상 개인이고 공동사업자의 주대표자이면 서비스 이용대상이라고 확인한다.\n- 서비스 신청 시 본인명의 실명확인 입출금이자유로운예금이 필요하다고 확인한다.\n- 카카오뱅크 약관과 제휴 신용정보회사 약관 동의 및 NICE 승인을 거쳐 서비스 가입을 완료한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_012": {
+              "customer_id": "cust_012",
+              "name": "한대표",
+              "date_of_birth": "1986-08-21",
+              "age": 39,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_005": {
+              "business_id": "biz_005",
+              "customer_id": "cust_012",
+              "business_name": "한대표 디자인",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "JOINT_BUSINESS",
+              "business_purpose": "DESIGN_SERVICES"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_012": {
+              "account_id": "acct_base_012",
+              "customer_id": "cust_012",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 2300000,
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_info_primary_rep_enrolls_service_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 사업장 신용정보 가입대상 공동사업자 주대표자 입출금통장 NICE 승인"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_primary_rep_enrolls_service_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_012"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_primary_rep_enrolls_service_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "biz_005",
+          "table": "businesses"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_primary_rep_enrolls_service_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_base_012",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_primary_rep_enrolls_service_04",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_012",
+          "product_name": "내 사업장 신용정보",
+          "source_account_id": "acct_base_012",
+          "options": {
+            "service_id": "svc_biz_credit_info_012",
+            "business_id": "biz_005",
+            "operation": "ENROLL_SERVICE",
+            "kakaobank_terms_consent_id": "consent_biz_credit_info_terms_012",
+            "nice_terms_consent_id": "consent_nice_owner_credit_012",
+            "nice_approval_status": "APPROVED",
+            "provided_services": [
+              "SOHO_CREDIT_SCORE",
+              "CREDIT_INFO_LOOKUP",
+              "BUSINESS_CREDIT_REPORT",
+              "CREDIT_CHANGE_ALERT",
+              "SOHO_SCORE_CHANGE_ALERT"
+            ]
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_biz_credit_info_012",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "consents",
+          "record_id": "consent_biz_credit_info_terms_012",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "consents",
+          "record_id": "consent_nice_owner_credit_012",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "사업자등록증을 소지한 만 19세 이상 개인이고 공동사업자의 주대표자이면 서비스 이용대상이라고 확인한다.",
+      "서비스 신청 시 본인명의 실명확인 입출금이자유로운예금이 필요하다고 확인한다.",
+      "카카오뱅크 약관과 제휴 신용정보회사 약관 동의 및 NICE 승인을 거쳐 서비스 가입을 완료한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_사업장_신용정보_001",
+    "doc_kakao_product_내_사업장_신용정보_003"
+  ],
+  "user_tools": []
+}

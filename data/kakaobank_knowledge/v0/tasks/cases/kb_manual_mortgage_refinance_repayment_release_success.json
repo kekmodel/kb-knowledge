@@ -1,0 +1,222 @@
+{
+  "id": "kb_manual_mortgage_refinance_repayment_release_success",
+  "description": {
+    "purpose": "success task for 주택담보대출",
+    "relevant_policies": "doc_kakao_product_주택담보대출_007",
+    "notes": "source_task_id=kb_manual_mortgage_refinance_repayment_release_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mortgage_refinance_repayment_release_success.md; notes=This success task checks the full eligible mortgage-refinance sequence: apartment mortgage eligibility, delegated old-loan repayment, old-loan closure, new-loan activation, and lien-release request."
+  },
+  "user_prompt": "제 명의 타행 아파트 주택담보대출을 카카오뱅크 주택담보대출로 대환하려고 합니다. 본인확인도 끝났고, 기존대출 상환과 근저당권 말소접수 위임까지 동의했어요. 연체나 철회권 행사 가능 상태도 아니고 실행한 지 6개월은 지났습니다. 대환 실행해 주세요.",
+  "user_scenario": {
+    "persona": "타행 아파트 주택담보대출을 카카오뱅크로 갈아타려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 명의 타행 아파트 주택담보대출을 카카오뱅크 주택담보대출로 대환하려고 합니다. 본인확인도 끝났고, 기존대출 상환과 근저당권 말소접수 위임까지 동의했어요. 연체나 철회권 행사 가능 상태도 아니고 실행한 지 6개월은 지났습니다. 대환 실행해 주세요.\n\nExpected assistant response points:\n- 주택담보대출 대환서비스는 본인명의 주택담보대출을 조회해 기존대출 상환과 신규대출 실행을 처리하는 서비스라고 확인한다.\n- 대상 주택담보대출은 주택종류가 아파트인 경우로 한정되며, 현재 담보가 아파트이고 연체 등 상환불가 사유가 없다고 확인한다.\n- 고객이 신규기관에 기존대출 상환과 말소접수를 위임했으므로 기존 대출을 전액 상환해 해지하고 신규 카카오뱅크 대출을 활성화한다.\n- 근저당권 말소접수 요청 상태도 함께 반영되어야 한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_043": {
+              "customer_id": "cust_043",
+              "name": "문대환",
+              "date_of_birth": "1980-02-21",
+              "age": 46,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "mortgage_old_043": {
+              "loan_id": "mortgage_old_043",
+              "customer_id": "cust_043",
+              "product_name": "타행 주택담보대출",
+              "status": "ACTIVE",
+              "principal_krw": 315000000,
+              "outstanding_krw": 308700000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2051-07-31",
+              "late_days": 0,
+              "restriction_flags": [],
+              "purpose": "MORTGAGE_REFINANCE",
+              "collateral_type": "APARTMENT_MORTGAGE",
+              "home_type": "APARTMENT",
+              "institution": "OTHER_BANK",
+              "executed_at": "2025-08-01T10:00:00+09:00",
+              "withdrawal_right_available": false,
+              "same_day_certificate_issued": false
+            },
+            "mortgage_new_043": {
+              "loan_id": "mortgage_new_043",
+              "customer_id": "cust_043",
+              "product_name": "주택담보대출",
+              "status": "APPROVED_PENDING_REFINANCE",
+              "principal_krw": 310000000,
+              "outstanding_krw": 0,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2056-04-20",
+              "late_days": 0,
+              "restriction_flags": [
+                "PENDING_REFINANCE_EXECUTION"
+              ],
+              "purpose": "MORTGAGE_REFINANCE",
+              "collateral_type": "APARTMENT_MORTGAGE",
+              "home_type": "APARTMENT",
+              "institution": "KAKAOBANK"
+            }
+          }
+        },
+        "mortgage_collateral": {
+          "data": {
+            "collateral_mortgage_043": {
+              "collateral_id": "collateral_mortgage_043",
+              "customer_id": "cust_043",
+              "old_loan_id": "mortgage_old_043",
+              "new_loan_id": "mortgage_new_043",
+              "home_type": "APARTMENT",
+              "address": "서울특별시 강서구 마곡동 123",
+              "owner_customer_id": "cust_043",
+              "status": "EXISTING_LIEN_ACTIVE",
+              "existing_lien_release_requested": false
+            }
+          }
+        },
+        "refinance_requests": {
+          "data": {
+            "mortgage_refi_043": {
+              "refinance_id": "mortgage_refi_043",
+              "customer_id": "cust_043",
+              "new_loan_id": "mortgage_new_043",
+              "old_loan_id": "mortgage_old_043",
+              "status": "READY_TO_REPAY_OLD_LOAN",
+              "service_type": "MORTGAGE_REFINANCE",
+              "requested_at": "2026-04-20T11:20:00+09:00",
+              "old_loan_repayment_status": "READY",
+              "lien_release_status": "PENDING",
+              "risk_notice_agreed": true,
+              "identity_verified": true,
+              "home_type": "APARTMENT",
+              "unrepayable_flags": [],
+              "cancellation_reason": null
+            }
+          }
+        },
+        "required_documents": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mortgage_refinance_repayment_release_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "주택담보대출 대환대출서비스 아파트 기존대출 상환 말소접수 위임 근저당권 말소"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_refinance_repayment_release_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_043"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_refinance_repayment_release_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mortgage_old_043",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_refinance_repayment_release_success_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mortgage_refi_043",
+          "table": "refinance_requests"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_refinance_repayment_release_success_04",
+        "requestor": "assistant",
+        "name": "process_refinance_request",
+        "arguments": {
+          "refinance_id": "mortgage_refi_043",
+          "operation": "COMPLETE_OLD_LOAN_REPAYMENT_AND_REQUEST_LIEN_RELEASE",
+          "old_loan_repayment_status": "SUCCEEDED",
+          "requested_at": "2026-04-20T11:35:00+09:00",
+          "options": {
+            "lien_release_status": "REQUESTED",
+            "old_loan_closed": true,
+            "new_loan_status_after": "ACTIVE"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_refinance_outcome",
+        "arguments": {
+          "refinance_id": "mortgage_refi_043",
+          "expected_status": "COMPLETED",
+          "expected_new_loan_status": "ACTIVE",
+          "expected_lien_release_status": "REQUESTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "mortgage_old_043",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "mortgage_collateral",
+          "record_id": "collateral_mortgage_043",
+          "expected_status": "LIEN_RELEASE_REQUESTED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "주택담보대출 대환서비스는 본인명의 주택담보대출을 조회해 기존대출 상환과 신규대출 실행을 처리하는 서비스라고 확인한다.",
+      "대상 주택담보대출은 주택종류가 아파트인 경우로 한정되며, 현재 담보가 아파트이고 연체 등 상환불가 사유가 없다고 확인한다.",
+      "고객이 신규기관에 기존대출 상환과 말소접수를 위임했으므로 기존 대출을 전액 상환해 해지하고 신규 카카오뱅크 대출을 활성화한다.",
+      "근저당권 말소접수 요청 상태도 함께 반영되어야 한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_주택담보대출_007"
+  ],
+  "user_tools": []
+}

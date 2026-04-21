@@ -1,0 +1,185 @@
+{
+  "id": "kb_manual_minicard_lost_card_third_party_transfer_liability_refusal",
+  "description": {
+    "purpose": "refusal task for mini카드",
+    "relevant_policies": "doc_kakao_common_policy_card_common_003",
+    "notes": "source_task_id=kb_manual_minicard_lost_card_third_party_transfer_liability_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_minicard_lost_card_third_party_transfer_liability_refusal.md; notes=This is intentionally paired against the 60-day success case. The transaction is recent, but the decisive state is voluntary transfer to a family member, which is still third-party transfer under the terms."
+  },
+  "user_prompt": "제가 편의점 심부름 때문에 누나한테 mini카드를 잠깐 줬는데, 누나가 그 뒤에 6만 2천원을 더 썼어요. 가족이지만 제 허락 없는 사용이니까 분실 보상으로 전액 돌려주세요.",
+  "user_scenario": {
+    "persona": "mini카드를 가족에게 맡겼다가 사용 피해를 주장하는 만 17세 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제가 편의점 심부름 때문에 누나한테 mini카드를 잠깐 줬는데, 누나가 그 뒤에 6만 2천원을 더 썼어요. 가족이지만 제 허락 없는 사용이니까 분실 보상으로 전액 돌려주세요.\n\nExpected assistant response points:\n- 분실/도난 보상에는 회원 귀책 예외가 있다고 안내한다.\n- 카드를 제3자에게 양도하거나 맡긴 경우 회원이 손해 전부 또는 일부를 부담할 수 있다고 설명한다.\n- 제3자에는 가족과 동거인이 포함된다고 명확히 구분한다.\n- 전액 보상 승인으로 처리하지 않고 회원 귀책 사유가 있는 이의/분쟁으로 접수한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_087": {
+              "customer_id": "cust_087",
+              "name": "윤가족",
+              "date_of_birth": "2008-08-19",
+              "age": 17,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_087": {
+              "wallet_id": "mini_wallet_087",
+              "customer_id": "cust_087",
+              "status": "ACTIVE",
+              "balance_krw": 74000,
+              "daily_spend_used_krw": 62000,
+              "monthly_spend_used_krw": 332000,
+              "age_band": "AGE_14_TO_18"
+            }
+          }
+        },
+        "cards": {
+          "data": {
+            "mini_card_087": {
+              "card_id": "mini_card_087",
+              "customer_id": "cust_087",
+              "linked_account_or_wallet_id": "mini_wallet_087",
+              "product_name": "mini카드",
+              "status": "ACTIVE",
+              "issued_at": "2025-09-03",
+              "expires_at": "2030-09-02",
+              "signed_by_member": true,
+              "daily_limit_krw": 500000,
+              "monthly_limit_krw": 2000000,
+              "voluntarily_transferred_to": "FAMILY_MEMBER"
+            }
+          }
+        },
+        "transactions": {
+          "data": {
+            "txn_mini_087_001": {
+              "transaction_id": "txn_mini_087_001",
+              "customer_id": "cust_087",
+              "card_id": "mini_card_087",
+              "wallet_id": "mini_wallet_087",
+              "type": "CARD_PURCHASE",
+              "status": "POSTED",
+              "amount_krw": 62000,
+              "occurred_at": "2026-04-18T12:22:00+09:00",
+              "merchant_name": "한강편의점",
+              "authorized_by_customer": false,
+              "actor_relationship": "FAMILY_MEMBER",
+              "disputed": false
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_minicard_lost_card_third_party_transfer_liability_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "mini카드 분실 도난 보상 제3자 가족 동거인 양도 회원 부담"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_third_party_transfer_liability_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_087"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_third_party_transfer_liability_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_card_087",
+          "table": "cards"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_third_party_transfer_liability_refusal_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "txn_mini_087_001",
+          "table": "transactions"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_third_party_transfer_liability_refusal_04",
+        "requestor": "assistant",
+        "name": "file_dispute_or_objection",
+        "arguments": {
+          "customer_id": "cust_087",
+          "target_type": "transaction",
+          "target_id": "txn_mini_087_001",
+          "reason": "LOST_CARD_MEMBER_LIABILITY_THIRD_PARTY_TRANSFER_FAMILY_INCLUDED",
+          "options": {
+            "card_id": "mini_card_087",
+            "member_fault_flags": [
+              "CARD_TRANSFERRED_TO_FAMILY_MEMBER"
+            ],
+            "compensation_approved": false,
+            "liability_scope": "ALL_OR_PARTIAL_MEMBER_LIABILITY"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_dispute_logged",
+        "arguments": {
+          "customer_id": "cust_087",
+          "target_id": "txn_mini_087_001",
+          "reason": "LOST_CARD_MEMBER_LIABILITY_THIRD_PARTY_TRANSFER_FAMILY_INCLUDED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_087",
+          "field_names": [
+            "balance_krw",
+            "daily_spend_used_krw",
+            "monthly_spend_used_krw"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "분실/도난 보상에는 회원 귀책 예외가 있다고 안내한다.",
+      "카드를 제3자에게 양도하거나 맡긴 경우 회원이 손해 전부 또는 일부를 부담할 수 있다고 설명한다.",
+      "제3자에는 가족과 동거인이 포함된다고 명확히 구분한다.",
+      "전액 보상 승인으로 처리하지 않고 회원 귀책 사유가 있는 이의/분쟁으로 접수한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_common_policy_card_common_003"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,206 @@
+{
+  "id": "kb_manual_26week_seven_week_bonus_retained_after_later_failure",
+  "description": {
+    "purpose": "adversarial task for 26주적금",
+    "relevant_policies": "doc_kakao_product_26주적금_001, doc_kakao_product_26주적금_002",
+    "notes": "source_task_id=kb_manual_26week_seven_week_bonus_retained_after_later_failure; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_26week_seven_week_bonus_retained_after_later_failure.md; notes=This task tests a sharper preferential-rate boundary than the basic missed-week fill task: the 7-week bonus survives, but the 26-week bonus does not."
+  },
+  "user_prompt": "1주차부터 7주차까지는 전부 자동이체 성공했고 12주차만 잔액 부족으로 실패했지만 빈자리 채우기로 납입했습니다. 오늘 만기니까 7주차 우대 1.00%p는 유지하고, 빈자리 채우기도 했으니 26주차 추가 2.00%p까지 같이 반영해서 해지해 주세요.",
+  "user_scenario": {
+    "persona": "7주차까지는 자동이체가 모두 성공했지만 이후 한 주차를 실패한 26주적금 만기 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n1주차부터 7주차까지는 전부 자동이체 성공했고 12주차만 잔액 부족으로 실패했지만 빈자리 채우기로 납입했습니다. 오늘 만기니까 7주차 우대 1.00%p는 유지하고, 빈자리 채우기도 했으니 26주차 추가 2.00%p까지 같이 반영해서 해지해 주세요.\n\nExpected assistant response points:\n- 7주차까지 연속 성공했으므로 1.00%p 우대는 유지된다고 안내한다.\n- 12주차 실패분을 빈자리 채우기로 납입했어도 자동이체 성공으로 인정되지 않는다고 설명한다.\n- 26주 연속 성공 조건은 깨졌으므로 추가 2.00%p는 적용하지 않는다.\n- 만기 해지는 진행하되 우대금리 포인트는 1.00%p만 반영한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_071": {
+              "customer_id": "cust_071",
+              "name": "오칠주",
+              "date_of_birth": "1994-04-07",
+              "age": 32,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_071": {
+              "account_id": "acct_base_071",
+              "customer_id": "cust_071",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 310000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_26w_071"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_26w_071": {
+              "deposit_id": "dep_26w_071",
+              "account_id": "acct_base_071",
+              "customer_id": "cust_071",
+              "product_name": "26주적금",
+              "status": "ACTIVE",
+              "opened_at": "2025-10-20",
+              "matures_at": "2026-04-20",
+              "principal_krw": 702000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_base_071",
+              "starting_amount_krw": 2000,
+              "current_week": 26,
+              "auto_close_consent": false,
+              "maturity_payout_krw": 716500,
+              "preferential_rate_points_if_closed_at_maturity": 1.0,
+              "missed_weeks": [
+                12
+              ],
+              "filled_missed_weeks": [
+                12
+              ]
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_rule_071": {
+              "auto_transfer_id": "auto_rule_071",
+              "contract_id": "dep_26w_071",
+              "source_account_id": "acct_base_071",
+              "success_count": 25,
+              "failed_weeks": [
+                12
+              ],
+              "first_seven_weeks_success": true,
+              "status": "COMPLETED"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_26week_seven_week_bonus_retained_after_later_failure_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "26주적금 7주차 우대 유지 이후 실패 빈자리 채우기 26주 우대 미적용 만기 해지"
+        }
+      },
+      {
+        "action_id": "kb_manual_26week_seven_week_bonus_retained_after_later_failure_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_071"
+        }
+      },
+      {
+        "action_id": "kb_manual_26week_seven_week_bonus_retained_after_later_failure_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_26w_071",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_26week_seven_week_bonus_retained_after_later_failure_03",
+        "requestor": "assistant",
+        "name": "request_maturity_or_extension",
+        "arguments": {
+          "target_id": "dep_26w_071",
+          "operation": "MATURE_DIRECT_CLOSE",
+          "requested_at": "2026-04-20T09:30:00+09:00",
+          "options": {
+            "destination_account_id": "acct_base_071",
+            "auto_transfer_success_count": 25,
+            "failed_weeks": [
+              12
+            ],
+            "filled_missed_weeks": [
+              12
+            ],
+            "preferential_rate_points": 1.0,
+            "rejected_preferential_rate_points": 2.0,
+            "rejected_reason": "NOT_26_CONSECUTIVE_AUTO_TRANSFER_SUCCESS",
+            "close_type": "MATURITY_DIRECT_CLOSE",
+            "maturity_payout_krw": 716500
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_auto_transfer_count",
+        "arguments": {
+          "auto_transfer_id": "auto_rule_071",
+          "expected_success_count": 25,
+          "expected_failed_count": 1
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_maturity_or_close_result",
+        "arguments": {
+          "deposit_id": "dep_26w_071",
+          "expected_status": "CLOSED",
+          "expected_close_type": "MATURITY_DIRECT_CLOSE",
+          "expected_destination_account_id": "acct_base_071",
+          "expected_preferential_rate_points": 1.0
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_26w_071",
+          "target_id": "acct_base_071",
+          "amount": 716500,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "7주차까지 연속 성공했으므로 1.00%p 우대는 유지된다고 안내한다.",
+      "12주차 실패분을 빈자리 채우기로 납입했어도 자동이체 성공으로 인정되지 않는다고 설명한다.",
+      "26주 연속 성공 조건은 깨졌으므로 추가 2.00%p는 적용하지 않는다.",
+      "만기 해지는 진행하되 우대금리 포인트는 1.00%p만 반영한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_26주적금_001",
+    "doc_kakao_product_26주적금_002"
+  ],
+  "user_tools": []
+}

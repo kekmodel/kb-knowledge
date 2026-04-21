@@ -1,0 +1,162 @@
+{
+  "id": "kb_manual_minicard_second_card_issue_refusal",
+  "description": {
+    "purpose": "refusal task for mini카드",
+    "relevant_policies": "doc_kakao_product_mini카드_001, doc_kakao_common_policy_card_common_001",
+    "notes": "source_task_id=kb_manual_minicard_second_card_issue_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_minicard_second_card_issue_refusal.md; notes=The eligibility conditions are deliberately satisfied; the refusal depends only on the one-card-per-customer rule and existing active card state."
+  },
+  "user_prompt": "기존 mini카드는 집에 두고 다니고 싶어서 같은 mini 지갑에 연결된 카드를 하나 더 발급받고 싶어요. 저는 만 15세고 mini도 있으니 추가 카드 1장 더 만들어 주세요.",
+  "user_scenario": {
+    "persona": "이미 정상 mini카드를 보유한 만 15세 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n기존 mini카드는 집에 두고 다니고 싶어서 같은 mini 지갑에 연결된 카드를 하나 더 발급받고 싶어요. 저는 만 15세고 mini도 있으니 추가 카드 1장 더 만들어 주세요.\n\nExpected assistant response points:\n- mini 보유 만 18세 이하 고객은 발급 신청 대상이지만 발급 장수 제한도 별도로 적용된다고 안내한다.\n- mini카드는 고객별 1장만 가능하므로 두 번째 신규 카드는 발급할 수 없다고 거절한다.\n- 기존 카드를 유지하고 새 card record나 card order 승인 상태를 만들지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_088": {
+              "customer_id": "cust_088",
+              "name": "이두장",
+              "date_of_birth": "2010-06-30",
+              "age": 15,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_088": {
+              "wallet_id": "mini_wallet_088",
+              "customer_id": "cust_088",
+              "status": "ACTIVE",
+              "balance_krw": 154000,
+              "daily_spend_used_krw": 0,
+              "monthly_spend_used_krw": 88000,
+              "age_band": "AGE_14_TO_18"
+            }
+          }
+        },
+        "cards": {
+          "data": {
+            "mini_card_088": {
+              "card_id": "mini_card_088",
+              "customer_id": "cust_088",
+              "linked_account_or_wallet_id": "mini_wallet_088",
+              "product_name": "mini카드",
+              "status": "ACTIVE",
+              "issued_at": "2025-12-10",
+              "expires_at": "2030-12-09",
+              "daily_limit_krw": 500000,
+              "monthly_limit_krw": 2000000
+            }
+          }
+        },
+        "card_orders": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_minicard_second_card_issue_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "mini카드 고객별 1장만 발급 가능 추가 카드 두 번째 발급"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_second_card_issue_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_088"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_second_card_issue_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_card_088",
+          "table": "cards"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_second_card_issue_refusal_03",
+        "requestor": "assistant",
+        "name": "update_card_state",
+        "arguments": {
+          "card_id": null,
+          "operation": "REJECT_NEW_ISSUE",
+          "reason": "CARD_COUNT_LIMIT_ONE_PER_CUSTOMER",
+          "requested_at": "2026-04-20T15:25:00+09:00",
+          "order_id": "card_order_088",
+          "customer_id": "cust_088",
+          "wallet_id": "mini_wallet_088",
+          "existing_card_id": "mini_card_088",
+          "new_card_created": false
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_card_order_outcome",
+        "arguments": {
+          "card_order_id": "card_order_088",
+          "expected_status": "REJECTED",
+          "expected_reason": "CARD_COUNT_LIMIT_ONE_PER_CUSTOMER"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "cards",
+          "record_id": "mini_card_088",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "cards",
+          "record_id": "*",
+          "field_names": [
+            "data"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "mini 보유 만 18세 이하 고객은 발급 신청 대상이지만 발급 장수 제한도 별도로 적용된다고 안내한다.",
+      "mini카드는 고객별 1장만 가능하므로 두 번째 신규 카드는 발급할 수 없다고 거절한다.",
+      "기존 카드를 유지하고 새 card record나 card order 승인 상태를 만들지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_mini카드_001",
+    "doc_kakao_common_policy_card_common_001"
+  ],
+  "user_tools": []
+}

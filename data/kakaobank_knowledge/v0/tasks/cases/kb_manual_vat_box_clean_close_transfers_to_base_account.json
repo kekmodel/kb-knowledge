@@ -1,0 +1,190 @@
+{
+  "id": "kb_manual_vat_box_clean_close_transfers_to_base_account",
+  "description": {
+    "purpose": "success task for 부가세박스",
+    "relevant_policies": "doc_kakao_product_부가세박스_004",
+    "notes": "source_task_id=kb_manual_vat_box_clean_close_transfers_to_base_account; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_vat_box_clean_close_transfers_to_base_account.md; notes=This is the success counterpart to the legal-restriction close refusal: the close is allowed only because restriction_flags is empty, and the payout target is the linked personal business account."
+  },
+  "user_prompt": "부가세 신고가 끝나서 부가세박스를 해지하고 싶어요. 압류나 질권 같은 제한은 없고, 원금 175만원과 결산이자 2,460원은 연결된 개인사업자통장으로 넣어 주세요.",
+  "user_scenario": {
+    "persona": "부가세 신고 후 부가세박스를 정리하려는 개인사업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n부가세 신고가 끝나서 부가세박스를 해지하고 싶어요. 압류나 질권 같은 제한은 없고, 원금 175만원과 결산이자 2,460원은 연결된 개인사업자통장으로 넣어 주세요.\n\nExpected assistant response points:\n- 부가세박스는 모바일앱을 통해 해지할 수 있다고 안내한다.\n- 해지 시 원금 및 결산이자는 연결된 카카오뱅크 개인사업자통장으로 이체 처리된다고 설명한다.\n- 출금제한 사고신고가 없으므로 부가세박스를 닫고 1,752,460원을 연결 개인사업자통장으로 이체한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_147": {
+              "customer_id": "cust_147",
+              "name": "정산해지",
+              "date_of_birth": "1980-11-11",
+              "age": 45,
+              "residency": "KR",
+              "employment_type": "SOLE_PROPRIETOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_147": {
+              "business_id": "biz_147",
+              "customer_id": "cust_147",
+              "business_name": "정산해지 카페",
+              "business_number": "123-45-67147",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "tax_type": "VAT_TAXABLE"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_biz_147": {
+              "account_id": "acct_biz_147",
+              "customer_id": "cust_147",
+              "product_name": "개인사업자통장",
+              "status": "ACTIVE",
+              "balance_krw": 640000,
+              "currency": "KRW",
+              "linked_service_ids": [
+                "box_vat_147"
+              ],
+              "restriction_flags": [],
+              "business_id": "biz_147"
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_vat_147": {
+              "box_id": "box_vat_147",
+              "customer_id": "cust_147",
+              "product_name": "부가세박스",
+              "base_account_id": "acct_biz_147",
+              "business_id": "biz_147",
+              "business_number": "123-45-67147",
+              "status": "ACTIVE",
+              "balance": 1750000,
+              "currency": "KRW",
+              "limit_amount": 100000000,
+              "restriction_flags": [],
+              "accrued_interest_krw": 2460
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_vat_box_clean_close_transfers_to_base_account_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "부가세박스 해지 모바일앱 원금 결산이자 연결 개인사업자통장 이체"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_clean_close_transfers_to_base_account_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_147"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_clean_close_transfers_to_base_account_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_vat_147",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_clean_close_transfers_to_base_account_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_147",
+          "target_id": "box_vat_147",
+          "close_type": "CLOSE_VAT_BOX",
+          "reason": "CUSTOMER_REQUEST_NO_RESTRICTIONS",
+          "options": {
+            "base_account_id": "acct_biz_147",
+            "principal_krw": 1750000,
+            "settlement_interest_krw": 2460,
+            "transfer_amount_krw": 1752460,
+            "transfer_principal_and_interest_to_base_account": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_vat_147",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "box_vat_147",
+          "target_id": "acct_biz_147",
+          "amount": 1752460,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_biz_147",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "부가세박스는 모바일앱을 통해 해지할 수 있다고 안내한다.",
+      "해지 시 원금 및 결산이자는 연결된 카카오뱅크 개인사업자통장으로 이체 처리된다고 설명한다.",
+      "출금제한 사고신고가 없으므로 부가세박스를 닫고 1,752,460원을 연결 개인사업자통장으로 이체한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_부가세박스_004"
+  ],
+  "user_tools": []
+}

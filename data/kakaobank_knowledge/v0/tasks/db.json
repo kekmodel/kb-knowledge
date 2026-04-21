@@ -1,0 +1,107 @@
+{
+  "accounts": {
+    "data": {},
+    "notes": "purpose: Demand-deposit, business-account, base-account, and linked-account status.\nkey: account_id\nrequired_fields: account_id, customer_id, product_name, status, balance_krw, is_limit_account, linked_service_ids, restriction_flags\nverifier_use: account closure preconditions; limit-account transfer limits; base-account and linked-product restrictions"
+  },
+  "auto_transfer_rules": {
+    "data": {},
+    "notes": "purpose: Scheduled deposit, recurring savings, auto collect, and auto transfer setup.\nkey: auto_transfer_id\nrequired_fields: auto_transfer_id, source_account_id, target_id, status, schedule, amount_krw, success_count, failed_count\nverifier_use: preferential-rate eligibility; failed auto debit cases; deadline and cancellation rules"
+  },
+  "businesses": {
+    "data": {},
+    "notes": "purpose: Business-registration state for personal business products.\nkey: business_id\nrequired_fields: business_id, customer_id, registration_status, is_primary_representative, business_type, business_purpose\nverifier_use: personal-business-account eligibility; business credit/refinance eligibility; business credit-info service eligibility"
+  },
+  "card_orders": {
+    "data": {},
+    "notes": "purpose: New issue and reissue requests.\nkey: card_order_id\nrequired_fields: card_order_id, card_id, customer_id, request_type, status, reason\nverifier_use: new-issue blocked but reissue allowed; lost/damaged reissue path"
+  },
+  "cards": {
+    "data": {},
+    "notes": "purpose: mini card and debit/card-like payment instrument state.\nkey: card_id\nrequired_fields: card_id, customer_id, linked_account_or_wallet_id, product_name, status, issued_at, expires_at, daily_limit_krw, monthly_limit_krw\nverifier_use: minor card issuance/reissue; payment approval restrictions; lost-card compensation window"
+  },
+  "child_relationships": {
+    "data": {},
+    "notes": "purpose: Child account/savings representative authority.\nkey: relationship_id\nrequired_fields: relationship_id, child_customer_id, representative_customer_id, representative_role, status, child_age\nverifier_use: primary versus assistant representative permissions; child reaches age 19 service transition; child account transfer authority"
+  },
+  "comparison_sessions": {
+    "data": {},
+    "notes": "purpose: Loan comparison service quotes and selected partner-product handoff.\nkey: comparison_id\nrequired_fields: comparison_id, customer_id, service_type, status, partner_id, quoted_rate, quoted_limit_krw, final_contract_id\nverifier_use: quote is non-final; KakaoBank has no contract authority for partner products; partner limited market coverage"
+  },
+  "consents": {
+    "data": {},
+    "notes": "purpose: Terms, guardian, privacy, and delegated-representative consent records.\nkey: consent_id\nrequired_fields: consent_id, customer_id, consent_type, status, effective_at, expires_at\nverifier_use: minor consent validity; credit-info affiliate-terms consent; child-service representative authority"
+  },
+  "customers": {
+    "data": {},
+    "notes": "purpose: Customer identity, age, residency, customer class, and risk flags.\nkey: customer_id\nrequired_fields: customer_id, name, date_of_birth, age, residency, employment_type, risk_flags\nverifier_use: eligibility by age; minor and guardian consent checks; business-owner and employee loan/customer eligibility"
+  },
+  "deposit_contracts": {
+    "data": {},
+    "notes": "purpose: Installment savings, fixed deposit, child savings, and one-month savings contracts.\nkey: deposit_id\nrequired_fields: deposit_id, account_id, product_name, status, opened_at, matures_at, principal_krw, close_type, legal_restriction_flags\nverifier_use: maturity-close versus early-close; partial/emergency withdrawal eligibility; auto-extension and auto-close exceptions"
+  },
+  "disputes": {
+    "data": {},
+    "notes": "purpose: Card, transaction, service, and customer-objection dispute records.\nkey: dispute_id\nrequired_fields: dispute_id, customer_id, target_type, target_id, reason, status, filed_at, resolution\nverifier_use: lost-card fault exceptions; abnormal-transaction objection; affiliate-service responsibility disputes"
+  },
+  "group_memberships": {
+    "data": {},
+    "notes": "purpose: Meeting-account owner/member state and information-sharing consent.\nkey: membership_id\nrequired_fields: membership_id, service_id, account_id, customer_id, role, status, last_financial_info_consent_at\nverifier_use: meeting-owner closure with remaining members; member visibility after consent expiry; owner versus member authority"
+  },
+  "lease_contracts": {
+    "data": {},
+    "notes": "purpose: Lease deposit loan contract and landlord-payment state.\nkey: lease_id\nrequired_fields: lease_id, loan_id, landlord_account_status, move_in_due_date, resident_registration_status, deposit_return_claim_status\nverifier_use: landlord account block prevents execution; move-in and registration deadlines; lease cancellation and return-claim assignment"
+  },
+  "loan_applications": {
+    "data": {},
+    "notes": "purpose: Pre-contract applications, comparison results, screening decisions, and customer-selected terms.\nkey: application_id\nrequired_fields: application_id, customer_id, product_name, status, requested_amount_krw, approved_amount_krw, screening_result, selected_terms\nverifier_use: comparison is not final contract; screening failure/refusal; selected preferential-rate conditions only"
+  },
+  "loans": {
+    "data": {},
+    "notes": "purpose: Credit, business, lease, mortgage, and used-car loan contracts.\nkey: loan_id\nrequired_fields: loan_id, customer_id, product_name, status, principal_krw, outstanding_krw, repayment_mode, maturity_date, late_days, restriction_flags\nverifier_use: extension approval or rejection; acceleration and immediate repayment; withdrawal/cooling-off consequences; purpose-use violations"
+  },
+  "mortgage_collateral": {
+    "data": {},
+    "notes": "purpose: Mortgage home, lien, move-in, and ownership-obligation state.\nkey: collateral_id\nrequired_fields: collateral_id, loan_id, property_type, registration_status, move_in_due_date, move_in_verified, ownership_status\nverifier_use: move-in pledge violation; lien cancellation sequence; collateral enforcement risk"
+  },
+  "pockets": {
+    "data": {},
+    "notes": "purpose: Meeting-account pockets and record-book sections.\nkey: pocket_id\nrequired_fields: pocket_id, parent_id, pocket_type, status, balance_krw, created_at\nverifier_use: basic-pocket insufficient balance fallback; section close balance movement; latest-section-first legal processing"
+  },
+  "prepaid_wallets": {
+    "data": {},
+    "notes": "purpose: KakaoBank mini prepaid balance and youth limits.\nkey: wallet_id\nrequired_fields: wallet_id, customer_id, status, balance_krw, daily_spend_used_krw, monthly_spend_used_krw, age_band\nverifier_use: mini is not a deposit account; age-band limits; guardian consent and refund restrictions"
+  },
+  "refinance_requests": {
+    "data": {},
+    "notes": "purpose: Loan switching/refinance lifecycle for credit, business, and mortgage loans.\nkey: refinance_id\nrequired_fields: refinance_id, customer_id, new_loan_id, old_loan_id, status, requested_at, old_loan_repayment_status, cancellation_reason\nverifier_use: same-day duplicate request exceptions; old-loan repayment failure cancels new loan; normal old-loan repayment cannot be undone"
+  },
+  "remittance_cases": {
+    "data": {},
+    "notes": "purpose: Outbound, inbound, return, correction, cancellation, and gift remittance cases.\nkey: remittance_id\nrequired_fields: remittance_id, customer_id, direction, status, amount, currency, country, requested_at, correction_due_date\nverifier_use: 2-business-day correction auto-cancel; fee refund or non-refund; 4th-business-day inbound batch deposit; 30-day gift auto-cancel"
+  },
+  "remittance_profiles": {
+    "data": {},
+    "notes": "purpose: Outbound/inbound remittance eligibility, annual limits, and auto-receive settings.\nkey: remittance_profile_id\nrequired_fields: remittance_profile_id, customer_id, base_account_id, annual_usd_sent, auto_receive_enabled, verified_purpose_codes\nverifier_use: outbound age and account eligibility; annual no-document remittance limits; auto-receive exception cases"
+  },
+  "required_documents": {
+    "data": {},
+    "notes": "purpose: Documents required before/after execution for loans, deposit restrictions, or identity verification.\nkey: document_id\nrequired_fields: document_id, customer_id, target_type, target_id, document_type, status, due_date, submitted_at\nverifier_use: pre-execution document blocking; post-execution deadline violations; document update or contract-modification restrictions"
+  },
+  "savings_boxes": {
+    "data": {},
+    "notes": "purpose: SafeBox, Piggy Bank, VAT Box, Dollar Box, and record-book section-like balances.\nkey: box_id\nrequired_fields: box_id, customer_id, product_name, base_account_id, status, balance, currency, limit_amount\nverifier_use: linked-account-only deposits; box close or partial withdrawal restrictions; limit increase irreversible cases; currency-specific withdrawal and gift state"
+  },
+  "schema_version": "kakaobank_transactional_db.v0",
+  "service_enrollments": {
+    "data": {},
+    "notes": "purpose: Credit-info, business-credit-info, document box, child service, meeting account, VAT box, and linked services.\nkey: service_id\nrequired_fields: service_id, customer_id, service_name, status, linked_account_id, started_at, ended_at, restriction_flags\nverifier_use: service suspension/termination notice; linked-service closure preconditions; affiliate responsibility boundaries"
+  },
+  "transactions": {
+    "data": {},
+    "notes": "purpose: Account, card, mini, savings-box, remittance, fee, and auto-collect transactions.\nkey: transaction_id\nrequired_fields: transaction_id, customer_id, source_id, target_id, amount, currency, transaction_type, status, posted_at\nverifier_use: balance changes; collect/include/exclude transaction rules; fee assessment; lost-card compensation windows"
+  },
+  "vehicle_purchase_cases": {
+    "data": {},
+    "notes": "purpose: Used-car purchase loan vehicle and title-transfer state.\nkey: vehicle_case_id\nrequired_fields: vehicle_case_id, loan_id, dealer_id, payment_status, title_transfer_due_date, title_transfer_status, sale_contract_status\nverifier_use: loan purpose restriction; 15-day title-transfer rule; sale cancellation triggers immediate repayment"
+  }
+}

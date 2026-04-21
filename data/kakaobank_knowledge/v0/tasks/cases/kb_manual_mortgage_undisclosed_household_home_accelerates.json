@@ -1,0 +1,201 @@
+{
+  "id": "kb_manual_mortgage_undisclosed_household_home_accelerates",
+  "description": {
+    "purpose": "refusal task for 주택담보대출",
+    "relevant_policies": "doc_kakao_product_주택담보대출_005",
+    "notes": "source_task_id=kb_manual_mortgage_undisclosed_household_home_accelerates; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mortgage_undisclosed_household_home_accelerates.md; notes=This task is intentionally stricter than a generic housing-status explanation: the separated spouse and presale-right facts are hidden state, while the inheritance exception is explicitly false."
+  },
+  "user_prompt": "주택담보대출 실행일 전에 제 배우자가 갖고 있던 분양권을 고지서에 안 적었어요. 배우자는 세대분리돼 있고, 상속받은 것도 아니지만 아직 완공된 집은 아니니 대출은 정상으로 유지해 주세요.",
+  "user_scenario": {
+    "persona": "주택 구입목적 주택담보대출 실행 후 세대분리 배우자의 분양권을 누락한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n주택담보대출 실행일 전에 제 배우자가 갖고 있던 분양권을 고지서에 안 적었어요. 배우자는 세대분리돼 있고, 상속받은 것도 아니지만 아직 완공된 집은 아니니 대출은 정상으로 유지해 주세요.\n\nExpected assistant response points:\n- 주택구입목적 주택담보대출 고지 대상에는 주택뿐 아니라 분양권과 조합원 입주권도 포함된다고 확인한다.\n- 세대분리된 배우자도 세대원 범위에 포함된다고 안내한다.\n- 대출실행일 기준으로 고지서에 명시되지 않은 세대 보유 주택 또는 분양권이 있고 상속 예외가 아니면 기한의 이익이 상실된다고 판단한다.\n- 고객 요청처럼 정상 유지하지 않고 즉시상환 필요 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_248": {
+              "customer_id": "cust_248",
+              "name": "오누락",
+              "date_of_birth": "1979-12-11",
+              "age": 46,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "mortgage_loan_248": {
+              "loan_id": "mortgage_loan_248",
+              "customer_id": "cust_248",
+              "product_name": "주택담보대출",
+              "status": "EXECUTED",
+              "principal_krw": 510000000,
+              "outstanding_krw": 507200000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2055-12-15",
+              "late_days": 0,
+              "restriction_flags": [
+                "PURCHASE_PURPOSE_HOME_NOTICE_DUTY"
+              ],
+              "purpose": "PURCHASE_HOME",
+              "collateral_type": "APARTMENT_MORTGAGE",
+              "home_type": "APARTMENT",
+              "executed_at": "2026-03-10T09:30:00+09:00",
+              "purchase_notice_declared_homes": [
+                {
+                  "home_type": "APARTMENT",
+                  "owner": "cust_248",
+                  "address": "경기도 성남시 분당구 정자동 500"
+                }
+              ],
+              "household_assets": [
+                {
+                  "holder_relationship": "SEPARATED_SPOUSE",
+                  "asset_type": "PRESALE_RIGHT",
+                  "address": "경기도 하남시 감이동 88",
+                  "acquired_at": "2025-08-01",
+                  "acquisition_method": "PURCHASE",
+                  "declared_in_purchase_notice": false
+                }
+              ],
+              "accelerated": false,
+              "acceleration_reason": null
+            }
+          }
+        },
+        "mortgage_collateral": {
+          "data": {
+            "collateral_mortgage_248": {
+              "collateral_id": "collateral_mortgage_248",
+              "customer_id": "cust_248",
+              "loan_id": "mortgage_loan_248",
+              "home_type": "APARTMENT",
+              "address": "경기도 성남시 분당구 정자동 500",
+              "owner_customer_id": "cust_248",
+              "status": "ACTIVE_COLLATERAL"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_purchase_notice_248": {
+              "document_id": "req_purchase_notice_248",
+              "customer_id": "cust_248",
+              "target_type": "loan",
+              "target_id": "mortgage_loan_248",
+              "document_type": "PURCHASE_PURPOSE_HOME_NOTICE_ADDENDUM",
+              "status": "ACCEPTED",
+              "submitted_at": "2026-03-09T15:00:00+09:00"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mortgage_undisclosed_household_home_accelerates_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "주택구입목적 주택담보대출 고지의무 세대분리 배우자 분양권 명시되지 않은 주택 기한의 이익 상실"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_undisclosed_household_home_accelerates_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_248"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_undisclosed_household_home_accelerates_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mortgage_loan_248",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_undisclosed_household_home_accelerates_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "mortgage_loan_248",
+          "operation": "ACCELERATE_FOR_UNDISCLOSED_HOUSEHOLD_HOME",
+          "reason": "UNDISCLOSED_HOUSEHOLD_PRESALE_RIGHT_AT_EXECUTION",
+          "effective_at": "2026-04-20T13:20:00+09:00",
+          "options": {
+            "undisclosed_asset_type": "PRESALE_RIGHT",
+            "holder_relationship": "SEPARATED_SPOUSE",
+            "acquisition_method": "PURCHASE",
+            "inheritance_exception_applies": false,
+            "immediate_repayment_required": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "mortgage_loan_248",
+          "expected_accelerated": true,
+          "expected_reason": "UNDISCLOSED_HOUSEHOLD_PRESALE_RIGHT_AT_EXECUTION"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "mortgage_loan_248",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "mortgage_loan_248",
+          "document_type": "PURCHASE_PURPOSE_HOME_NOTICE_ADDENDUM",
+          "expected_status": "ACCEPTED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "주택구입목적 주택담보대출 고지 대상에는 주택뿐 아니라 분양권과 조합원 입주권도 포함된다고 확인한다.",
+      "세대분리된 배우자도 세대원 범위에 포함된다고 안내한다.",
+      "대출실행일 기준으로 고지서에 명시되지 않은 세대 보유 주택 또는 분양권이 있고 상속 예외가 아니면 기한의 이익이 상실된다고 판단한다.",
+      "고객 요청처럼 정상 유지하지 않고 즉시상환 필요 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_주택담보대출_005"
+  ],
+  "user_tools": []
+}

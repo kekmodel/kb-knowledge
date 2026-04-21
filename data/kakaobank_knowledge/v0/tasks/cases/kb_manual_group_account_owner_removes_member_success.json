@@ -1,0 +1,201 @@
+{
+  "id": "kb_manual_group_account_owner_removes_member_success",
+  "description": {
+    "purpose": "success task for 모임통장",
+    "relevant_policies": "doc_kakao_product_모임통장_003",
+    "notes": "source_task_id=kb_manual_group_account_owner_removes_member_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_group_account_owner_removes_member_success.md; notes=This tests owner-only member management without closing the group service or touching account funds."
+  },
+  "user_prompt": "제가 모임주입니다. 이번 달부터 안 나오는 멤버 한 명을 모임통장에서 내보내고 싶어요. 그 멤버의 참여를 중단시켜 주세요.",
+  "user_scenario": {
+    "persona": "모임멤버 정리를 하는 모임주",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제가 모임주입니다. 이번 달부터 안 나오는 멤버 한 명을 모임통장에서 내보내고 싶어요. 그 멤버의 참여를 중단시켜 주세요.\n\nExpected assistant response points:\n- 모임주는 자신의 책임 하에 모임멤버 초대와 내보내기 등 멤버 관리 권한을 가진다고 안내한다.\n- 모임주는 내보내기 기능으로 특정 모임멤버의 참여를 중단시킬 수 있다고 설명한다.\n- 요청자가 모임주이고 대상 멤버가 활성 상태이므로 해당 membership을 removed 상태로 바꾼다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_138": {
+              "customer_id": "cust_138",
+              "name": "문모임",
+              "date_of_birth": "1988-01-03",
+              "age": 38,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "cust_139": {
+              "customer_id": "cust_139",
+              "name": "나멤버",
+              "date_of_birth": "1996-04-22",
+              "age": 30,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_group_138": {
+              "account_id": "acct_group_138",
+              "customer_id": "cust_138",
+              "product_name": "모임통장",
+              "status": "ACTIVE",
+              "balance_krw": 220000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "svc_group_138"
+              ],
+              "restriction_flags": [
+                "LIMIT_LOAN_BLOCKED_BY_GROUP_ACCOUNT"
+              ],
+              "member_count": 1
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_group_138": {
+              "service_id": "svc_group_138",
+              "customer_id": "cust_138",
+              "service_name": "모임통장서비스",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_group_138",
+              "started_at": "2026-01-10",
+              "ended_at": null,
+              "restriction_flags": [],
+              "financial_info_consent_status": "ACTIVE"
+            }
+          }
+        },
+        "group_memberships": {
+          "data": {
+            "gm_owner_138": {
+              "membership_id": "gm_owner_138",
+              "service_id": "svc_group_138",
+              "account_id": "acct_group_138",
+              "customer_id": "cust_138",
+              "role": "OWNER",
+              "status": "ACTIVE",
+              "last_financial_info_consent_at": "2026-01-10T09:00:00+09:00"
+            },
+            "gm_member_139": {
+              "membership_id": "gm_member_139",
+              "service_id": "svc_group_138",
+              "account_id": "acct_group_138",
+              "customer_id": "cust_139",
+              "role": "MEMBER",
+              "status": "ACTIVE",
+              "last_financial_info_consent_at": null
+            }
+          }
+        },
+        "pockets": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_group_account_owner_removes_member_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "모임통장 모임주 모임멤버 내보내기 참여 중단 권한"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_owner_removes_member_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_138"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_owner_removes_member_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_group_138",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_owner_removes_member_success_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_138",
+          "target_id": "gm_member_139",
+          "close_type": "REMOVE_GROUP_MEMBER",
+          "reason": "OWNER_REMOVAL_REQUEST",
+          "options": {
+            "service_id": "svc_group_138",
+            "member_customer_id": "cust_139",
+            "new_membership_status": "REMOVED"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "group_memberships",
+          "record_id": "gm_member_139",
+          "expected_status": "REMOVED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_group_138",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_group_138",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "모임주는 자신의 책임 하에 모임멤버 초대와 내보내기 등 멤버 관리 권한을 가진다고 안내한다.",
+      "모임주는 내보내기 기능으로 특정 모임멤버의 참여를 중단시킬 수 있다고 설명한다.",
+      "요청자가 모임주이고 대상 멤버가 활성 상태이므로 해당 membership을 removed 상태로 바꾼다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_모임통장_003"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,203 @@
+{
+  "id": "kb_manual_mortgage_refinance_non_apartment_refusal",
+  "description": {
+    "purpose": "refusal task for 주택담보대출",
+    "relevant_policies": "doc_kakao_product_주택담보대출_007",
+    "notes": "source_task_id=kb_manual_mortgage_refinance_non_apartment_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mortgage_refinance_non_apartment_refusal.md; notes=This refusal isolates a service-scope blocker. The customer satisfies adult, domestic, identity, and no-delinquency conditions, but the existing mortgage collateral is not an apartment, so the service repayment path must be rejected."
+  },
+  "user_prompt": "제 명의 타행 주택담보대출을 카카오뱅크로 갈아타고 싶어요. 담보는 빌라이지만 저는 만 19세 넘은 내국인이고 연체도 없어요. 기존 대출 상환하고 신규 주담대 실행해 주세요.",
+  "user_scenario": {
+    "persona": "타행 빌라 주택담보대출을 카카오뱅크로 대환하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 명의 타행 주택담보대출을 카카오뱅크로 갈아타고 싶어요. 담보는 빌라이지만 저는 만 19세 넘은 내국인이고 연체도 없어요. 기존 대출 상환하고 신규 주담대 실행해 주세요.\n\nExpected assistant response points:\n- 주택담보대출 대환서비스는 본인명의 주택담보대출을 조회해 기존대출 상환과 신규대출 실행을 처리하는 서비스라고 안내한다.\n- 다만 서비스 대상 주택담보대출은 주택종류가 아파트인 경우로 한정된다고 설명한다.\n- 담보가 빌라라면 연체가 없고 본인확인이 되어도 대출이동시스템을 통한 기존대출 상환 대상이 아니므로 대환 실행을 거절한다.\n- 기존 대출과 신규 대출 상태를 활성화하거나 실행하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_044": {
+              "customer_id": "cust_044",
+              "name": "비아파트",
+              "date_of_birth": "1978-09-30",
+              "age": 47,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "mortgage_old_044": {
+              "loan_id": "mortgage_old_044",
+              "customer_id": "cust_044",
+              "product_name": "타행 주택담보대출",
+              "status": "ACTIVE",
+              "principal_krw": 210000000,
+              "outstanding_krw": 205500000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2049-02-28",
+              "late_days": 0,
+              "restriction_flags": [],
+              "purpose": "MORTGAGE_REFINANCE",
+              "collateral_type": "NON_APARTMENT_MORTGAGE",
+              "home_type": "VILLA",
+              "institution": "OTHER_BANK",
+              "executed_at": "2025-05-15T10:00:00+09:00",
+              "withdrawal_right_available": false,
+              "same_day_certificate_issued": false
+            }
+          }
+        },
+        "mortgage_collateral": {
+          "data": {
+            "collateral_mortgage_044": {
+              "collateral_id": "collateral_mortgage_044",
+              "customer_id": "cust_044",
+              "old_loan_id": "mortgage_old_044",
+              "home_type": "VILLA",
+              "address": "경기도 부천시 원미구 상동 456",
+              "owner_customer_id": "cust_044",
+              "status": "EXISTING_LIEN_ACTIVE",
+              "existing_lien_release_requested": false
+            }
+          }
+        },
+        "refinance_requests": {
+          "data": {
+            "mortgage_refi_044": {
+              "refinance_id": "mortgage_refi_044",
+              "customer_id": "cust_044",
+              "new_loan_id": null,
+              "old_loan_id": "mortgage_old_044",
+              "status": "PENDING_ELIGIBILITY_REVIEW",
+              "service_type": "MORTGAGE_REFINANCE",
+              "requested_at": "2026-04-20T12:10:00+09:00",
+              "old_loan_repayment_status": "NOT_REQUESTED",
+              "lien_release_status": "NOT_REQUESTED",
+              "risk_notice_agreed": true,
+              "identity_verified": true,
+              "home_type": "VILLA",
+              "unrepayable_flags": [
+                "NON_APARTMENT_MORTGAGE"
+              ],
+              "cancellation_reason": null
+            }
+          }
+        },
+        "required_documents": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mortgage_refinance_non_apartment_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "주택담보대출 대환대출서비스 아파트 한정 비아파트 상환 불가"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_refinance_non_apartment_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_044"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_refinance_non_apartment_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mortgage_old_044",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_refinance_non_apartment_refusal_03",
+        "requestor": "assistant",
+        "name": "process_refinance_request",
+        "arguments": {
+          "refinance_id": "mortgage_refi_044",
+          "operation": "REJECT_UNREPAYABLE_OLD_LOAN",
+          "old_loan_repayment_status": "BLOCKED_NON_APARTMENT_COLLATERAL",
+          "requested_at": "2026-04-20T12:20:00+09:00",
+          "options": {
+            "reason": "NON_APARTMENT_MORTGAGE_REFINANCE_SERVICE_BLOCKED",
+            "home_type": "VILLA"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_refinance_outcome",
+        "arguments": {
+          "refinance_id": "mortgage_refi_044",
+          "expected_status": "REJECTED",
+          "expected_new_loan_status": "NOT_CREATED",
+          "expected_reason": "NON_APARTMENT_MORTGAGE_REFINANCE_SERVICE_BLOCKED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "loans",
+          "record_id": "mortgage_old_044",
+          "field_names": [
+            "status",
+            "outstanding_krw",
+            "late_days",
+            "restriction_flags"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "mortgage_collateral",
+          "record_id": "collateral_mortgage_044",
+          "field_names": [
+            "status",
+            "existing_lien_release_requested"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "주택담보대출 대환서비스는 본인명의 주택담보대출을 조회해 기존대출 상환과 신규대출 실행을 처리하는 서비스라고 안내한다.",
+      "다만 서비스 대상 주택담보대출은 주택종류가 아파트인 경우로 한정된다고 설명한다.",
+      "담보가 빌라라면 연체가 없고 본인확인이 되어도 대출이동시스템을 통한 기존대출 상환 대상이 아니므로 대환 실행을 거절한다.",
+      "기존 대출과 신규 대출 상태를 활성화하거나 실행하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_주택담보대출_007"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,240 @@
+{
+  "id": "kb_manual_dollarbox_gift_auto_cancel_refunds_sender",
+  "description": {
+    "purpose": "success task for 달러박스",
+    "relevant_policies": "doc_kakao_product_달러박스_003",
+    "notes": "source_task_id=kb_manual_dollarbox_gift_auto_cancel_refunds_sender; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_dollarbox_gift_auto_cancel_refunds_sender.md; notes=This task tests a deadline-sensitive Dollar Box gift mutation: the recipient box must not receive the gift, while the sender receives a refund after the 30-day non-receipt window."
+  },
+  "user_prompt": "제가 3월 20일에 친구한테 달러박스로 320달러 선물했는데 아직도 친구가 받기를 안 했어요. 오늘 기준으로 30일이 지났으니 자동 취소해서 제 달러박스로 돌려주세요.",
+  "user_scenario": {
+    "persona": "달러박스에서 친구에게 달러 선물을 보냈지만 상대가 받지 않아 환급을 확인하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제가 3월 20일에 친구한테 달러박스로 320달러 선물했는데 아직도 친구가 받기를 안 했어요. 오늘 기준으로 30일이 지났으니 자동 취소해서 제 달러박스로 돌려주세요.\n\nExpected assistant response points:\n- 수취인이 30일 이내 선물받기를 완료하지 않으면 자동 선물취소되어 송금인에게 환급된다고 안내한다.\n- 해당 선물이 수취 전 대기 상태이고 30일을 넘겼는지 확인한다.\n- 선물 remittance case를 취소/환급 상태로 바꾸고 송금인의 달러박스로 320달러를 환급한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_016": {
+              "customer_id": "cust_016",
+              "name": "한달러",
+              "date_of_birth": "1990-02-14",
+              "age": 36,
+              "residency": "KR",
+              "citizenship": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "cust_017": {
+              "customer_id": "cust_017",
+              "name": "친수취",
+              "date_of_birth": "1992-08-09",
+              "age": 33,
+              "residency": "KR",
+              "citizenship": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_016": {
+              "account_id": "acct_base_016",
+              "customer_id": "cust_016",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 1800000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "box_dollar_016"
+              ],
+              "restriction_flags": []
+            },
+            "acct_base_017": {
+              "account_id": "acct_base_017",
+              "customer_id": "cust_017",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 920000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "box_dollar_017"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_dollar_016": {
+              "box_id": "box_dollar_016",
+              "customer_id": "cust_016",
+              "product_name": "달러박스",
+              "base_account_id": "acct_base_016",
+              "status": "ACTIVE",
+              "balance": 680,
+              "currency": "USD",
+              "limit_amount": 10000,
+              "pending_outbound_gift_ids": [
+                "remit_gift_016"
+              ],
+              "pending_refund_ids": [],
+              "travelwallet_link_status": "NONE",
+              "restriction_flags": []
+            },
+            "box_dollar_017": {
+              "box_id": "box_dollar_017",
+              "customer_id": "cust_017",
+              "product_name": "달러박스",
+              "base_account_id": "acct_base_017",
+              "status": "ACTIVE",
+              "balance": 150,
+              "currency": "USD",
+              "limit_amount": 10000,
+              "pending_inbound_gift_ids": [
+                "remit_gift_016"
+              ],
+              "travelwallet_link_status": "NONE",
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {
+            "remit_gift_016": {
+              "remittance_id": "remit_gift_016",
+              "customer_id": "cust_016",
+              "recipient_customer_id": "cust_017",
+              "direction": "DOLLARBOX_GIFT_SEND",
+              "status": "PENDING_RECEIPT",
+              "amount": 320,
+              "currency": "USD",
+              "country": "KR",
+              "requested_at": "2026-03-20T10:00:00+09:00",
+              "receive_deadline_at": "2026-04-19T10:00:00+09:00",
+              "sender_box_id": "box_dollar_016",
+              "recipient_box_id": "box_dollar_017",
+              "recipient_real_name_confirmed": true,
+              "recipient_completed_at": null,
+              "refund_transaction_id": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_dollarbox_gift_auto_cancel_refunds_sender_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "달러박스 선물 30일 이내 선물받기 미완료 자동 선물취소 송금인 환급"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_gift_auto_cancel_refunds_sender_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_016"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_gift_auto_cancel_refunds_sender_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_dollar_016",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_gift_auto_cancel_refunds_sender_03",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_016",
+          "direction": "DOLLARBOX_GIFT_AUTO_CANCEL",
+          "amount": 320,
+          "currency": "USD",
+          "country": "KR",
+          "purpose_code": "GIFT_AUTO_CANCEL_AFTER_30_DAYS",
+          "options": {
+            "remittance_id": "remit_gift_016",
+            "sender_box_id": "box_dollar_016",
+            "recipient_box_id": "box_dollar_017",
+            "cancel_reason": "RECIPIENT_NOT_RECEIVED_WITHIN_30_DAYS",
+            "refund_transaction_id": "txn_dollar_gift_refund_016"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "remittance_cases",
+          "record_id": "remit_gift_016",
+          "expected_status": "CANCELLED_REFUNDED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "remit_gift_016",
+          "target_id": "box_dollar_016",
+          "amount": 320,
+          "currency": "USD"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_dollar_017",
+          "field_names": [
+            "balance",
+            "status"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "수취인이 30일 이내 선물받기를 완료하지 않으면 자동 선물취소되어 송금인에게 환급된다고 안내한다.",
+      "해당 선물이 수취 전 대기 상태이고 30일을 넘겼는지 확인한다.",
+      "선물 remittance case를 취소/환급 상태로 바꾸고 송금인의 달러박스로 320달러를 환급한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_달러박스_003"
+  ],
+  "user_tools": []
+}

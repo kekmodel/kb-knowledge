@@ -1,0 +1,203 @@
+{
+  "id": "kb_manual_group_account_five_year_reconsent_lapse_restricts_service",
+  "description": {
+    "purpose": "refusal task for 모임통장",
+    "relevant_policies": "doc_kakao_product_모임통장_006",
+    "notes": "source_task_id=kb_manual_group_account_five_year_reconsent_lapse_restricts_service; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_group_account_five_year_reconsent_lapse_restricts_service.md; notes=This task distinguishes the one-year notice rule from the five-year re-consent rule; after five years without re-consent, both owner and member access are restricted."
+  },
+  "user_prompt": "모임통장 금융거래정보 제공 동의가 5년 넘은 건 알아요. 아직 다시 동의는 안 했지만 멤버들이 장부와 계좌 정보를 계속 볼 수 있게 유지해 주세요.",
+  "user_scenario": {
+    "persona": "오래된 모임통장을 계속 쓰려는 모임주",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n모임통장 금융거래정보 제공 동의가 5년 넘은 건 알아요. 아직 다시 동의는 안 했지만 멤버들이 장부와 계좌 정보를 계속 볼 수 있게 유지해 주세요.\n\nExpected assistant response points:\n- 금융거래정보 제공 사실 동의의 최대 유효기간은 5년이라고 안내한다.\n- 5년 이후에는 금융거래정보 제공에 다시 동의해야 한다고 설명한다.\n- 재동의가 없으면 모임주와 모임멤버 모두 서비스 이용이 제한되므로 멤버 조회 access를 허용하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_134": {
+              "customer_id": "cust_134",
+              "name": "오모임",
+              "date_of_birth": "1985-12-09",
+              "age": 40,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "cust_135": {
+              "customer_id": "cust_135",
+              "name": "장멤버",
+              "date_of_birth": "1990-08-16",
+              "age": 35,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_group_134": {
+              "account_id": "acct_group_134",
+              "customer_id": "cust_134",
+              "product_name": "모임통장",
+              "status": "ACTIVE",
+              "balance_krw": 1200000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "svc_group_134"
+              ],
+              "restriction_flags": [
+                "LIMIT_LOAN_BLOCKED_BY_GROUP_ACCOUNT"
+              ],
+              "member_count": 1
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_group_134": {
+              "service_id": "svc_group_134",
+              "customer_id": "cust_134",
+              "service_name": "모임통장서비스",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_group_134",
+              "started_at": "2020-03-01",
+              "ended_at": null,
+              "restriction_flags": [],
+              "financial_info_consent_status": "EXPIRED",
+              "financial_info_consent_due_at": "2025-03-01T09:00:00+09:00"
+            }
+          }
+        },
+        "group_memberships": {
+          "data": {
+            "gm_owner_134": {
+              "membership_id": "gm_owner_134",
+              "service_id": "svc_group_134",
+              "account_id": "acct_group_134",
+              "customer_id": "cust_134",
+              "role": "OWNER",
+              "status": "ACTIVE",
+              "last_financial_info_consent_at": "2020-03-01T09:00:00+09:00"
+            },
+            "gm_member_135": {
+              "membership_id": "gm_member_135",
+              "service_id": "svc_group_134",
+              "account_id": "acct_group_134",
+              "customer_id": "cust_135",
+              "role": "MEMBER",
+              "status": "ACTIVE",
+              "last_financial_info_consent_at": null
+            }
+          }
+        },
+        "pockets": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_group_account_five_year_reconsent_lapse_restricts_service_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "모임통장 금융거래정보 제공 동의 5년 재동의 없으면 모임주 멤버 모두 서비스 이용 제한"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_five_year_reconsent_lapse_restricts_service_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_134"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_five_year_reconsent_lapse_restricts_service_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_group_134",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_five_year_reconsent_lapse_restricts_service_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_134",
+          "product_name": "모임통장",
+          "source_account_id": "acct_group_134",
+          "options": {
+            "operation": "RESTRICT_GROUP_ACCOUNT_SERVICE",
+            "service_id": "svc_group_134",
+            "reason": "FINANCIAL_INFO_RECONSENT_OVERDUE",
+            "member_access_granted": false,
+            "owner_access_granted": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_group_134",
+          "expected_status": "RESTRICTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_group_134",
+          "feature": "MEMBER_ACCOUNT_INFO_VIEW",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_group_134",
+          "feature": "OWNER_GROUP_LEDGER",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "금융거래정보 제공 사실 동의의 최대 유효기간은 5년이라고 안내한다.",
+      "5년 이후에는 금융거래정보 제공에 다시 동의해야 한다고 설명한다.",
+      "재동의가 없으면 모임주와 모임멤버 모두 서비스 이용이 제한되므로 멤버 조회 access를 허용하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_모임통장_006"
+  ],
+  "user_tools": []
+}

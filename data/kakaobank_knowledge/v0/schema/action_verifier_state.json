@@ -1,0 +1,1936 @@
+{
+  "schema_version": "kakaobank_action_verifier_state.v0",
+  "source_fact_db_schema": "kakaobank_fact_db.v0",
+  "design_status": "schema_design_only",
+  "goal": "Map reviewed KakaoBank facts into tau3-style mutable state, tool actions, and verifier assertions.",
+  "tau3_crosscheck": [
+    {
+      "topic": "task_model",
+      "source": "/Users/jd/Documents/workspace/tau3-bench/src/tau2/data_model/tasks.py:329",
+      "finding": "EvaluationCriteria stores expected actions, env_assertions, communicate_info, nl_assertions, and reward_basis.",
+      "kakaobank_decision": "Every synthetic task must compile into expected tool actions and/or env assertions, not only natural-language answers."
+    },
+    {
+      "topic": "initial_state",
+      "source": "/Users/jd/Documents/workspace/tau3-bench/src/tau2/data_model/tasks.py:426",
+      "finding": "InitializationData and InitialState seed agent/user DB state and optional setup actions.",
+      "kakaobank_decision": "Customer, account, loan, consent, document, remittance, and card fixtures live in initial_state-style tables."
+    },
+    {
+      "topic": "db_hash_evaluation",
+      "source": "/Users/jd/Documents/workspace/tau3-bench/src/tau2/evaluator/evaluator_env.py:81",
+      "finding": "The evaluator replays the full trajectory into a predicted environment, replays gold actions into a gold environment, then compares DB hashes.",
+      "kakaobank_decision": "Write tools must be deterministic and update canonical tables; verifier state cannot depend on free-form transcript text."
+    },
+    {
+      "topic": "action_evaluation",
+      "source": "/Users/jd/Documents/workspace/tau3-bench/src/tau2/evaluator/evaluator_action.py:16",
+      "finding": "ActionEvaluator checks whether expected tool calls appear with matching arguments.",
+      "kakaobank_decision": "High-risk banking procedures should require exact tool actions in addition to final DB state where useful."
+    },
+    {
+      "topic": "mutating_tools",
+      "source": "/Users/jd/Documents/workspace/tau3-bench/src/tau2/environment/toolkit.py:64",
+      "finding": "Tools are typed as read/write/think/generic and mutates_state controls replay.",
+      "kakaobank_decision": "Read/query tools never mutate state; write tools are the only actions that affect DB hash."
+    },
+    {
+      "topic": "knowledge_transactional_split",
+      "source": "/Users/jd/Documents/workspace/tau3-bench/src/tau2/domains/banking_knowledge/data_model.py:18",
+      "finding": "KnowledgeBase documents are separate from TransactionalDB mutable state.",
+      "kakaobank_decision": "The 207 KakaoBank tau3 documents remain retrieval KB; this schema defines the separate transactional/verifier DB."
+    },
+    {
+      "topic": "banking_knowledge_tasks",
+      "source": "/Users/jd/Documents/workspace/tau3-bench/data/tau2/domains/banking_knowledge/tasks.json:1",
+      "finding": "All 97 original banking_knowledge tasks declare required_documents and many use user-side tools.",
+      "kakaobank_decision": "KakaoBank tasks should keep required_documents and can use user tools for customer-side applications or confirmations."
+    }
+  ],
+  "evaluation_basis_allowed": [
+    "DB",
+    "ACTION",
+    "ENV_ASSERTION",
+    "COMMUNICATE",
+    "NL_ASSERTION"
+  ],
+  "state_model_principles": [
+    "Use one canonical mutable table for each business object; keep product rules in the KB/fact DB.",
+    "Represent user-side behavior explicitly when original tau3 would model it as requestor=user actions.",
+    "Keep money, dates, limits, and status flags as structured values so DB hash comparison is meaningful.",
+    "Do not store derived policy decisions unless a tool action creates a durable decision record.",
+    "Prefer env_assertions for predicate checks that should not require full DB equality."
+  ],
+  "state_tables": [
+    {
+      "name": "customers",
+      "key": "customer_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Customer identity, age, residency, customer class, and risk flags.",
+      "required_fields": [
+        "customer_id",
+        "name",
+        "date_of_birth",
+        "age",
+        "residency",
+        "employment_type",
+        "risk_flags"
+      ],
+      "verifier_use": [
+        "eligibility by age",
+        "minor and guardian consent checks",
+        "business-owner and employee loan/customer eligibility"
+      ]
+    },
+    {
+      "name": "businesses",
+      "key": "business_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Business-registration state for personal business products.",
+      "required_fields": [
+        "business_id",
+        "customer_id",
+        "registration_status",
+        "is_primary_representative",
+        "business_type",
+        "business_purpose"
+      ],
+      "verifier_use": [
+        "personal-business-account eligibility",
+        "business credit/refinance eligibility",
+        "business credit-info service eligibility"
+      ]
+    },
+    {
+      "name": "consents",
+      "key": "consent_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Terms, guardian, privacy, and delegated-representative consent records.",
+      "required_fields": [
+        "consent_id",
+        "customer_id",
+        "consent_type",
+        "status",
+        "effective_at",
+        "expires_at"
+      ],
+      "verifier_use": [
+        "minor consent validity",
+        "credit-info affiliate-terms consent",
+        "child-service representative authority"
+      ]
+    },
+    {
+      "name": "accounts",
+      "key": "account_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Demand-deposit, business-account, base-account, and linked-account status.",
+      "required_fields": [
+        "account_id",
+        "customer_id",
+        "product_name",
+        "status",
+        "balance_krw",
+        "is_limit_account",
+        "linked_service_ids",
+        "restriction_flags"
+      ],
+      "verifier_use": [
+        "account closure preconditions",
+        "limit-account transfer limits",
+        "base-account and linked-product restrictions"
+      ]
+    },
+    {
+      "name": "deposit_contracts",
+      "key": "deposit_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Installment savings, fixed deposit, child savings, and one-month savings contracts.",
+      "required_fields": [
+        "deposit_id",
+        "account_id",
+        "product_name",
+        "status",
+        "opened_at",
+        "matures_at",
+        "principal_krw",
+        "close_type",
+        "legal_restriction_flags"
+      ],
+      "verifier_use": [
+        "maturity-close versus early-close",
+        "partial/emergency withdrawal eligibility",
+        "auto-extension and auto-close exceptions"
+      ]
+    },
+    {
+      "name": "savings_boxes",
+      "key": "box_id",
+      "owner": "shared_transactional_db",
+      "purpose": "SafeBox, Piggy Bank, VAT Box, Dollar Box, and record-book section-like balances.",
+      "required_fields": [
+        "box_id",
+        "customer_id",
+        "product_name",
+        "base_account_id",
+        "status",
+        "balance",
+        "currency",
+        "limit_amount"
+      ],
+      "verifier_use": [
+        "linked-account-only deposits",
+        "box close or partial withdrawal restrictions",
+        "limit increase irreversible cases",
+        "currency-specific withdrawal and gift state"
+      ]
+    },
+    {
+      "name": "auto_transfer_rules",
+      "key": "auto_transfer_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Scheduled deposit, recurring savings, auto collect, and auto transfer setup.",
+      "required_fields": [
+        "auto_transfer_id",
+        "source_account_id",
+        "target_id",
+        "status",
+        "schedule",
+        "amount_krw",
+        "success_count",
+        "failed_count"
+      ],
+      "verifier_use": [
+        "preferential-rate eligibility",
+        "failed auto debit cases",
+        "deadline and cancellation rules"
+      ]
+    },
+    {
+      "name": "group_memberships",
+      "key": "membership_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Meeting-account owner/member state and information-sharing consent.",
+      "required_fields": [
+        "membership_id",
+        "service_id",
+        "account_id",
+        "customer_id",
+        "role",
+        "status",
+        "last_financial_info_consent_at"
+      ],
+      "verifier_use": [
+        "meeting-owner closure with remaining members",
+        "member visibility after consent expiry",
+        "owner versus member authority"
+      ]
+    },
+    {
+      "name": "pockets",
+      "key": "pocket_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Meeting-account pockets and record-book sections.",
+      "required_fields": [
+        "pocket_id",
+        "parent_id",
+        "pocket_type",
+        "status",
+        "balance_krw",
+        "created_at"
+      ],
+      "verifier_use": [
+        "basic-pocket insufficient balance fallback",
+        "section close balance movement",
+        "latest-section-first legal processing"
+      ]
+    },
+    {
+      "name": "child_relationships",
+      "key": "relationship_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Child account/savings representative authority.",
+      "required_fields": [
+        "relationship_id",
+        "child_customer_id",
+        "representative_customer_id",
+        "representative_role",
+        "status",
+        "child_age"
+      ],
+      "verifier_use": [
+        "primary versus assistant representative permissions",
+        "child reaches age 19 service transition",
+        "child account transfer authority"
+      ]
+    },
+    {
+      "name": "cards",
+      "key": "card_id",
+      "owner": "shared_transactional_db",
+      "purpose": "mini card and debit/card-like payment instrument state.",
+      "required_fields": [
+        "card_id",
+        "customer_id",
+        "linked_account_or_wallet_id",
+        "product_name",
+        "status",
+        "issued_at",
+        "expires_at",
+        "daily_limit_krw",
+        "monthly_limit_krw"
+      ],
+      "verifier_use": [
+        "minor card issuance/reissue",
+        "payment approval restrictions",
+        "lost-card compensation window"
+      ]
+    },
+    {
+      "name": "card_orders",
+      "key": "card_order_id",
+      "owner": "shared_transactional_db",
+      "purpose": "New issue and reissue requests.",
+      "required_fields": [
+        "card_order_id",
+        "card_id",
+        "customer_id",
+        "request_type",
+        "status",
+        "reason"
+      ],
+      "verifier_use": [
+        "new-issue blocked but reissue allowed",
+        "lost/damaged reissue path"
+      ]
+    },
+    {
+      "name": "prepaid_wallets",
+      "key": "wallet_id",
+      "owner": "shared_transactional_db",
+      "purpose": "KakaoBank mini prepaid balance and youth limits.",
+      "required_fields": [
+        "wallet_id",
+        "customer_id",
+        "status",
+        "balance_krw",
+        "daily_spend_used_krw",
+        "monthly_spend_used_krw",
+        "age_band"
+      ],
+      "verifier_use": [
+        "mini is not a deposit account",
+        "age-band limits",
+        "guardian consent and refund restrictions"
+      ]
+    },
+    {
+      "name": "loans",
+      "key": "loan_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Credit, business, lease, mortgage, and used-car loan contracts.",
+      "required_fields": [
+        "loan_id",
+        "customer_id",
+        "product_name",
+        "status",
+        "principal_krw",
+        "outstanding_krw",
+        "repayment_mode",
+        "maturity_date",
+        "late_days",
+        "restriction_flags"
+      ],
+      "verifier_use": [
+        "extension approval or rejection",
+        "acceleration and immediate repayment",
+        "withdrawal/cooling-off consequences",
+        "purpose-use violations"
+      ]
+    },
+    {
+      "name": "loan_applications",
+      "key": "application_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Pre-contract applications, comparison results, screening decisions, and customer-selected terms.",
+      "required_fields": [
+        "application_id",
+        "customer_id",
+        "product_name",
+        "status",
+        "requested_amount_krw",
+        "approved_amount_krw",
+        "screening_result",
+        "selected_terms"
+      ],
+      "verifier_use": [
+        "comparison is not final contract",
+        "screening failure/refusal",
+        "selected preferential-rate conditions only"
+      ]
+    },
+    {
+      "name": "refinance_requests",
+      "key": "refinance_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Loan switching/refinance lifecycle for credit, business, and mortgage loans.",
+      "required_fields": [
+        "refinance_id",
+        "customer_id",
+        "new_loan_id",
+        "old_loan_id",
+        "status",
+        "requested_at",
+        "old_loan_repayment_status",
+        "cancellation_reason"
+      ],
+      "verifier_use": [
+        "same-day duplicate request exceptions",
+        "old-loan repayment failure cancels new loan",
+        "normal old-loan repayment cannot be undone"
+      ]
+    },
+    {
+      "name": "required_documents",
+      "key": "document_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Documents required before/after execution for loans, deposit restrictions, or identity verification.",
+      "required_fields": [
+        "document_id",
+        "customer_id",
+        "target_type",
+        "target_id",
+        "document_type",
+        "status",
+        "due_date",
+        "submitted_at"
+      ],
+      "verifier_use": [
+        "pre-execution document blocking",
+        "post-execution deadline violations",
+        "document update or contract-modification restrictions"
+      ]
+    },
+    {
+      "name": "mortgage_collateral",
+      "key": "collateral_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Mortgage home, lien, move-in, and ownership-obligation state.",
+      "required_fields": [
+        "collateral_id",
+        "loan_id",
+        "property_type",
+        "registration_status",
+        "move_in_due_date",
+        "move_in_verified",
+        "ownership_status"
+      ],
+      "verifier_use": [
+        "move-in pledge violation",
+        "lien cancellation sequence",
+        "collateral enforcement risk"
+      ]
+    },
+    {
+      "name": "lease_contracts",
+      "key": "lease_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Lease deposit loan contract and landlord-payment state.",
+      "required_fields": [
+        "lease_id",
+        "loan_id",
+        "landlord_account_status",
+        "move_in_due_date",
+        "resident_registration_status",
+        "deposit_return_claim_status"
+      ],
+      "verifier_use": [
+        "landlord account block prevents execution",
+        "move-in and registration deadlines",
+        "lease cancellation and return-claim assignment"
+      ]
+    },
+    {
+      "name": "vehicle_purchase_cases",
+      "key": "vehicle_case_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Used-car purchase loan vehicle and title-transfer state.",
+      "required_fields": [
+        "vehicle_case_id",
+        "loan_id",
+        "dealer_id",
+        "payment_status",
+        "title_transfer_due_date",
+        "title_transfer_status",
+        "sale_contract_status"
+      ],
+      "verifier_use": [
+        "loan purpose restriction",
+        "15-day title-transfer rule",
+        "sale cancellation triggers immediate repayment"
+      ]
+    },
+    {
+      "name": "comparison_sessions",
+      "key": "comparison_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Loan comparison service quotes and selected partner-product handoff.",
+      "required_fields": [
+        "comparison_id",
+        "customer_id",
+        "service_type",
+        "status",
+        "partner_id",
+        "quoted_rate",
+        "quoted_limit_krw",
+        "final_contract_id"
+      ],
+      "verifier_use": [
+        "quote is non-final",
+        "KakaoBank has no contract authority for partner products",
+        "partner limited market coverage"
+      ]
+    },
+    {
+      "name": "remittance_profiles",
+      "key": "remittance_profile_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Outbound/inbound remittance eligibility, annual limits, and auto-receive settings.",
+      "required_fields": [
+        "remittance_profile_id",
+        "customer_id",
+        "base_account_id",
+        "annual_usd_sent",
+        "auto_receive_enabled",
+        "verified_purpose_codes"
+      ],
+      "verifier_use": [
+        "outbound age and account eligibility",
+        "annual no-document remittance limits",
+        "auto-receive exception cases"
+      ]
+    },
+    {
+      "name": "remittance_cases",
+      "key": "remittance_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Outbound, inbound, return, correction, cancellation, and gift remittance cases.",
+      "required_fields": [
+        "remittance_id",
+        "customer_id",
+        "direction",
+        "status",
+        "amount",
+        "currency",
+        "country",
+        "requested_at",
+        "correction_due_date"
+      ],
+      "verifier_use": [
+        "2-business-day correction auto-cancel",
+        "fee refund or non-refund",
+        "4th-business-day inbound batch deposit",
+        "30-day gift auto-cancel"
+      ]
+    },
+    {
+      "name": "service_enrollments",
+      "key": "service_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Credit-info, business-credit-info, document box, child service, meeting account, VAT box, and linked services.",
+      "required_fields": [
+        "service_id",
+        "customer_id",
+        "service_name",
+        "status",
+        "linked_account_id",
+        "started_at",
+        "ended_at",
+        "restriction_flags"
+      ],
+      "verifier_use": [
+        "service suspension/termination notice",
+        "linked-service closure preconditions",
+        "affiliate responsibility boundaries"
+      ]
+    },
+    {
+      "name": "transactions",
+      "key": "transaction_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Account, card, mini, savings-box, remittance, fee, and auto-collect transactions.",
+      "required_fields": [
+        "transaction_id",
+        "customer_id",
+        "source_id",
+        "target_id",
+        "amount",
+        "currency",
+        "transaction_type",
+        "status",
+        "posted_at"
+      ],
+      "verifier_use": [
+        "balance changes",
+        "collect/include/exclude transaction rules",
+        "fee assessment",
+        "lost-card compensation windows"
+      ]
+    },
+    {
+      "name": "disputes",
+      "key": "dispute_id",
+      "owner": "shared_transactional_db",
+      "purpose": "Card, transaction, service, and customer-objection dispute records.",
+      "required_fields": [
+        "dispute_id",
+        "customer_id",
+        "target_type",
+        "target_id",
+        "reason",
+        "status",
+        "filed_at",
+        "resolution"
+      ],
+      "verifier_use": [
+        "lost-card fault exceptions",
+        "abnormal-transaction objection",
+        "affiliate-service responsibility disputes"
+      ]
+    }
+  ],
+  "action_families": [
+    {
+      "name": "KB_search",
+      "requestor": "assistant",
+      "tool_type": "read",
+      "mutates_state": false,
+      "state_tables": [],
+      "arguments": [
+        "query"
+      ],
+      "postconditions": [],
+      "verifier_basis": [
+        "ACTION optional"
+      ],
+      "notes": "Same conceptual role as original banking_knowledge retrieval; it should not affect DB hash."
+    },
+    {
+      "name": "grep",
+      "requestor": "assistant",
+      "tool_type": "read",
+      "mutates_state": false,
+      "state_tables": [],
+      "arguments": [
+        "pattern"
+      ],
+      "postconditions": [],
+      "verifier_basis": [
+        "ACTION optional"
+      ],
+      "notes": "Same conceptual role as original banking_knowledge grep retrieval; it should not affect DB hash."
+    },
+    {
+      "name": "get_customer_profile",
+      "requestor": "assistant",
+      "tool_type": "read",
+      "mutates_state": false,
+      "state_tables": [
+        "customers",
+        "businesses",
+        "consents"
+      ],
+      "arguments": [
+        "customer_id"
+      ],
+      "postconditions": [],
+      "verifier_basis": [
+        "ACTION"
+      ],
+      "notes": "Read identity, age, business registration, and consent flags."
+    },
+    {
+      "name": "get_account_or_contract",
+      "requestor": "assistant",
+      "tool_type": "read",
+      "mutates_state": false,
+      "state_tables": [
+        "accounts",
+        "deposit_contracts",
+        "savings_boxes",
+        "loans",
+        "cards",
+        "prepaid_wallets"
+      ],
+      "arguments": [
+        "customer_id",
+        "target_id"
+      ],
+      "postconditions": [],
+      "verifier_basis": [
+        "ACTION"
+      ],
+      "notes": "Read current mutable state before advising or executing."
+    },
+    {
+      "name": "log_identity_verification",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "service_enrollments"
+      ],
+      "arguments": [
+        "customer_id",
+        "verification_method",
+        "result"
+      ],
+      "postconditions": [
+        "A durable verification event exists for the customer and task."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Mirrors original banking_knowledge log_verification-style state."
+    },
+    {
+      "name": "open_or_enroll_product",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "customers",
+        "businesses",
+        "consents",
+        "accounts",
+        "deposit_contracts",
+        "savings_boxes",
+        "auto_transfer_rules",
+        "group_memberships",
+        "pockets",
+        "service_enrollments",
+        "prepaid_wallets",
+        "cards"
+      ],
+      "arguments": [
+        "customer_id",
+        "product_name",
+        "source_account_id",
+        "options"
+      ],
+      "postconditions": [
+        "A new account, contract, service, wallet, or card record is created only when eligibility and preconditions pass."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "Used when the bank-side action creates or enrolls a product."
+    },
+    {
+      "name": "customer_apply_for_product",
+      "requestor": "user",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "loan_applications",
+        "cards",
+        "prepaid_wallets",
+        "service_enrollments"
+      ],
+      "arguments": [
+        "customer_id",
+        "product_name",
+        "application_payload"
+      ],
+      "postconditions": [
+        "A user-side application or request record exists with selected product and payload."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Direct analogue of original banking_knowledge user tools such as apply_for_credit_card."
+    },
+    {
+      "name": "close_account_or_service",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "accounts",
+        "deposit_contracts",
+        "savings_boxes",
+        "group_memberships",
+        "pockets",
+        "service_enrollments",
+        "prepaid_wallets"
+      ],
+      "arguments": [
+        "customer_id",
+        "target_id",
+        "close_type",
+        "reason"
+      ],
+      "postconditions": [
+        "Target status changes to closed only when linked-product, legal restriction, member, balance, or age rules allow it."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "Captures closure tasks for demand accounts, deposits, child/meeting services, mini, and boxes."
+    },
+    {
+      "name": "configure_auto_transfer",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "auto_transfer_rules",
+        "accounts",
+        "deposit_contracts",
+        "savings_boxes"
+      ],
+      "arguments": [
+        "source_account_id",
+        "target_id",
+        "schedule",
+        "amount_krw",
+        "operation",
+        "reason",
+        "existing_auto_transfer_id",
+        "expected_status",
+        "options"
+      ],
+      "postconditions": [
+        "Auto-transfer rule is created, changed, cancelled, or rejected with deadline-aware status."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Needed for 26-week savings, child savings, free savings, and common auto-transfer rules."
+    },
+    {
+      "name": "execute_deposit_or_box_transfer",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "accounts",
+        "deposit_contracts",
+        "savings_boxes",
+        "pockets",
+        "prepaid_wallets",
+        "transactions"
+      ],
+      "arguments": [
+        "source_id",
+        "target_id",
+        "amount",
+        "currency",
+        "transaction_type"
+      ],
+      "postconditions": [
+        "Balances and transaction records reflect allowed deposit, withdrawal, section close, or box transfer."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "Handles one-month deposits, emergency withdrawals, SafeBox/Piggy/VAT/RecordBook movement."
+    },
+    {
+      "name": "request_interest_payment",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "accounts",
+        "deposit_contracts",
+        "savings_boxes",
+        "transactions"
+      ],
+      "arguments": [
+        "target_id",
+        "requested_at",
+        "options"
+      ],
+      "postconditions": [
+        "Accrued interest is paid to principal or the configured destination only when product-specific interest-payment rules allow it."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "Captures products such as SafeBox where a customer-requested interest payment date is distinct from monthly scheduled payment."
+    },
+    {
+      "name": "request_maturity_or_extension",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "accounts",
+        "auto_transfer_rules",
+        "deposit_contracts",
+        "loans"
+      ],
+      "arguments": [
+        "target_id",
+        "operation",
+        "requested_at",
+        "options"
+      ],
+      "postconditions": [
+        "Maturity close, auto-close, deposit extension, or loan extension is applied or rejected with a reason."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "Separates deposit renewal/auto-close from loan maturity extension."
+    },
+    {
+      "name": "submit_required_document",
+      "requestor": "user",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "required_documents"
+      ],
+      "arguments": [
+        "customer_id",
+        "target_id",
+        "document_type",
+        "submitted_at"
+      ],
+      "postconditions": [
+        "Required document status is updated to submitted, accepted, rejected, late, or locked."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Useful for lease/mortgage/car-loan pre- and post-execution deadlines."
+    },
+    {
+      "name": "create_loan_application",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "loan_applications",
+        "comparison_sessions",
+        "businesses",
+        "mortgage_collateral"
+      ],
+      "arguments": [
+        "application_id",
+        "comparison_id",
+        "customer_id",
+        "product_name",
+        "requested_amount_krw",
+        "purpose",
+        "partner_id",
+        "expected_status",
+        "expected_reason"
+      ],
+      "postconditions": [
+        "Loan application or comparison handoff record exists; quote remains non-final until contracted."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Covers direct loan and comparison-service paths."
+    },
+    {
+      "name": "update_loan_contract_state",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "loan_applications",
+        "loans",
+        "mortgage_collateral",
+        "lease_contracts",
+        "vehicle_purchase_cases",
+        "required_documents",
+        "transactions"
+      ],
+      "arguments": [
+        "loan_id",
+        "operation",
+        "reason",
+        "effective_at"
+      ],
+      "postconditions": [
+        "Loan status, acceleration, immediate-repayment, restriction, collateral, or deadline state is updated deterministically."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "High-risk loan tasks should usually include an env assertion for the exact violated or satisfied condition."
+    },
+    {
+      "name": "process_refinance_request",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "refinance_requests",
+        "loans",
+        "mortgage_collateral",
+        "required_documents"
+      ],
+      "arguments": [
+        "refinance_id",
+        "operation",
+        "old_loan_repayment_status",
+        "requested_at",
+        "options"
+      ],
+      "postconditions": [
+        "Refinance request status and related old/new loan states reflect repayment success, failure, cancellation, or same-day duplicate rules."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "Needed for credit, business, and mortgage switching scenarios."
+    },
+    {
+      "name": "execute_remittance_case",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "remittance_profiles",
+        "remittance_cases",
+        "accounts",
+        "savings_boxes",
+        "transactions"
+      ],
+      "arguments": [
+        "customer_id",
+        "direction",
+        "amount",
+        "currency",
+        "country",
+        "purpose_code",
+        "options"
+      ],
+      "postconditions": [
+        "Remittance case, annual usage, fees, correction status, and transactions are updated or rejected."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "Outbound and inbound remittance use distinct age/fee/deadline rules."
+    },
+    {
+      "name": "update_card_state",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "cards",
+        "card_orders",
+        "consents",
+        "prepaid_wallets",
+        "transactions"
+      ],
+      "arguments": [
+        "card_id",
+        "customer_id",
+        "wallet_id",
+        "operation",
+        "reason",
+        "requested_at",
+        "order_id",
+        "existing_card_id",
+        "new_card_created",
+        "expected_valid_until",
+        "amount",
+        "currency",
+        "amount_currency",
+        "amount_original",
+        "merchant_country",
+        "merchant_currency",
+        "merchant_category",
+        "merchant_category_basis",
+        "payment_approved",
+        "new_status",
+        "new_card_status",
+        "attempted_transaction_type",
+        "transaction_approved",
+        "new_card_id",
+        "old_t_money_balance_krw",
+        "new_card_t_money_balance_krw",
+        "t_money_balance_transferred",
+        "t_money_refund_processed",
+        "customer_age",
+        "guardian_consent_valid",
+        "issue_fee_krw"
+      ],
+      "postconditions": [
+        "Card status/order/payment state changes only if age, consent, existing-card, balance, limit, and report-window rules permit it."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION",
+        "ENV_ASSERTION"
+      ],
+      "notes": "Covers mini card issue/reissue/lost/payment-limit cases."
+    },
+    {
+      "name": "file_dispute_or_objection",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "disputes",
+        "transactions",
+        "cards",
+        "prepaid_wallets",
+        "service_enrollments"
+      ],
+      "arguments": [
+        "customer_id",
+        "target_type",
+        "target_id",
+        "reason",
+        "options"
+      ],
+      "postconditions": [
+        "Dispute record exists and, when policy requires, affected target state carries a pending investigation or customer-fault flag."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Useful for lost-card compensation, abnormal transaction restrictions, and affiliate-service disputes."
+    },
+    {
+      "name": "request_human_transfer",
+      "requestor": "assistant",
+      "tool_type": "write",
+      "mutates_state": true,
+      "state_tables": [
+        "service_enrollments"
+      ],
+      "arguments": [
+        "customer_id",
+        "reason"
+      ],
+      "postconditions": [
+        "A transfer request record is logged with a reason."
+      ],
+      "verifier_basis": [
+        "DB",
+        "ACTION"
+      ],
+      "notes": "Kept for cases where policy requires specialized handling or unavailable operation escalation."
+    }
+  ],
+  "verifier_assertions": [
+    {
+      "name": "assert_record_status",
+      "env_type": "assistant",
+      "table": "accounts",
+      "arguments": [
+        "table",
+        "record_id",
+        "expected_status"
+      ],
+      "checks": "Selected record status equals expected status."
+    },
+    {
+      "name": "assert_no_state_change",
+      "env_type": "assistant",
+      "table": "accounts",
+      "arguments": [
+        "table",
+        "record_id",
+        "field_names"
+      ],
+      "checks": "Selected fields remain equal to initial fixture values."
+    },
+    {
+      "name": "assert_balance_delta",
+      "env_type": "assistant",
+      "table": "transactions",
+      "arguments": [
+        "source_id",
+        "target_id",
+        "amount",
+        "currency"
+      ],
+      "checks": "Expected transaction exists and source/target balances changed accordingly."
+    },
+    {
+      "name": "assert_application_decision",
+      "env_type": "assistant",
+      "table": "loan_applications",
+      "arguments": [
+        "application_id",
+        "expected_status",
+        "expected_reason"
+      ],
+      "checks": "Application or comparison handoff decision matches expected status and reason."
+    },
+    {
+      "name": "assert_required_document_status",
+      "env_type": "assistant",
+      "table": "required_documents",
+      "arguments": [
+        "target_id",
+        "document_type",
+        "expected_status"
+      ],
+      "checks": "Required document is in expected status and respects due date."
+    },
+    {
+      "name": "assert_consent_validity",
+      "env_type": "assistant",
+      "table": "consents",
+      "arguments": [
+        "customer_id",
+        "consent_type",
+        "expected_valid"
+      ],
+      "checks": "Consent exists and is active at task time if expected_valid is true."
+    },
+    {
+      "name": "assert_auto_transfer_count",
+      "env_type": "assistant",
+      "table": "auto_transfer_rules",
+      "arguments": [
+        "auto_transfer_id",
+        "expected_success_count",
+        "expected_failed_count"
+      ],
+      "checks": "Auto-transfer counters match expected values."
+    },
+    {
+      "name": "assert_maturity_or_close_result",
+      "env_type": "assistant",
+      "table": "deposit_contracts",
+      "arguments": [
+        "deposit_id",
+        "expected_status",
+        "expected_close_type"
+      ],
+      "checks": "Deposit maturity, auto-close, extension, or early close result is correct."
+    },
+    {
+      "name": "assert_loan_acceleration",
+      "env_type": "assistant",
+      "table": "loans",
+      "arguments": [
+        "loan_id",
+        "expected_accelerated",
+        "expected_reason"
+      ],
+      "checks": "Loan acceleration/immediate repayment flag and reason match."
+    },
+    {
+      "name": "assert_refinance_outcome",
+      "env_type": "assistant",
+      "table": "refinance_requests",
+      "arguments": [
+        "refinance_id",
+        "expected_status",
+        "expected_new_loan_status"
+      ],
+      "checks": "Refinance state and connected new-loan state match the policy outcome."
+    },
+    {
+      "name": "assert_remittance_outcome",
+      "env_type": "assistant",
+      "table": "remittance_cases",
+      "arguments": [
+        "remittance_id",
+        "expected_status",
+        "expected_fee_refunded"
+      ],
+      "checks": "Remittance status and fee-refund behavior match expected outcome."
+    },
+    {
+      "name": "assert_card_order_outcome",
+      "env_type": "assistant",
+      "table": "card_orders",
+      "arguments": [
+        "card_order_id",
+        "expected_status",
+        "expected_reason"
+      ],
+      "checks": "Card issue/reissue order status and reason match expected outcome."
+    },
+    {
+      "name": "assert_service_access",
+      "env_type": "assistant",
+      "table": "service_enrollments",
+      "arguments": [
+        "service_id",
+        "feature",
+        "expected_allowed"
+      ],
+      "checks": "Service feature access is allowed or blocked as expected."
+    },
+    {
+      "name": "assert_dispute_logged",
+      "env_type": "assistant",
+      "table": "disputes",
+      "arguments": [
+        "customer_id",
+        "target_id",
+        "reason"
+      ],
+      "checks": "Dispute or objection was logged with the expected target and reason."
+    }
+  ],
+  "product_state_mapping": [
+    {
+      "product_name": "26주적금",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "deposit_contracts",
+        "auto_transfer_rules",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "configure_auto_transfer",
+        "execute_deposit_or_box_transfer",
+        "request_maturity_or_extension"
+      ],
+      "task_sources": [
+        "missed week fill does not count as auto-debit success",
+        "emergency withdrawal count and remaining-balance conditions",
+        "coupon can only be used at new opening and coupon rate requires maturity close",
+        "26-week service cancellation blocks re-registration and all automatic transfer registration"
+      ]
+    },
+    {
+      "product_name": "mini카드",
+      "state_tables": [
+        "customers",
+        "consents",
+        "cards",
+        "card_orders",
+        "prepaid_wallets",
+        "transactions",
+        "disputes"
+      ],
+      "primary_actions": [
+        "update_card_state",
+        "file_dispute_or_objection"
+      ],
+      "task_sources": [
+        "new issue blocked after age 19 but same-expiry reissue allowed",
+        "minor guardian consent refusal and valid-consent issue success",
+        "lost-card compensation fault exceptions",
+        "T-money balance is not transferred on card reissue and no-card refund can be restricted"
+      ]
+    },
+    {
+      "product_name": "개인사업자 신용대출",
+      "state_tables": [
+        "customers",
+        "businesses",
+        "loans",
+        "loan_applications",
+        "refinance_requests",
+        "required_documents"
+      ],
+      "primary_actions": [
+        "create_loan_application",
+        "process_refinance_request",
+        "update_loan_contract_state"
+      ],
+      "task_sources": [
+        "business refinance eligibility",
+        "old-loan repayment failure cancels new loan",
+        "business-purpose misuse restrictions"
+      ]
+    },
+    {
+      "product_name": "개인사업자통장",
+      "state_tables": [
+        "customers",
+        "businesses",
+        "accounts",
+        "service_enrollments",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "close_account_or_service"
+      ],
+      "task_sources": [
+        "primary representative requirement",
+        "limit-account channel limits",
+        "closure blocked by linked payment/services/loans"
+      ]
+    },
+    {
+      "product_name": "기록통장",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "savings_boxes",
+        "pockets",
+        "service_enrollments",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "execute_deposit_or_box_transfer",
+        "close_account_or_service"
+      ],
+      "task_sources": [
+        "base account cannot be changed",
+        "section-only deposits and base-account withdrawals",
+        "last section closure closes the record account"
+      ]
+    },
+    {
+      "product_name": "내 사업장 신용정보",
+      "state_tables": [
+        "customers",
+        "businesses",
+        "consents",
+        "service_enrollments",
+        "disputes"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "file_dispute_or_objection"
+      ],
+      "task_sources": [
+        "primary representative only",
+        "NICE/KakaoBank responsibility boundary",
+        "30-day service stop notice"
+      ]
+    },
+    {
+      "product_name": "내 신용정보",
+      "state_tables": [
+        "customers",
+        "consents",
+        "service_enrollments",
+        "disputes"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "file_dispute_or_objection"
+      ],
+      "task_sources": [
+        "affiliate terms non-consent limits service",
+        "free now but future fee possible",
+        "affiliate outage dispute boundary"
+      ]
+    },
+    {
+      "product_name": "달러박스",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "savings_boxes",
+        "service_enrollments",
+        "remittance_cases",
+        "transactions"
+      ],
+      "primary_actions": [
+        "execute_deposit_or_box_transfer",
+        "execute_remittance_case",
+        "close_account_or_service"
+      ],
+      "task_sources": [
+        "gift auto-cancel after 30 days",
+        "Travel Wallet linkage blocks mobile closure",
+        "ATM minimum and KRW-converted maximum withdrawal"
+      ]
+    },
+    {
+      "product_name": "모임통장",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "group_memberships",
+        "pockets",
+        "service_enrollments",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "execute_deposit_or_box_transfer",
+        "close_account_or_service"
+      ],
+      "task_sources": [
+        "owner cannot close with remaining members",
+        "5-year financial-information re-consent",
+        "extra pocket covers basic-pocket shortage"
+      ]
+    },
+    {
+      "product_name": "부가세박스",
+      "state_tables": [
+        "customers",
+        "businesses",
+        "accounts",
+        "savings_boxes",
+        "auto_transfer_rules",
+        "transactions",
+        "service_enrollments"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "configure_auto_transfer",
+        "execute_deposit_or_box_transfer",
+        "close_account_or_service"
+      ],
+      "task_sources": [
+        "10 percent collect include/exclude transaction types",
+        "31st day maps to last day of short month",
+        "insufficient balance means no partial transfer",
+        "linked business-account-only deposit and withdrawal",
+        "VAT report restriction for closed/changed/tax-exempt business",
+        "legal restriction blocks close and principal/interest payment",
+        "clean close transfers principal and settlement interest to base account"
+      ]
+    },
+    {
+      "product_name": "세이프박스",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "savings_boxes",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "execute_deposit_or_box_transfer",
+        "close_account_or_service",
+        "request_interest_payment"
+      ],
+      "task_sources": [
+        "eligible linked opening and one box per base account",
+        "limit increase cannot be reduced back",
+        "only linked base account can deposit",
+        "only linked base account can withdraw",
+        "interest can be requested outside monthly interest day",
+        "legal restriction blocks close and principal/interest payment",
+        "clean close transfers principal and settlement interest to base account"
+      ]
+    },
+    {
+      "product_name": "신용대출",
+      "state_tables": [
+        "customers",
+        "loans",
+        "loan_applications",
+        "refinance_requests",
+        "required_documents"
+      ],
+      "primary_actions": [
+        "create_loan_application",
+        "update_loan_contract_state",
+        "process_refinance_request"
+      ],
+      "task_sources": [
+        "withdrawal right within 14 days",
+        "rate-cut request may be rejected for excluded loans",
+        "high-value loan housing-use restrictions",
+        "joint loan single-bank partial repayment is blocked",
+        "execution may stop before disbursement when credit risk worsens"
+      ]
+    },
+    {
+      "product_name": "신용대출 비교하기",
+      "state_tables": [
+        "customers",
+        "comparison_sessions",
+        "service_enrollments",
+        "loan_applications",
+        "loans"
+      ],
+      "primary_actions": [
+        "create_loan_application",
+        "close_account_or_service"
+      ],
+      "task_sources": [
+        "comparison quote is not final",
+        "partner-limited market coverage",
+        "KakaoBank has no partner-loan contract authority",
+        "partner-loan contract data access belongs to affiliate",
+        "service consent withdrawal terminates comparison service"
+      ]
+    },
+    {
+      "product_name": "우리아이적금",
+      "state_tables": [
+        "customers",
+        "child_relationships",
+        "consents",
+        "accounts",
+        "deposit_contracts",
+        "auto_transfer_rules",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "configure_auto_transfer",
+        "execute_deposit_or_box_transfer",
+        "request_maturity_or_extension"
+      ],
+      "task_sources": [
+        "opening requires a KakaoBank child account as the base account",
+        "auto-transfer preferential rate conditions including exact half-month threshold",
+        "auto-extended principal is excluded from preferential-rate application",
+        "auto-extension blocked by child age 18 at maturity or tax-free savings enrollment",
+        "emergency withdrawal by main parent with remaining balance condition and assistant-representative withdrawal refusal"
+      ]
+    },
+    {
+      "product_name": "우리아이통장",
+      "state_tables": [
+        "customers",
+        "child_relationships",
+        "consents",
+        "accounts",
+        "service_enrollments",
+        "required_documents",
+        "deposit_contracts",
+        "auto_transfer_rules",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "close_account_or_service",
+        "execute_deposit_or_box_transfer",
+        "submit_required_document"
+      ],
+      "task_sources": [
+        "eligible child opening through verified legal representative parent",
+        "child account opens as a financial-limit account and limit release requires purpose document submission",
+        "main representative transfer limit priority and assistant representative withdrawal refusal",
+        "child account can only be a base account for child-service products and cannot link to meeting-account or loan services",
+        "account closure is blocked while payment links or child-service products remain active",
+        "age 19 changes service and closure authority"
+      ]
+    },
+    {
+      "product_name": "입출금통장",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "required_documents",
+        "service_enrollments",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "close_account_or_service",
+        "submit_required_document"
+      ],
+      "task_sources": [
+        "minor limit account daily/monthly limits",
+        "financial-purpose documents for limit release and normal-account conversion",
+        "clean closure after payment links, identity-based products, and loan links are cleared",
+        "closure blocked by linked real-name products or loan-linked account status",
+        "pledge or seizure withdrawal-restriction reports block closure and principal/interest payout"
+      ]
+    },
+    {
+      "product_name": "자유적금",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "deposit_contracts",
+        "auto_transfer_rules",
+        "transactions"
+      ],
+      "primary_actions": [
+        "configure_auto_transfer",
+        "execute_deposit_or_box_transfer",
+        "request_maturity_or_extension"
+      ],
+      "task_sources": [
+        "only own KakaoBank demand deposit can pay in",
+        "monthly contribution limit and post-2024 own-source payment restriction",
+        "auto-transfer months at least half of contract term for maturity preferential rate",
+        "emergency withdrawal count and 100,000 KRW remaining-balance boundary",
+        "auto-close blocked by legal payment restrictions on maturity day",
+        "tax-free savings cannot auto-extend",
+        "KakaoBank pledge exception allows auto-extension despite general pledge restriction"
+      ]
+    },
+    {
+      "product_name": "저금통",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "savings_boxes",
+        "auto_transfer_rules",
+        "service_enrollments",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "configure_auto_transfer",
+        "execute_deposit_or_box_transfer",
+        "close_account_or_service"
+      ],
+      "task_sources": [
+        "eligible customer can open zero-balance piggy bank through KakaoBank demand-deposit account",
+        "meeting-account base account blocks piggy bank opening",
+        "coin save does not run when current balance is too low",
+        "auto collect starts next week if applied Friday",
+        "brand-coupon cashback saving can exceed 100,000 KRW limit",
+        "partial withdrawal generally impossible except brand coupon purchase",
+        "clean close transfers principal and settlement interest to linked demand-deposit account"
+      ]
+    },
+    {
+      "product_name": "전월세보증금 대출",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "loans",
+        "loan_applications",
+        "lease_contracts",
+        "required_documents",
+        "transactions"
+      ],
+      "primary_actions": [
+        "create_loan_application",
+        "submit_required_document",
+        "update_loan_contract_state"
+      ],
+      "task_sources": [
+        "move-in and resident registration obligations",
+        "landlord account block prevents execution",
+        "landlord account or execution-date information change can resume blocked execution",
+        "submitted lease contract cannot be revised even with landlord agreement",
+        "conditional refinance repayment certificate timing",
+        "SGI opposing-power deadline and maintenance obligations",
+        "SGI false document acceleration"
+      ]
+    },
+    {
+      "product_name": "정기예금",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "deposit_contracts",
+        "transactions"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "execute_deposit_or_box_transfer",
+        "request_maturity_or_extension"
+      ],
+      "task_sources": [
+        "eligible fixed-deposit opening",
+        "emergency withdrawal remaining balance",
+        "tax-free fixed deposit cannot auto-extend",
+        "KakaoBank pledge exception allows fixed-deposit auto-extension",
+        "coupon preferential rate is not carried to redeposited accounts",
+        "special-sale fixed deposit cannot auto-extend",
+        "retirement default-option with fund auto-redeposit",
+        "retirement DB versus DC/IRP deposit protection"
+      ]
+    },
+    {
+      "product_name": "주택담보대출",
+      "state_tables": [
+        "customers",
+        "loans",
+        "mortgage_collateral",
+        "refinance_requests",
+        "required_documents",
+        "transactions"
+      ],
+      "primary_actions": [
+        "create_loan_application",
+        "process_refinance_request",
+        "submit_required_document",
+        "update_loan_contract_state"
+      ],
+      "task_sources": [
+        "collateral enforcement and ownership-loss risk",
+        "move-in pledge violation consequences",
+        "old-loan repayment and lien cancellation sequence",
+        "purchase-purpose execution confirmation deadline",
+        "undisclosed household home or presale right acceleration",
+        "move-in proof overdue acceleration and three-year housing-loan restriction",
+        "collateral enforcement after acceleration nonpayment"
+      ]
+    },
+    {
+      "product_name": "주택담보대출 비교하기",
+      "state_tables": [
+        "customers",
+        "comparison_sessions",
+        "service_enrollments",
+        "loan_applications",
+        "loans",
+        "mortgage_collateral"
+      ],
+      "primary_actions": [
+        "create_loan_application",
+        "close_account_or_service"
+      ],
+      "task_sources": [
+        "comparison condition is not final",
+        "KakaoBank is not the partner contract counterparty",
+        "mortgage collateral enforcement risk still applies",
+        "partner-limited market coverage and no best-product guarantee",
+        "partner mortgage contract data access belongs to affiliate",
+        "service fee-change notice and consent-withdrawal termination"
+      ]
+    },
+    {
+      "product_name": "중고차 구매대출",
+      "state_tables": [
+        "customers",
+        "loans",
+        "vehicle_purchase_cases",
+        "required_documents",
+        "transactions"
+      ],
+      "primary_actions": [
+        "create_loan_application",
+        "submit_required_document",
+        "update_loan_contract_state"
+      ],
+      "task_sources": [
+        "funds must be used for vehicle purchase",
+        "title transfer due within 15 days from day after execution",
+        "sale cancellation triggers immediate repayment",
+        "TS vehicle registry is the authoritative title-transfer check",
+        "14-day loan withdrawal right closes loan without acceleration"
+      ]
+    },
+    {
+      "product_name": "카카오뱅크 mini",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "consents",
+        "prepaid_wallets",
+        "savings_boxes",
+        "service_enrollments",
+        "transactions",
+        "cards"
+      ],
+      "primary_actions": [
+        "open_or_enroll_product",
+        "execute_deposit_or_box_transfer",
+        "close_account_or_service",
+        "update_card_state"
+      ],
+      "task_sources": [
+        "mini is prepaid value, not deposit",
+        "age-band daily/monthly limits",
+        "guardian consent under age 14",
+        "one mini per person and no duplicate opening",
+        "refund and close require sufficient balance including fees",
+        "simple-transfer auto-cancel refunds sender after 24 hours",
+        "cancelled transaction amounts can become pending when holding limit blocks re-credit",
+        "mini savings must use mini and count toward holding limit",
+        "mini life service auto-closes at age 19"
+      ]
+    },
+    {
+      "product_name": "한달적금",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "deposit_contracts",
+        "transactions"
+      ],
+      "primary_actions": [
+        "execute_deposit_or_box_transfer",
+        "request_maturity_or_extension"
+      ],
+      "task_sources": [
+        "one payment per day",
+        "only linked KakaoBank demand account can pay in",
+        "31 payments reaches maximum daily and bonus preferential tracking",
+        "coupon can be used only at new opening and requires maturity close",
+        "early close loses preferential and coupon benefits",
+        "legal payment restrictions block maturity auto-close",
+        "holiday maturity can close on previous business day without early-close treatment"
+      ]
+    },
+    {
+      "product_name": "해외송금 받기",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "remittance_profiles",
+        "remittance_cases",
+        "transactions"
+      ],
+      "primary_actions": [
+        "execute_remittance_case"
+      ],
+      "task_sources": [
+        "auto-receive exception for business account",
+        "4th-business-day inbound batch deposit",
+        "under-5,000 USD inbound immediate deposit without receive application",
+        "temporary 100 USD or more fee waiver period",
+        "daily aggregate over 100,000 USD can require pre-deposit purpose/evidence review",
+        "unverified residency can delay or return inbound remittance",
+        "mismatched or missing remittance information can return inbound remittance"
+      ]
+    },
+    {
+      "product_name": "해외송금 보내기",
+      "state_tables": [
+        "customers",
+        "accounts",
+        "remittance_profiles",
+        "remittance_cases",
+        "transactions"
+      ],
+      "primary_actions": [
+        "execute_remittance_case"
+      ],
+      "task_sources": [
+        "business account can fund but not business-name or business-purpose remittance",
+        "no-document annual over-100,000 USD boundary allows only 5,000 USD or less per case",
+        "2-business-day correction auto-cancel",
+        "returned remittance settlement uses deposit-time FX and can produce FX loss",
+        "returned remittance does not refund original fee"
+      ]
+    }
+  ],
+  "implementation_gates": [
+    "Every task must list required_documents from the tau3-compatible document export.",
+    "Every write action must declare deterministic postconditions over state tables.",
+    "Every state-changing tool must be typed as write or explicitly mutates_state=true.",
+    "Read/search tools must never mutate state.",
+    "Every product in fact DB v0 must appear in product_state_mapping.",
+    "Loan household and enterprise layers remain separated; no task should attach the raw loan_common layer directly.",
+    "When a policy requires refusal, prefer an env assertion that the target state did not change plus communicate_info or NL assertion for the refusal explanation.",
+    "When user-side agency matters, use requestor=user actions instead of pretending the assistant executed the customer operation."
+  ]
+}

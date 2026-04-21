@@ -1,0 +1,189 @@
+{
+  "id": "kb_manual_group_account_clean_close_converts_general_success",
+  "description": {
+    "purpose": "success task for 모임통장",
+    "relevant_policies": "doc_kakao_product_모임통장_005",
+    "notes": "source_task_id=kb_manual_group_account_clean_close_converts_general_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_group_account_clean_close_converts_general_success.md; notes=This complements the existing closure refusal: once members are gone and the group check card is cancelled, the service closes and the target account remains active as a general account."
+  },
+  "user_prompt": "모임통장서비스를 해지해 주세요. 모임멤버는 모두 나갔고 연결된 모임 체크카드도 이미 해지했습니다. 해지되면 일반 입출금계좌로 전환되는지도 같이 처리해 주세요.",
+  "user_scenario": {
+    "persona": "멤버와 체크카드를 모두 정리한 모임주",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n모임통장서비스를 해지해 주세요. 모임멤버는 모두 나갔고 연결된 모임 체크카드도 이미 해지했습니다. 해지되면 일반 입출금계좌로 전환되는지도 같이 처리해 주세요.\n\nExpected assistant response points:\n- 모임주는 모임멤버가 없는 상태에서 모바일앱 등으로 해지를 신청할 수 있다고 안내한다.\n- 설명서상 연결된 모임 체크카드 해지 이후에 서비스 해지가 가능하다고 확인한다.\n- 차단 조건이 없으므로 모임통장서비스를 닫고 대상계좌를 일반계좌로 전환하며 모임통장서비스에 따른 대출 관련 제한을 해제한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_140": {
+              "customer_id": "cust_140",
+              "name": "끝모임",
+              "date_of_birth": "1984-07-29",
+              "age": 41,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_group_140": {
+              "account_id": "acct_group_140",
+              "customer_id": "cust_140",
+              "product_name": "모임통장",
+              "status": "ACTIVE",
+              "balance_krw": 0,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "svc_group_140"
+              ],
+              "restriction_flags": [
+                "LIMIT_LOAN_BLOCKED_BY_GROUP_ACCOUNT",
+                "LOAN_REPAYMENT_BLOCKED_BY_GROUP_ACCOUNT"
+              ],
+              "member_count": 0,
+              "linked_group_check_card_status": "CANCELLED"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_group_140": {
+              "service_id": "svc_group_140",
+              "customer_id": "cust_140",
+              "service_name": "모임통장서비스",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_group_140",
+              "started_at": "2025-01-15",
+              "ended_at": null,
+              "restriction_flags": [],
+              "financial_info_consent_status": "ACTIVE"
+            }
+          }
+        },
+        "group_memberships": {
+          "data": {
+            "gm_owner_140": {
+              "membership_id": "gm_owner_140",
+              "service_id": "svc_group_140",
+              "account_id": "acct_group_140",
+              "customer_id": "cust_140",
+              "role": "OWNER",
+              "status": "ACTIVE",
+              "last_financial_info_consent_at": "2025-01-15T09:00:00+09:00"
+            }
+          }
+        },
+        "pockets": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_group_account_clean_close_converts_general_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "모임통장서비스 해지 모임멤버 없음 모임 체크카드 해지 일반계좌 전환 대출 제한 자동 해제"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_clean_close_converts_general_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_140"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_clean_close_converts_general_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_group_140",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_clean_close_converts_general_success_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_140",
+          "target_id": "svc_group_140",
+          "close_type": "CLOSE_GROUP_ACCOUNT_SERVICE",
+          "reason": "OWNER_REQUEST_NO_MEMBERS_CARD_CANCELLED",
+          "options": {
+            "linked_account_id": "acct_group_140",
+            "member_count": 0,
+            "linked_group_check_card_status": "CANCELLED",
+            "convert_target_account_to": "GENERAL_DEMAND_DEPOSIT",
+            "release_restriction_flags": [
+              "LIMIT_LOAN_BLOCKED_BY_GROUP_ACCOUNT",
+              "LOAN_REPAYMENT_BLOCKED_BY_GROUP_ACCOUNT"
+            ]
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_group_140",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_group_140",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_group_140",
+          "feature": "GROUP_ACCOUNT_SERVICE",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "모임주는 모임멤버가 없는 상태에서 모바일앱 등으로 해지를 신청할 수 있다고 안내한다.",
+      "설명서상 연결된 모임 체크카드 해지 이후에 서비스 해지가 가능하다고 확인한다.",
+      "차단 조건이 없으므로 모임통장서비스를 닫고 대상계좌를 일반계좌로 전환하며 모임통장서비스에 따른 대출 관련 제한을 해제한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_모임통장_005"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,148 @@
+{
+  "id": "kb_manual_business_credit_working_capital_application_success",
+  "description": {
+    "purpose": "success task for 개인사업자 신용대출",
+    "relevant_policies": "doc_kakao_product_개인사업자_신용대출_001, doc_kakao_product_개인사업자_신용대출_003",
+    "notes": "source_task_id=kb_manual_business_credit_working_capital_application_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_working_capital_application_success.md; notes=This direct-application task intentionally stops at screening submission. The source says loan limit and rate are finalized after screening, so the task must not create an executed loan or promise a fixed limit/rate."
+  },
+  "user_prompt": "제 명의로 운영 중인 음식점의 재료 매입과 임대료 보증금 일부에 쓸 운영자금이 필요합니다. 아직 한도와 금리는 심사 후 확정되는 걸 알고 있고, 개인사업자 신용대출 신청을 접수해 주세요.",
+  "user_scenario": {
+    "persona": "본인 명의 음식점을 운영하는 개인사업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 명의로 운영 중인 음식점의 재료 매입과 임대료 보증금 일부에 쓸 운영자금이 필요합니다. 아직 한도와 금리는 심사 후 확정되는 걸 알고 있고, 개인사업자 신용대출 신청을 접수해 주세요.\n\nExpected assistant response points:\n- 개인사업자 신용대출은 기업 운영에 필요한 자금을 위한 기업대출 성격이며 운영자금 또는 시설자금 대출로 구분될 수 있다고 안내한다.\n- 거래상대방은 개인사업자 본인일 수 있고, fixture상 고객은 본인 명의의 active sole proprietor라고 확인한다.\n- 한도와 금리는 심사 후 확정되므로 최종 승인이나 확정 금리를 약속하지 않는다.\n- 운영자금 목적의 신청 record를 심사 접수 상태로 만든다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_054": {
+              "customer_id": "cust_054",
+              "name": "오사업",
+              "date_of_birth": "1985-08-09",
+              "age": 40,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_054": {
+              "business_id": "biz_054",
+              "customer_id": "cust_054",
+              "business_name": "오사업식당",
+              "business_type": "SOLE_PROPRIETOR",
+              "business_status": "ACTIVE",
+              "representative_name": "오사업",
+              "representative_verified": true,
+              "opened_at": "2022-05-01"
+            }
+          }
+        },
+        "loans": {
+          "data": {}
+        },
+        "loan_applications": {
+          "data": {}
+        },
+        "refinance_requests": {
+          "data": {}
+        },
+        "required_documents": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_working_capital_application_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "개인사업자 신용대출 기업 운영자금 시설자금 개인사업자 본인 심사 후 한도 금리 확정"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_working_capital_application_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_054"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_working_capital_application_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "biz_054",
+          "table": "businesses"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_working_capital_application_success_03",
+        "requestor": "assistant",
+        "name": "create_loan_application",
+        "arguments": {
+          "application_id": "biz_credit_app_054",
+          "customer_id": "cust_054",
+          "product_name": "개인사업자 신용대출",
+          "requested_amount_krw": 45000000,
+          "purpose": "WORKING_CAPITAL",
+          "partner_id": null,
+          "expected_status": "SUBMITTED_FOR_SCREENING",
+          "expected_reason": "ACTIVE_SOLE_PROPRIETOR_WORKING_CAPITAL_REQUEST"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_application_decision",
+        "arguments": {
+          "application_id": "biz_credit_app_054",
+          "expected_status": "SUBMITTED_FOR_SCREENING",
+          "expected_reason": "ACTIVE_SOLE_PROPRIETOR_WORKING_CAPITAL_REQUEST"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "businesses",
+          "record_id": "biz_054",
+          "field_names": [
+            "business_status",
+            "representative_verified"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "개인사업자 신용대출은 기업 운영에 필요한 자금을 위한 기업대출 성격이며 운영자금 또는 시설자금 대출로 구분될 수 있다고 안내한다.",
+      "거래상대방은 개인사업자 본인일 수 있고, fixture상 고객은 본인 명의의 active sole proprietor라고 확인한다.",
+      "한도와 금리는 심사 후 확정되므로 최종 승인이나 확정 금리를 약속하지 않는다.",
+      "운영자금 목적의 신청 record를 심사 접수 상태로 만든다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_개인사업자_신용대출_001",
+    "doc_kakao_product_개인사업자_신용대출_003"
+  ],
+  "user_tools": []
+}

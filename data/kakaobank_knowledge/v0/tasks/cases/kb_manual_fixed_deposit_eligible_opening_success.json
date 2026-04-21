@@ -1,0 +1,146 @@
+{
+  "id": "kb_manual_fixed_deposit_eligible_opening_success",
+  "description": {
+    "purpose": "success task for 정기예금",
+    "relevant_policies": "doc_kakao_product_정기예금_001",
+    "notes": "source_task_id=kb_manual_fixed_deposit_eligible_opening_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_fixed_deposit_eligible_opening_success.md; notes=This fills the missing positive opening path for the product. The task is intentionally simple on eligibility but still requires checking age, real-name status, term, minimum amount, and account funding before creating a contract."
+  },
+  "user_prompt": "저는 만 35세이고 실명확인은 끝났어요. 입출금통장에 500만원이 있는데, 그중 200만원으로 12개월 정기예금을 새로 열어 주세요. 비과세나 쿠폰은 쓰지 않을게요.",
+  "user_scenario": {
+    "persona": "목돈 일부를 예치하려는 성인 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n저는 만 35세이고 실명확인은 끝났어요. 입출금통장에 500만원이 있는데, 그중 200만원으로 12개월 정기예금을 새로 열어 주세요. 비과세나 쿠폰은 쓰지 않을게요.\n\nExpected assistant response points:\n- 일반 정기예금 가입대상은 만 14세 이상의 실명의 개인이라고 확인한다.\n- 12개월은 1개월 이상 36개월 이하 가입기간 범위 안에 있다고 판단한다.\n- 2,000,000원은 최소 가입금액 1,000,000원을 충족한다고 계산한다.\n- 연결 입출금통장에서 2,000,000원을 예치하여 정기예금 계약을 만든다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_241": {
+              "customer_id": "cust_241",
+              "name": "정개설",
+              "date_of_birth": "1990-06-02",
+              "age": 35,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_fixed_base_241": {
+              "account_id": "acct_fixed_base_241",
+              "customer_id": "cust_241",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 5000000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_fixed_deposit_eligible_opening_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "정기예금 가입대상 만 14세 실명 개인 가입기간 1개월 36개월 가입금액 100만원 이상"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_eligible_opening_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_241"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_eligible_opening_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_fixed_base_241",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_eligible_opening_success_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_241",
+          "product_name": "정기예금",
+          "source_account_id": "acct_fixed_base_241",
+          "options": {
+            "deposit_id": "dep_fixed_241",
+            "opening_mode": "NEW_FIXED_DEPOSIT",
+            "principal_krw": 2000000,
+            "term_months": 12,
+            "currency": "KRW",
+            "tax_free_savings": false,
+            "coupon_id": null,
+            "maturity_management": "CUSTOMER_SELECTS_BEFORE_MATURITY",
+            "base_account_id": "acct_fixed_base_241"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "deposit_contracts",
+          "record_id": "dep_fixed_241",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_fixed_base_241",
+          "target_id": "dep_fixed_241",
+          "amount": 2000000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "일반 정기예금 가입대상은 만 14세 이상의 실명의 개인이라고 확인한다.",
+      "12개월은 1개월 이상 36개월 이하 가입기간 범위 안에 있다고 판단한다.",
+      "2,000,000원은 최소 가입금액 1,000,000원을 충족한다고 계산한다.",
+      "연결 입출금통장에서 2,000,000원을 예치하여 정기예금 계약을 만든다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_정기예금_001"
+  ],
+  "user_tools": []
+}

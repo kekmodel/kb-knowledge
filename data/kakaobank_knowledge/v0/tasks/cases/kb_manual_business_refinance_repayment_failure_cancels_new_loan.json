@@ -1,0 +1,172 @@
+{
+  "id": "kb_manual_business_refinance_repayment_failure_cancels_new_loan",
+  "description": {
+    "purpose": "refusal task for 개인사업자 신용대출",
+    "relevant_policies": "doc_kakao_common_policy_business_credit_refinance_common_001, doc_kakao_common_policy_business_credit_refinance_common_002",
+    "notes": "source_task_id=kb_manual_business_refinance_repayment_failure_cancels_new_loan; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_refinance_repayment_failure_cancels_new_loan.md; notes=The refusal is not a pure no-op: the correct bank-side action cancels the new KakaoBank loan and the refinance request while leaving the old loan unpaid."
+  },
+  "user_prompt": "기존 사업자대출 상환이 실패했다는 알림은 봤는데, 새 카카오뱅크 대출은 이미 실행된 거잖아요. 급해서 그 돈은 그냥 살려두고 기존 대출은 제가 따로 갚으면 안 되나요?",
+  "user_scenario": {
+    "persona": "다른 은행의 개인사업자 운전자금 신용대출을 카카오뱅크 개인사업자 신용대출로 갈아타려던 카페 사장",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n기존 사업자대출 상환이 실패했다는 알림은 봤는데, 새 카카오뱅크 대출은 이미 실행된 거잖아요. 급해서 그 돈은 그냥 살려두고 기존 대출은 제가 따로 갚으면 안 되나요?\n\nExpected assistant response points:\n- 대환대출서비스에서 기존대출 상환이 실패하면 신규기관에서 실행된 신규대출 계약은 취소된다고 안내한다.\n- 새 개인사업자 신용대출을 유지하거나 임의로 자금을 지급하지 않는다.\n- 대환 요청과 신규대출을 취소 상태로 기록하고, 기존 대출은 상환 완료로 바꾸지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_006": {
+              "name": "박카페",
+              "identity_verified": true,
+              "status": "ACTIVE"
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_001": {
+              "customer_id": "cust_006",
+              "business_name": "카페 하루",
+              "business_type": "SOLE_PROPRIETOR",
+              "business_status": "ACTIVE",
+              "representative_name": "박카페"
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "biz_old_loan_001": {
+              "customer_id": "cust_006",
+              "product_name": "타행 개인사업자 신용대출",
+              "status": "ACTIVE",
+              "principal_krw": 80000000,
+              "outstanding_krw": 78200000,
+              "repayment_mode": "BULLET",
+              "maturity_date": "2027-03-15",
+              "late_days": 0,
+              "restriction_flags": [],
+              "purpose": "WORKING_CAPITAL",
+              "institution": "OTHER_BANK"
+            },
+            "biz_new_loan_001": {
+              "customer_id": "cust_006",
+              "product_name": "개인사업자 신용대출",
+              "status": "EXECUTED_PENDING_OLD_REPAYMENT",
+              "principal_krw": 80000000,
+              "outstanding_krw": 80000000,
+              "repayment_mode": "BULLET",
+              "maturity_date": "2027-04-20",
+              "late_days": 0,
+              "restriction_flags": [
+                "REFINANCE_PENDING_OLD_REPAYMENT"
+              ],
+              "purpose": "WORKING_CAPITAL",
+              "institution": "KAKAOBANK"
+            }
+          }
+        },
+        "refinance_requests": {
+          "data": {
+            "biz_refi_001": {
+              "customer_id": "cust_006",
+              "new_loan_id": "biz_new_loan_001",
+              "old_loan_id": "biz_old_loan_001",
+              "status": "OLD_LOAN_REPAYMENT_FAILED",
+              "requested_at": "2026-04-20T10:30:00+09:00",
+              "old_loan_repayment_status": "FAILED",
+              "cancellation_reason": null,
+              "service_type": "BUSINESS_CREDIT_REFINANCE",
+              "risk_notice_agreed": true
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_refinance_repayment_failure_cancels_new_loan_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "개인사업자 신용대출 대환대출 기존대출 상환 실패 신규대출 계약 취소"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_refinance_repayment_failure_cancels_new_loan_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_006"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_refinance_repayment_failure_cancels_new_loan_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "biz_new_loan_001",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_refinance_repayment_failure_cancels_new_loan_03",
+        "requestor": "assistant",
+        "name": "process_refinance_request",
+        "arguments": {
+          "refinance_id": "biz_refi_001",
+          "operation": "CANCEL_NEW_LOAN_AFTER_OLD_REPAYMENT_FAILURE",
+          "old_loan_repayment_status": "FAILED",
+          "requested_at": "2026-04-20T10:35:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_refinance_outcome",
+        "arguments": {
+          "refinance_id": "biz_refi_001",
+          "expected_status": "CANCELLED",
+          "expected_new_loan_status": "CANCELLED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "loans",
+          "record_id": "biz_old_loan_001",
+          "field_names": [
+            "status",
+            "outstanding_krw"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "대환대출서비스에서 기존대출 상환이 실패하면 신규기관에서 실행된 신규대출 계약은 취소된다고 안내한다.",
+      "새 개인사업자 신용대출을 유지하거나 임의로 자금을 지급하지 않는다.",
+      "대환 요청과 신규대출을 취소 상태로 기록하고, 기존 대출은 상환 완료로 바꾸지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_common_policy_business_credit_refinance_common_001",
+    "doc_kakao_common_policy_business_credit_refinance_common_002"
+  ],
+  "user_tools": []
+}

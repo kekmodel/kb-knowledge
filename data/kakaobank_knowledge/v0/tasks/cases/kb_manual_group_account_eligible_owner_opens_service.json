@@ -1,0 +1,149 @@
+{
+  "id": "kb_manual_group_account_eligible_owner_opens_service",
+  "description": {
+    "purpose": "success task for 모임통장",
+    "relevant_policies": "doc_kakao_product_모임통장_001",
+    "notes": "source_task_id=kb_manual_group_account_eligible_owner_opens_service; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_group_account_eligible_owner_opens_service.md; notes=This covers the basic opening path missing from the original Group Account tasks."
+  },
+  "user_prompt": "제 명의 카카오뱅크 입출금통장으로 모임통장을 만들고 싶어요. 저는 만 17세 이상이고 카카오톡 계정도 있고, 이 입출금통장에는 아직 모임통장서비스가 없습니다. 약관에 동의할게요.",
+  "user_scenario": {
+    "persona": "동호회 회비 관리를 시작하려는 20대 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 명의 카카오뱅크 입출금통장으로 모임통장을 만들고 싶어요. 저는 만 17세 이상이고 카카오톡 계정도 있고, 이 입출금통장에는 아직 모임통장서비스가 없습니다. 약관에 동의할게요.\n\nExpected assistant response points:\n- 모임주는 만 17세 이상의 실명의 개인이어야 하고 본인 명의 카카오뱅크 입출금통장이 필요하다고 확인한다.\n- 모임주가 카카오톡 계정을 가지고 모바일앱에서 약관에 동의해 신청해야 한다고 안내한다.\n- 대상계좌에 기존 모임통장서비스나 제한 사유가 없으므로 모임통장서비스와 owner membership을 활성화한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_131": {
+              "customer_id": "cust_131",
+              "name": "윤모임",
+              "date_of_birth": "1998-03-12",
+              "age": 28,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": [],
+              "has_kakaotalk_account": true
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_131": {
+              "account_id": "acct_base_131",
+              "customer_id": "cust_131",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 300000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": [],
+              "recent_group_service_application_at": null
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "group_memberships": {
+          "data": {}
+        },
+        "pockets": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_group_account_eligible_owner_opens_service_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "모임통장 모임주 만 17세 본인 명의 입출금통장 카카오톡 약관 동의 1계좌 1서비스"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_eligible_owner_opens_service_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_131"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_eligible_owner_opens_service_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_base_131",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_eligible_owner_opens_service_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_131",
+          "product_name": "모임통장",
+          "source_account_id": "acct_base_131",
+          "options": {
+            "operation": "OPEN_GROUP_ACCOUNT_SERVICE",
+            "service_id": "svc_group_131",
+            "owner_membership_id": "gm_owner_131",
+            "terms_consent_status": "ACCEPTED",
+            "financial_info_consent_status": "ACTIVE",
+            "member_count": 0,
+            "apply_limit_loan_restriction": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_group_131",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "group_memberships",
+          "record_id": "gm_owner_131",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "모임주는 만 17세 이상의 실명의 개인이어야 하고 본인 명의 카카오뱅크 입출금통장이 필요하다고 확인한다.",
+      "모임주가 카카오톡 계정을 가지고 모바일앱에서 약관에 동의해 신청해야 한다고 안내한다.",
+      "대상계좌에 기존 모임통장서비스나 제한 사유가 없으므로 모임통장서비스와 owner membership을 활성화한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_모임통장_001"
+  ],
+  "user_tools": []
+}

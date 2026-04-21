@@ -1,0 +1,147 @@
+{
+  "id": "kb_manual_26week_fill_missed_payment_not_bonus",
+  "description": {
+    "purpose": "adversarial task for 26주적금",
+    "relevant_policies": "doc_kakao_product_26주적금_001",
+    "notes": "source_task_id=kb_manual_26week_fill_missed_payment_not_bonus; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_26week_fill_missed_payment_not_bonus.md; notes=The task deliberately contains a tempting incorrect state mutation: counting a fill payment as auto-debit success."
+  },
+  "user_prompt": "8주차 자동이체가 잔액 부족으로 실패했어요. 지금 빈자리 채우기로 내고, 우대금리용 자동이체 성공 횟수도 8회로 맞춰주세요.",
+  "user_scenario": {
+    "persona": "8주차 자동이체가 실패한 26주적금 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n8주차 자동이체가 잔액 부족으로 실패했어요. 지금 빈자리 채우기로 내고, 우대금리용 자동이체 성공 횟수도 8회로 맞춰주세요.\n\nExpected assistant response points:\n- 빈자리 채우기 납입 자체는 처리할 수 있다고 안내한다.\n- 실패 주차를 빈자리 채우기로 납입해도 자동이체 성공으로 인정되지 않는다고 설명한다.\n- 납입 거래는 남기되 자동이체 성공 횟수는 7회로 유지한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_003": {
+              "name": "박적금",
+              "identity_verified": true,
+              "status": "ACTIVE"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_003": {
+              "customer_id": "cust_003",
+              "product_name": "입출금통장",
+              "balance": 100000,
+              "currency": "KRW",
+              "status": "ACTIVE"
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "contract_26w_001": {
+              "customer_id": "cust_003",
+              "product_name": "26주적금",
+              "status": "ACTIVE",
+              "current_week": 8,
+              "balance": 28000,
+              "currency": "KRW",
+              "missed_weeks": [
+                8
+              ]
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_rule_001": {
+              "contract_id": "contract_26w_001",
+              "source_account_id": "acct_base_003",
+              "success_count": 7,
+              "failed_weeks": [
+                8
+              ],
+              "status": "ACTIVE"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_26week_fill_missed_payment_not_bonus_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "26주적금 빈자리 채우기 자동이체 성공 인정 여부"
+        }
+      },
+      {
+        "action_id": "kb_manual_26week_fill_missed_payment_not_bonus_01",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "contract_26w_001",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_26week_fill_missed_payment_not_bonus_02",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_account_id": "acct_base_003",
+          "target_id": "contract_26w_001",
+          "amount": 8000,
+          "currency": "KRW",
+          "transfer_type": "MISSED_WEEK_FILL",
+          "week_number": 8,
+          "counts_as_auto_debit_success": false
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_base_003",
+          "target_id": "contract_26w_001",
+          "amount": 8000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_auto_transfer_count",
+        "arguments": {
+          "rule_id": "auto_rule_001",
+          "expected_success_count": 7,
+          "expected_failed_weeks": [
+            8
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "빈자리 채우기 납입 자체는 처리할 수 있다고 안내한다.",
+      "실패 주차를 빈자리 채우기로 납입해도 자동이체 성공으로 인정되지 않는다고 설명한다.",
+      "납입 거래는 남기되 자동이체 성공 횟수는 7회로 유지한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_26주적금_001"
+  ],
+  "user_tools": []
+}

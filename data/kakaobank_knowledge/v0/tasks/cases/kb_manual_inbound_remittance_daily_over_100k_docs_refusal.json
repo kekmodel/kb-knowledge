@@ -1,0 +1,189 @@
+{
+  "id": "kb_manual_inbound_remittance_daily_over_100k_docs_refusal",
+  "description": {
+    "purpose": "refusal task for 해외송금 받기",
+    "relevant_policies": "doc_kakao_product_해외송금_받기_002, doc_kakao_common_policy_remittance_common_004",
+    "notes": "source_task_id=kb_manual_inbound_remittance_daily_over_100k_docs_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_inbound_remittance_daily_over_100k_docs_refusal.md; notes=This task isolates the daily aggregate over-100,000-USD document-review boundary from the separate personal-business-account auto-receive exception already covered."
+  },
+  "user_prompt": "오늘 오전에 이미 8,500달러를 받았고, 지금 96,000달러 광고대금이 추가로 들어왔어요. 합치면 10만 달러가 넘지만 송금사유는 광고 관련 대금이라 괜찮으니 먼저 입금해 주세요.",
+  "user_scenario": {
+    "persona": "하루에 여러 건의 해외 광고대금을 받은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘 오전에 이미 8,500달러를 받았고, 지금 96,000달러 광고대금이 추가로 들어왔어요. 합치면 10만 달러가 넘지만 송금사유는 광고 관련 대금이라 괜찮으니 먼저 입금해 주세요.\n\nExpected assistant response points:\n- 해외송금 받기는 광고 관련 대금 사유로 이용할 수 있지만, 일일 합산 미화 10만불을 초과하면 입금 전 사유확인 및 증빙서류를 요청할 수 있다고 안내한다.\n- 이번 건을 합산하면 104,500 USD이므로 즉시 입금부터 처리하지 않는다.\n- remittance case를 PENDING_DOCUMENT_REVIEW로 전환하고 필요한 사유확인/증빙 안내를 한다.\n- 수취계좌 잔액과 transactions는 변경하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_160": {
+              "customer_id": "cust_160",
+              "name": "홍대금",
+              "date_of_birth": "1987-03-15",
+              "age": 39,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_remit_base_160": {
+              "account_id": "acct_remit_base_160",
+              "customer_id": "cust_160",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 12900000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_profiles": {
+          "data": {
+            "remit_profile_160": {
+              "remittance_profile_id": "remit_profile_160",
+              "customer_id": "cust_160",
+              "base_account_id": "acct_remit_base_160",
+              "annual_usd_sent": 0,
+              "annual_usd_received": 62000,
+              "auto_receive_enabled": false,
+              "verified_purpose_codes": [
+                "AD_REVENUE"
+              ],
+              "daily_received_usd_before_case": 8500,
+              "resident_verified": true
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {
+            "remit_inbound_160": {
+              "remittance_id": "remit_inbound_160",
+              "customer_id": "cust_160",
+              "direction": "INBOUND",
+              "status": "PENDING_RECEIPT_APPLICATION",
+              "amount": 96000,
+              "currency": "USD",
+              "country": "US",
+              "requested_at": "2026-04-20T12:20:00+09:00",
+              "arrived_at": "2026-04-20T12:20:00+09:00",
+              "correction_due_date": null,
+              "purpose_code": "AD_REVENUE",
+              "sender_bank_id": "us_ad_bank_44",
+              "sender_name": "Global Ads Inc.",
+              "target_account_id": "acct_remit_base_160",
+              "receive_application_submitted": true,
+              "daily_aggregate_usd_after_case": 104500,
+              "document_request_reason": null,
+              "deposited_transaction_id": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_inbound_remittance_daily_over_100k_docs_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "해외송금 받기 일일 합산 미화 10만불 초과 입금 전 사유확인 증빙서류 요청"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_daily_over_100k_docs_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_160"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_daily_over_100k_docs_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "remit_inbound_160",
+          "table": "remittance_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_daily_over_100k_docs_refusal_03",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_160",
+          "direction": "INBOUND_DAILY_OVER_100K_DOCUMENT_REQUEST",
+          "amount": 96000,
+          "currency": "USD",
+          "country": "US",
+          "purpose_code": "AD_REVENUE",
+          "options": {
+            "remittance_id": "remit_inbound_160",
+            "target_account_id": "acct_remit_base_160",
+            "daily_received_usd_before_case": 8500,
+            "daily_aggregate_usd_after_case": 104500,
+            "document_request_reason": "DAILY_AGGREGATE_OVER_100K_USD",
+            "expected_status": "PENDING_DOCUMENT_REVIEW",
+            "deposit_first_refused": true,
+            "transaction_id": null
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_remittance_outcome",
+        "arguments": {
+          "remittance_id": "remit_inbound_160",
+          "expected_status": "PENDING_DOCUMENT_REVIEW",
+          "expected_fee_refunded": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_remit_base_160",
+          "field_names": [
+            "balance_krw",
+            "status"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "해외송금 받기는 광고 관련 대금 사유로 이용할 수 있지만, 일일 합산 미화 10만불을 초과하면 입금 전 사유확인 및 증빙서류를 요청할 수 있다고 안내한다.",
+      "이번 건을 합산하면 104,500 USD이므로 즉시 입금부터 처리하지 않는다.",
+      "remittance case를 PENDING_DOCUMENT_REVIEW로 전환하고 필요한 사유확인/증빙 안내를 한다.",
+      "수취계좌 잔액과 transactions는 변경하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_해외송금_받기_002",
+    "doc_kakao_common_policy_remittance_common_004"
+  ],
+  "user_tools": []
+}

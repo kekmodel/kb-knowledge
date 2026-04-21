@@ -1,0 +1,189 @@
+{
+  "id": "kb_manual_mortgage_move_in_proof_overdue_accelerates",
+  "description": {
+    "purpose": "refusal task for 주택담보대출",
+    "relevant_policies": "doc_kakao_product_주택담보대출_006",
+    "notes": "source_task_id=kb_manual_mortgage_move_in_proof_overdue_accelerates; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mortgage_move_in_proof_overdue_accelerates.md; notes=This task complements the existing in-deadline user-tool submission task by covering the post-deadline refusal and acceleration branch."
+  },
+  "user_prompt": "작년 10월 1일에 규제지역 아파트 구입자금 주택담보대출을 실행했고 실제로 이사는 했는데 전입 증빙자료 제출을 깜빡했어요. 6개월은 지났지만 대출은 정상 유지하고 3년 제한도 적용하지 말아 주세요.",
+  "user_scenario": {
+    "persona": "규제지역 주택담보대출 실행 후 6개월 전입증빙 제출기한을 넘긴 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n작년 10월 1일에 규제지역 아파트 구입자금 주택담보대출을 실행했고 실제로 이사는 했는데 전입 증빙자료 제출을 깜빡했어요. 6개월은 지났지만 대출은 정상 유지하고 3년 제한도 적용하지 말아 주세요.\n\nExpected assistant response points:\n- 전입 추가약정이 있는 주택담보대출은 실행 당시 세대주 또는 세대원이 6개월 이내 전입해야 하고, 전입 완료 후 즉시 증빙자료를 제출해야 한다고 확인한다.\n- 6개월 이내 전입 증빙자료를 제출하지 않으면 기한의 이익이 상실되어 변제 의무가 발생한다고 안내한다.\n- 약정 위반 사실은 대출 완제 여부와 관계없이 신용정보 집중기관에 제공되고 향후 3년간 주택 관련 대출이 제한된다고 설명한다.\n- 고객 요청처럼 정상 유지하지 않고 즉시상환 필요 및 약정위반 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_249": {
+              "customer_id": "cust_249",
+              "name": "송전입",
+              "date_of_birth": "1986-06-22",
+              "age": 39,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "mortgage_loan_249": {
+              "loan_id": "mortgage_loan_249",
+              "customer_id": "cust_249",
+              "product_name": "주택담보대출",
+              "status": "EXECUTED",
+              "principal_krw": 430000000,
+              "outstanding_krw": 428400000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2055-10-01",
+              "late_days": 0,
+              "restriction_flags": [
+                "MOVE_IN_PROOF_REQUIRED"
+              ],
+              "purpose": "REGULATED_AREA_HOME_PURCHASE",
+              "collateral_type": "APARTMENT_MORTGAGE",
+              "home_type": "APARTMENT",
+              "executed_at": "2025-10-01T09:30:00+09:00",
+              "move_in_deadline": "2026-04-01",
+              "move_in_completed_at": "2026-02-20",
+              "accelerated": false,
+              "acceleration_reason": null
+            }
+          }
+        },
+        "mortgage_collateral": {
+          "data": {
+            "collateral_mortgage_249": {
+              "collateral_id": "collateral_mortgage_249",
+              "customer_id": "cust_249",
+              "loan_id": "mortgage_loan_249",
+              "home_type": "APARTMENT",
+              "address": "서울특별시 마포구 상암동 9",
+              "owner_customer_id": "cust_249",
+              "status": "ACTIVE_COLLATERAL"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_mortgage_move_in_249": {
+              "document_id": "req_mortgage_move_in_249",
+              "customer_id": "cust_249",
+              "target_type": "loan",
+              "target_id": "mortgage_loan_249",
+              "document_type": "MORTGAGE_MOVE_IN_PROOF",
+              "status": "OVERDUE",
+              "due_date": "2026-04-01",
+              "submitted_at": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mortgage_move_in_proof_overdue_accelerates_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "주택담보대출 전입 증빙자료 6개월 이내 미제출 기한의 이익 상실 3년 주택 관련 대출 제한"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_move_in_proof_overdue_accelerates_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_249"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_move_in_proof_overdue_accelerates_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mortgage_loan_249",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_move_in_proof_overdue_accelerates_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "mortgage_loan_249",
+          "operation": "ACCELERATE_FOR_MOVE_IN_PROOF_NOT_SUBMITTED",
+          "reason": "MORTGAGE_MOVE_IN_PROOF_NOT_SUBMITTED_WITHIN_6_MONTHS",
+          "effective_at": "2026-04-20T14:10:00+09:00",
+          "options": {
+            "document_id": "req_mortgage_move_in_249",
+            "document_type": "MORTGAGE_MOVE_IN_PROOF",
+            "deadline": "2026-04-01",
+            "document_status": "OVERDUE",
+            "immediate_repayment_required": true,
+            "credit_info_violation_reported": true,
+            "housing_loan_restriction_years": 3
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "mortgage_loan_249",
+          "expected_accelerated": true,
+          "expected_reason": "MORTGAGE_MOVE_IN_PROOF_NOT_SUBMITTED_WITHIN_6_MONTHS"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "mortgage_loan_249",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "mortgage_loan_249",
+          "document_type": "MORTGAGE_MOVE_IN_PROOF",
+          "expected_status": "OVERDUE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "전입 추가약정이 있는 주택담보대출은 실행 당시 세대주 또는 세대원이 6개월 이내 전입해야 하고, 전입 완료 후 즉시 증빙자료를 제출해야 한다고 확인한다.",
+      "6개월 이내 전입 증빙자료를 제출하지 않으면 기한의 이익이 상실되어 변제 의무가 발생한다고 안내한다.",
+      "약정 위반 사실은 대출 완제 여부와 관계없이 신용정보 집중기관에 제공되고 향후 3년간 주택 관련 대출이 제한된다고 설명한다.",
+      "고객 요청처럼 정상 유지하지 않고 즉시상환 필요 및 약정위반 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_주택담보대출_006"
+  ],
+  "user_tools": []
+}

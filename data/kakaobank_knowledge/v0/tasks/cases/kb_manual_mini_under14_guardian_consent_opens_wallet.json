@@ -1,0 +1,162 @@
+{
+  "id": "kb_manual_mini_under14_guardian_consent_opens_wallet",
+  "description": {
+    "purpose": "success task for 카카오뱅크 mini",
+    "relevant_policies": "doc_kakao_product_카카오뱅크_mini_001, doc_kakao_product_카카오뱅크_mini_002",
+    "notes": "source_task_id=kb_manual_mini_under14_guardian_consent_opens_wallet; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mini_under14_guardian_consent_opens_wallet.md; notes=This success task deliberately creates a prepaid wallet, not an account. It combines under-14 guardian-consent verification, age-13-plus limits, holding limit, and no-interest communication."
+  },
+  "user_prompt": "저는 만 13세 내국인이고 실명확인도 됐어요. 부모님 법정대리인 동의도 방금 유효하게 완료됐습니다. 카카오뱅크 mini를 만들어 주세요. 그런데 mini가 계좌처럼 이자를 주는 예금인지, 한도는 만 12세 때랑 달라지는지도 같이 알려 주세요.",
+  "user_scenario": {
+    "persona": "법정대리인 동의를 완료한 만 13세 내국인 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n저는 만 13세 내국인이고 실명확인도 됐어요. 부모님 법정대리인 동의도 방금 유효하게 완료됐습니다. 카카오뱅크 mini를 만들어 주세요. 그런데 mini가 계좌처럼 이자를 주는 예금인지, 한도는 만 12세 때랑 달라지는지도 같이 알려 주세요.\n\nExpected assistant response points:\n- mini는 예금 계좌가 아니라 전자금융거래법상 선불전자지급수단 관련 서비스라고 안내한다.\n- mini 가입 대상은 만 7세 이상 만 18세 이하 내국인이며, 만 14세 미만은 유효한 법정대리인 동의가 필요하다고 확인한다.\n- 고객은 만 13세이고 유효한 법정대리인 동의가 있으므로 mini 개설을 진행한다.\n- mini 보유한도는 500,000원이고, 만 13세 이상 이용한도는 일 200,000원, 월 1,000,000원이라고 안내한다.\n- mini는 선불전자지급수단이므로 금리를 제공하지 않는다고 안내하고, 예금 계좌 record를 만들지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_050": {
+              "customer_id": "cust_050",
+              "name": "김미니",
+              "date_of_birth": "2012-03-18",
+              "age": 13,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "STUDENT",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {
+            "consent_guardian_mini_050": {
+              "consent_id": "consent_guardian_mini_050",
+              "customer_id": "cust_050",
+              "consent_type": "LEGAL_GUARDIAN_MINI_OPENING",
+              "status": "ACTIVE",
+              "effective_at": "2026-04-20T08:50:00+09:00",
+              "expires_at": "2027-04-20T23:59:59+09:00",
+              "guardian_name": "김보호",
+              "guardian_identity_verified": true
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {}
+        },
+        "accounts": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        },
+        "cards": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mini_under14_guardian_consent_opens_wallet_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "카카오뱅크 mini 만 13세 법정대리인 동의 선불전자지급수단 보유한도 이용한도 금리 미제공"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_under14_guardian_consent_opens_wallet_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_050"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_under14_guardian_consent_opens_wallet_02",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_050",
+          "product_name": "카카오뱅크 mini",
+          "source_account_id": null,
+          "options": {
+            "wallet_id": "mini_wallet_050",
+            "opening_mode": "NEW_PREPAID_WALLET",
+            "legal_form": "PREPAID_ELECTRONIC_PAYMENT_MEANS",
+            "guardian_consent_id": "consent_guardian_mini_050",
+            "guardian_consent_valid": true,
+            "age_band": "AGE_13_PLUS",
+            "holding_limit_krw": 500000,
+            "daily_spend_limit_krw": 200000,
+            "monthly_spend_limit_krw": 1000000,
+            "interest_rate_applies": false,
+            "deposit_account_created": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_050",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_consent_validity",
+        "arguments": {
+          "customer_id": "cust_050",
+          "consent_type": "LEGAL_GUARDIAN_MINI_OPENING",
+          "expected_valid": true
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "*",
+          "field_names": [
+            "data"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "mini는 예금 계좌가 아니라 전자금융거래법상 선불전자지급수단 관련 서비스라고 안내한다.",
+      "mini 가입 대상은 만 7세 이상 만 18세 이하 내국인이며, 만 14세 미만은 유효한 법정대리인 동의가 필요하다고 확인한다.",
+      "고객은 만 13세이고 유효한 법정대리인 동의가 있으므로 mini 개설을 진행한다.",
+      "mini 보유한도는 500,000원이고, 만 13세 이상 이용한도는 일 200,000원, 월 1,000,000원이라고 안내한다.",
+      "mini는 선불전자지급수단이므로 금리를 제공하지 않는다고 안내하고, 예금 계좌 record를 만들지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_카카오뱅크_mini_001",
+    "doc_kakao_product_카카오뱅크_mini_002"
+  ],
+  "user_tools": []
+}

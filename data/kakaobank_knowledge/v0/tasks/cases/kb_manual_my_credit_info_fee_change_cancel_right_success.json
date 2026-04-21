@@ -1,0 +1,152 @@
+{
+  "id": "kb_manual_my_credit_info_fee_change_cancel_right_success",
+  "description": {
+    "purpose": "success task for 내 신용정보",
+    "relevant_policies": "doc_kakao_product_내_신용정보_002",
+    "notes": "source_task_id=kb_manual_my_credit_info_fee_change_cancel_right_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_my_credit_info_fee_change_cancel_right_success.md; notes=This task is not a generic cancellation duplicate. The challenge is the fee-policy nuance: free by default, separate fee possible only after affiliate/contract change and prior mobile-app notice, with a cancellation right if the user declines."
+  },
+  "user_prompt": "내 신용정보 조회 서비스에 앞으로 별도 이용요금이 붙을 수 있다고 모바일앱 안내를 받았어요. 유료로 바뀌면 쓰고 싶지 않으니 지금 서비스 해지로 처리해 주세요.",
+  "user_scenario": {
+    "persona": "무료로 쓰던 신용정보 조회 서비스에 별도 요금 부과 사전 안내를 받은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n내 신용정보 조회 서비스에 앞으로 별도 이용요금이 붙을 수 있다고 모바일앱 안내를 받았어요. 유료로 바뀌면 쓰고 싶지 않으니 지금 서비스 해지로 처리해 주세요.\n\nExpected assistant response points:\n- 약관상 제공되는 모든 서비스는 현재 무료이고, 카카오뱅크 앱으로 제공받는 신용정보 조회에는 별도 요금이 부과되지 않는다고 확인한다.\n- 다만 제휴 신용정보회사 정책 변경이나 계약내용 변경 시 별도 이용요금이 부과될 수 있고 카카오뱅크가 사전에 모바일앱으로 안내한다고 설명한다.\n- 변경된 요금의 서비스를 원치 않으면 제12조에 따라 해지할 수 있으므로 기존 service enrollment를 닫는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_120": {
+              "customer_id": "cust_120",
+              "name": "요금변경",
+              "date_of_birth": "1983-12-01",
+              "age": 42,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {
+            "consent_my_credit_terms_120": {
+              "consent_id": "consent_my_credit_terms_120",
+              "customer_id": "cust_120",
+              "consent_type": "MY_CREDIT_INFO_KAKAOBANK_TERMS",
+              "status": "ACTIVE",
+              "effective_at": "2025-12-20T13:00:00+09:00",
+              "expires_at": null
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_my_credit_info_120": {
+              "service_id": "svc_my_credit_info_120",
+              "customer_id": "cust_120",
+              "service_name": "내 신용정보",
+              "status": "ACTIVE",
+              "started_at": "2025-12-20T13:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "provided_services": [
+                "CREDIT_INFO_LOOKUP",
+                "CREDIT_INFO_ALERT",
+                "CREDIT_SCORE_UP"
+              ],
+              "fee_change_notice_sent_at": "2026-04-15T10:30:00+09:00",
+              "future_lookup_fee_policy": "SEPARATE_FEE_POSSIBLE"
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_my_credit_info_fee_change_cancel_right_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 신용정보 이용요금 무료 정책 변경 사전 모바일앱 안내 해지 가능"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_fee_change_cancel_right_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_120"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_fee_change_cancel_right_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_my_credit_info_120",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_fee_change_cancel_right_success_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_120",
+          "target_id": "svc_my_credit_info_120",
+          "close_type": "FEE_CHANGE_CANCEL",
+          "reason": "USER_REJECTED_SEPARATE_CREDIT_LOOKUP_FEE_AFTER_PRIOR_NOTICE",
+          "options": {
+            "prior_mobile_app_notice_sent": true,
+            "fee_change_notice_sent_at": "2026-04-15T10:30:00+09:00",
+            "user_declines_changed_paid_service": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_my_credit_info_120",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_my_credit_info_120",
+          "feature": "CREDIT_INFO_LOOKUP",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "약관상 제공되는 모든 서비스는 현재 무료이고, 카카오뱅크 앱으로 제공받는 신용정보 조회에는 별도 요금이 부과되지 않는다고 확인한다.",
+      "다만 제휴 신용정보회사 정책 변경이나 계약내용 변경 시 별도 이용요금이 부과될 수 있고 카카오뱅크가 사전에 모바일앱으로 안내한다고 설명한다.",
+      "변경된 요금의 서비스를 원치 않으면 제12조에 따라 해지할 수 있으므로 기존 service enrollment를 닫는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_신용정보_002"
+  ],
+  "user_tools": []
+}

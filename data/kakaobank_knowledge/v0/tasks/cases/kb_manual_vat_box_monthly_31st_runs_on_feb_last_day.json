@@ -1,0 +1,191 @@
+{
+  "id": "kb_manual_vat_box_monthly_31st_runs_on_feb_last_day",
+  "description": {
+    "purpose": "success task for 부가세박스",
+    "relevant_policies": "doc_kakao_product_부가세박스_003",
+    "notes": "source_task_id=kb_manual_vat_box_monthly_31st_runs_on_feb_last_day; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_vat_box_monthly_31st_runs_on_feb_last_day.md; notes=This task forces calendar reasoning over a mutable transfer: February 2026 has no 31st, so the monthly custom savings day falls on February 28."
+  },
+  "user_prompt": "부가세박스 원하는 만큼 모으기를 매월 31일 40만원으로 해놨어요. 오늘은 2026년 2월 28일이라 31일이 없는데, 이번 달 모으기가 오늘 실행되는 게 맞으면 처리해 주세요.",
+  "user_scenario": {
+    "persona": "원하는 만큼 모으기를 매월 31일로 설정한 개인사업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n부가세박스 원하는 만큼 모으기를 매월 31일 40만원으로 해놨어요. 오늘은 2026년 2월 28일이라 31일이 없는데, 이번 달 모으기가 오늘 실행되는 게 맞으면 처리해 주세요.\n\nExpected assistant response points:\n- 원하는 만큼 모으기는 고객이 정한 금액과 이체주기로 근거계좌에서 부가세박스로 이체한다고 안내한다.\n- 월 단위 지정일이 없는 달에는 해당 월 말일이 모으기 지정일이 된다고 설명한다.\n- 2026년 2월에는 31일이 없으므로 2월 28일에 400,000원을 연결 개인사업자통장에서 부가세박스로 이체한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_144": {
+              "customer_id": "cust_144",
+              "name": "월말일",
+              "date_of_birth": "1982-02-13",
+              "age": 44,
+              "residency": "KR",
+              "employment_type": "SOLE_PROPRIETOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_144": {
+              "business_id": "biz_144",
+              "customer_id": "cust_144",
+              "business_name": "월말일 식당",
+              "business_number": "123-45-67144",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "tax_type": "VAT_TAXABLE"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_biz_144": {
+              "account_id": "acct_biz_144",
+              "customer_id": "cust_144",
+              "product_name": "개인사업자통장",
+              "status": "ACTIVE",
+              "balance_krw": 1250000,
+              "currency": "KRW",
+              "linked_service_ids": [
+                "box_vat_144",
+                "auto_vat_custom_144"
+              ],
+              "restriction_flags": [],
+              "business_id": "biz_144"
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_vat_144": {
+              "box_id": "box_vat_144",
+              "customer_id": "cust_144",
+              "product_name": "부가세박스",
+              "base_account_id": "acct_biz_144",
+              "business_id": "biz_144",
+              "business_number": "123-45-67144",
+              "status": "ACTIVE",
+              "balance": 300000,
+              "currency": "KRW",
+              "limit_amount": 100000000,
+              "restriction_flags": []
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_vat_custom_144": {
+              "auto_transfer_id": "auto_vat_custom_144",
+              "source_account_id": "acct_biz_144",
+              "target_id": "box_vat_144",
+              "status": "ACTIVE",
+              "schedule": {
+                "type": "VAT_BOX_CUSTOM_AMOUNT",
+                "frequency": "MONTHLY",
+                "day_of_month": 31,
+                "missing_day_policy": "USE_MONTH_LAST_DAY",
+                "next_scheduled_date": "2026-02-28"
+              },
+              "amount_krw": 400000,
+              "success_count": 3,
+              "failed_count": 0,
+              "last_run_at": "2026-01-31T12:15:00+09:00"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_vat_box_monthly_31st_runs_on_feb_last_day_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "부가세박스 원하는 만큼 모으기 월 31일 없는 달 말일 지정일"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_monthly_31st_runs_on_feb_last_day_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_144"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_monthly_31st_runs_on_feb_last_day_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "auto_vat_custom_144",
+          "table": "auto_transfer_rules"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_monthly_31st_runs_on_feb_last_day_03",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "acct_biz_144",
+          "target_id": "box_vat_144",
+          "amount": 400000,
+          "currency": "KRW",
+          "transaction_type": "VAT_BOX_CUSTOM_AUTO_COLLECT"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_biz_144",
+          "target_id": "box_vat_144",
+          "amount": 400000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "auto_transfer_rules",
+          "record_id": "auto_vat_custom_144",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "원하는 만큼 모으기는 고객이 정한 금액과 이체주기로 근거계좌에서 부가세박스로 이체한다고 안내한다.",
+      "월 단위 지정일이 없는 달에는 해당 월 말일이 모으기 지정일이 된다고 설명한다.",
+      "2026년 2월에는 31일이 없으므로 2월 28일에 400,000원을 연결 개인사업자통장에서 부가세박스로 이체한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_부가세박스_003"
+  ],
+  "user_tools": []
+}

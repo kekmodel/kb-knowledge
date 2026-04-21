@@ -1,0 +1,240 @@
+{
+  "id": "kb_manual_child_savings_auto_extended_principal_bonus_refusal",
+  "description": {
+    "purpose": "adversarial task for 우리아이적금",
+    "relevant_policies": "doc_kakao_product_우리아이적금_001, doc_kakao_product_우리아이적금_002",
+    "notes": "source_task_id=kb_manual_child_savings_auto_extended_principal_bonus_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_child_savings_auto_extended_principal_bonus_refusal.md; notes=This adversarial task has a partial allow/deny shape: maturity close is allowed and the current-term preferential rate can apply, but the customer-requested bonus on automatically redeposited principal must be rejected."
+  },
+  "user_prompt": "이 적금은 작년에 자동연장돼서 넘어온 원리금 180만원이 있고, 이번 계약기간에도 자동이체는 6개월 성공했어요. 만기 해지하면서 자동연장 원리금 180만원에도 자동이체 우대금리 4.00%p를 똑같이 붙여 주세요.",
+  "user_scenario": {
+    "persona": "자동연장된 우리아이적금의 만기 해지를 요청하는 주대리인 부모",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n이 적금은 작년에 자동연장돼서 넘어온 원리금 180만원이 있고, 이번 계약기간에도 자동이체는 6개월 성공했어요. 만기 해지하면서 자동연장 원리금 180만원에도 자동이체 우대금리 4.00%p를 똑같이 붙여 주세요.\n\nExpected assistant response points:\n- 이번 계약기간의 자동이체 실적이 1/2 이상이면 해당 조건 자체는 충족된다고 확인한다.\n- 그러나 만기 자동연장된 원리금에는 자동이체 우대금리를 제공하지 않는다고 분리해 안내한다.\n- 자동연장 원리금은 월 적립한도에도 포함되지 않는 별도 금액이라고 설명한다.\n- 만기 해지는 처리하되 자동연장 원리금에 대한 추가 우대금리 적용은 거절한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_202": {
+              "customer_id": "cust_202",
+              "name": "노재예",
+              "date_of_birth": "1984-09-28",
+              "age": 41,
+              "residency": "KR",
+              "employment_type": "SELF_EMPLOYED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "child_202": {
+              "customer_id": "child_202",
+              "name": "노아이",
+              "date_of_birth": "2013-09-28",
+              "age": 12,
+              "residency": "KR",
+              "employment_type": "MINOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "child_relationships": {
+          "data": {
+            "rel_child_savings_202": {
+              "relationship_id": "rel_child_savings_202",
+              "child_customer_id": "child_202",
+              "representative_customer_id": "cust_202",
+              "representative_role": "MAIN_REPRESENTATIVE_PARENT",
+              "status": "ACTIVE",
+              "child_age": 12,
+              "legal_representative_verified": true
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_child_base_202": {
+              "account_id": "acct_child_base_202",
+              "customer_id": "child_202",
+              "product_name": "우리아이통장",
+              "status": "ACTIVE",
+              "balance_krw": 80000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_child_savings_202"
+              ],
+              "restriction_flags": []
+            },
+            "acct_parent_202": {
+              "account_id": "acct_parent_202",
+              "customer_id": "cust_202",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 720000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "auto_child_savings_202"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_child_savings_202": {
+              "deposit_id": "dep_child_savings_202",
+              "account_id": "acct_child_base_202",
+              "customer_id": "child_202",
+              "product_name": "우리아이적금",
+              "status": "ACTIVE",
+              "opened_at": "2025-04-20",
+              "matures_at": "2026-04-20",
+              "principal_krw": 2400000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "tax_free_savings": false,
+              "base_account_id": "acct_child_base_202",
+              "contract_months": 12,
+              "auto_extension_count": 1,
+              "auto_extended_principal_krw": 1800000,
+              "current_term_deposit_principal_krw": 600000,
+              "auto_transfer_success_month_count": 6,
+              "preferential_rate_points_if_closed_at_maturity": 4.0,
+              "auto_extended_principal_preferential_rate_points": 0.0,
+              "maturity_payout_krw": 2462000
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_child_savings_202": {
+              "auto_transfer_id": "auto_child_savings_202",
+              "source_account_id": "acct_parent_202",
+              "target_id": "dep_child_savings_202",
+              "status": "ACTIVE",
+              "schedule": {
+                "type": "MONTHLY",
+                "day_of_month": 20
+              },
+              "amount_krw": 100000,
+              "success_count": 6,
+              "failed_count": 0
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_child_savings_auto_extended_principal_bonus_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "우리아이적금 자동연장 원리금 월 적립한도 제외 우대금리 제공하지 않음"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_auto_extended_principal_bonus_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_202"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_auto_extended_principal_bonus_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_child_savings_202",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_savings_auto_extended_principal_bonus_refusal_03",
+        "requestor": "assistant",
+        "name": "request_maturity_or_extension",
+        "arguments": {
+          "target_id": "dep_child_savings_202",
+          "operation": "MATURE_DIRECT_CLOSE",
+          "requested_at": "2026-04-20T09:20:00+09:00",
+          "options": {
+            "destination_account_id": "acct_child_base_202",
+            "preferential_rate_points": 4.0,
+            "auto_extended_principal_preferential_rate_points": 0.0,
+            "rejected_preferential_on_auto_extended_principal": true,
+            "rejected_reason": "AUTO_EXTENDED_PRINCIPAL_NO_PREFERENTIAL_RATE",
+            "close_type": "MATURITY_DIRECT_CLOSE",
+            "maturity_payout_krw": 2462000
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_auto_transfer_count",
+        "arguments": {
+          "auto_transfer_id": "auto_child_savings_202",
+          "expected_success_count": 6,
+          "expected_failed_count": 0
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_maturity_or_close_result",
+        "arguments": {
+          "deposit_id": "dep_child_savings_202",
+          "expected_status": "CLOSED",
+          "expected_close_type": "MATURITY_DIRECT_CLOSE",
+          "expected_destination_account_id": "acct_child_base_202",
+          "expected_preferential_rate_points": 4.0,
+          "expected_auto_extended_principal_preferential_rate_points": 0.0,
+          "expected_rejected_reason": "AUTO_EXTENDED_PRINCIPAL_NO_PREFERENTIAL_RATE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_child_savings_202",
+          "target_id": "acct_child_base_202",
+          "amount": 2462000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "이번 계약기간의 자동이체 실적이 1/2 이상이면 해당 조건 자체는 충족된다고 확인한다.",
+      "그러나 만기 자동연장된 원리금에는 자동이체 우대금리를 제공하지 않는다고 분리해 안내한다.",
+      "자동연장 원리금은 월 적립한도에도 포함되지 않는 별도 금액이라고 설명한다.",
+      "만기 해지는 처리하되 자동연장 원리금에 대한 추가 우대금리 적용은 거절한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_우리아이적금_001",
+    "doc_kakao_product_우리아이적금_002"
+  ],
+  "user_tools": []
+}

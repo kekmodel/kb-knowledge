@@ -1,0 +1,130 @@
+{
+  "id": "kb_manual_credit_loan_comparison_consent_withdrawal_closes_service",
+  "description": {
+    "purpose": "success task for 신용대출 비교하기",
+    "relevant_policies": "doc_kakao_product_신용대출_비교하기_003",
+    "notes": "source_task_id=kb_manual_credit_loan_comparison_consent_withdrawal_closes_service; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_credit_loan_comparison_consent_withdrawal_closes_service.md; notes=This adds a service-lifecycle success path distinct from partner handoff. The customer request is allowed and produces a service closure, not a loan application or partner-loan mutation."
+  },
+  "user_prompt": "신용대출 비교하기 이용 동의를 지금 철회하고 싶어요. 서비스 이용계약을 바로 해지 처리해 주세요. 나중에 다시 필요하면 재가입할 수 있는지도 알려 주세요.",
+  "user_scenario": {
+    "persona": "대출비교서비스를 더 이상 쓰지 않으려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n신용대출 비교하기 이용 동의를 지금 철회하고 싶어요. 서비스 이용계약을 바로 해지 처리해 주세요. 나중에 다시 필요하면 재가입할 수 있는지도 알려 주세요.\n\nExpected assistant response points:\n- 이용자는 모바일앱 등으로 언제든지 서비스 이용 동의를 철회할 수 있다고 안내한다.\n- 동의 철회 시 이용계약이 즉시 해지된다고 설명하고 서비스 enrollment를 닫는다.\n- 해지 이후에도 언제든지 다시 가입 신청할 수 있다고 안내한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_160": {
+              "customer_id": "cust_160",
+              "name": "허철회",
+              "date_of_birth": "1994-05-05",
+              "age": 31,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_comparison_160": {
+              "service_id": "svc_comparison_160",
+              "customer_id": "cust_160",
+              "service_name": "신용대출 비교하기",
+              "status": "ACTIVE",
+              "linked_account_id": null,
+              "started_at": "2026-02-11T10:20:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "terms_consent_active": true,
+              "credit_info_consent_active": true,
+              "third_party_consent_active": true,
+              "reapply_allowed_after_close": true
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_credit_loan_comparison_consent_withdrawal_closes_service_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "신용대출 비교하기 서비스 해지 이용 동의 철회 즉시 해지 재가입 가능"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_comparison_consent_withdrawal_closes_service_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_160"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_comparison_consent_withdrawal_closes_service_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_comparison_160",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_comparison_consent_withdrawal_closes_service_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_160",
+          "target_id": "svc_comparison_160",
+          "close_type": "SERVICE_CONSENT_WITHDRAWAL",
+          "reason": "USER_WITHDREW_CREDIT_LOAN_COMPARISON_SERVICE_CONSENT"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_comparison_160",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_comparison_160",
+          "feature": "credit_loan_comparison",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "이용자는 모바일앱 등으로 언제든지 서비스 이용 동의를 철회할 수 있다고 안내한다.",
+      "동의 철회 시 이용계약이 즉시 해지된다고 설명하고 서비스 enrollment를 닫는다.",
+      "해지 이후에도 언제든지 다시 가입 신청할 수 있다고 안내한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_신용대출_비교하기_003"
+  ],
+  "user_tools": []
+}

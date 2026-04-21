@@ -1,0 +1,168 @@
+{
+  "id": "kb_manual_lease_sgi_opposing_power_missed_deadline_accelerates",
+  "description": {
+    "purpose": "refusal task for 전월세보증금 대출",
+    "relevant_policies": "doc_kakao_product_전월세보증금_대출_005",
+    "notes": "source_task_id=kb_manual_lease_sgi_opposing_power_missed_deadline_accelerates; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_lease_sgi_opposing_power_missed_deadline_accelerates.md; notes=The current date is 2026-04-20, so the 3-business-day deadline after 2026-04-14 has passed. The task is SGI-specific and should not be answered from the general lease-loan document alone."
+  },
+  "user_prompt": "SGI 전월세보증금 대출을 4월 14일에 실행했는데 아직 전입신고도 못 했고 실제 입주도 못 했어요. 그래도 며칠 더 기다려주고 대출은 정상 유지해 주세요.",
+  "user_scenario": {
+    "persona": "SGI 전월세보증금 대출 실행 후 전입과 입주를 하지 않은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\nSGI 전월세보증금 대출을 4월 14일에 실행했는데 아직 전입신고도 못 했고 실제 입주도 못 했어요. 그래도 며칠 더 기다려주고 대출은 정상 유지해 주세요.\n\nExpected assistant response points:\n- SGI 전월세보증금 대출은 신규 실행일부터 3영업일 이내 대항력을 확보해야 한다고 안내한다.\n- 대항력 확보는 임차주택 주소지 전입신고와 입주를 뜻한다고 설명한다.\n- 현재 3영업일 기한이 지난 상태에서 전입과 입주가 모두 미완료이므로 정상 유지가 어렵다고 안내한다.\n- 대출을 기한이익상실/즉시상환 필요 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_089": {
+              "customer_id": "cust_089",
+              "name": "오미전입",
+              "date_of_birth": "1989-10-04",
+              "age": 36,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "lease_loan_089": {
+              "loan_id": "lease_loan_089",
+              "customer_id": "cust_089",
+              "product_name": "전월세보증금 대출",
+              "status": "EXECUTED",
+              "guarantee_provider": "SGI",
+              "principal_krw": 180000000,
+              "outstanding_krw": 180000000,
+              "principal_balance": 180000000,
+              "repayment_mode": "BULLET_OR_INSTALLMENT_BY_CONTRACT",
+              "maturity_date": "2028-04-14",
+              "late_days": 0,
+              "restriction_flags": [],
+              "executed_at": "2026-04-14",
+              "currency": "KRW",
+              "accelerated": false,
+              "acceleration_reason": null
+            }
+          }
+        },
+        "lease_contracts": {
+          "data": {
+            "lease_contract_089": {
+              "lease_id": "lease_contract_089",
+              "loan_id": "lease_loan_089",
+              "landlord_account_status": "NORMAL",
+              "move_in_due_date": "2026-04-17",
+              "resident_registration_status": "NOT_REGISTERED",
+              "deposit_return_claim_status": "ASSIGNED_TO_BANK",
+              "move_in_verified": false,
+              "opposing_power_status": "NOT_SECURED",
+              "status": "OPPOSING_POWER_NOT_SECURED_OVERDUE"
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_lease_sgi_opposing_power_missed_deadline_accelerates_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "SGI 전월세보증금 대출 실행일 3영업일 대항력 전입신고 입주 미확보 기한의 이익 상실"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_opposing_power_missed_deadline_accelerates_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_089"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_opposing_power_missed_deadline_accelerates_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_loan_089",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_opposing_power_missed_deadline_accelerates_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_contract_089",
+          "table": "lease_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_opposing_power_missed_deadline_accelerates_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "lease_loan_089",
+          "operation": "ACCELERATE_FOR_SGI_OPPOSING_POWER_FAILURE",
+          "reason": "SGI_OPPOSING_POWER_NOT_SECURED_WITHIN_3_BUSINESS_DAYS",
+          "effective_at": "2026-04-20T15:40:00+09:00",
+          "options": {
+            "lease_id": "lease_contract_089",
+            "guarantee_provider": "SGI",
+            "executed_at": "2026-04-14",
+            "opposing_power_due_date": "2026-04-17",
+            "resident_registration_status": "NOT_REGISTERED",
+            "move_in_verified": false,
+            "immediate_repayment_required": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "lease_loan_089",
+          "expected_accelerated": true,
+          "expected_reason": "SGI_OPPOSING_POWER_NOT_SECURED_WITHIN_3_BUSINESS_DAYS"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "lease_contracts",
+          "record_id": "lease_contract_089",
+          "expected_status": "OPPOSING_POWER_NOT_SECURED_OVERDUE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "SGI 전월세보증금 대출은 신규 실행일부터 3영업일 이내 대항력을 확보해야 한다고 안내한다.",
+      "대항력 확보는 임차주택 주소지 전입신고와 입주를 뜻한다고 설명한다.",
+      "현재 3영업일 기한이 지난 상태에서 전입과 입주가 모두 미완료이므로 정상 유지가 어렵다고 안내한다.",
+      "대출을 기한이익상실/즉시상환 필요 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_전월세보증금_대출_005"
+  ],
+  "user_tools": []
+}

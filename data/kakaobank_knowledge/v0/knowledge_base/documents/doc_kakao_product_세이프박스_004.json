@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_세이프박스_004",
+  "title": "KakaoBank Product Facts: 세이프박스 (part 4)",
+  "content": "Product: 세이프박스\nScope: product-specific reviewed facts\nCommon policy links: deposit_basic, deposit_free_deposit, document_box\n\n## 수동 검수 fact\n\n- `close_transfer`: 해지 시 원금 및 결산이자는 연결된 카카오뱅크 입출금이자유로운예금으로 이체 처리\n  - Evidence: `세이프박스 상품설명서.md:109`\n- `deposit_protection`: 원금과 소정의 이자를 합해 본 은행의 다른 보호상품과 합산하여 1인당 1억원까지 보호\n  - Evidence: `세이프박스 상품설명서.md:113`\n- `special_terms_effective_latest`: 세이프박스 특약 최신 부칙은 2024년 10월 17일부터 시행\n  - Evidence: `세이프박스 특약.md:94`, `세이프박스 특약.md:98`\n- `special_terms_latest_new_customers`: 2024년 10월 17일 개정 내용은 시행일 이후 가입 고객에 한해 적용\n  - Evidence: `세이프박스 특약.md:98`\n- `compliance_review_validity`: 상품설명서 준법감시인 심의필 25-1637, 유효기간 2025.09.08.~2027.09.07.\n  - Evidence: `세이프박스 상품설명서.md:3`"
+}

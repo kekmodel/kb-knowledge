@@ -1,0 +1,154 @@
+{
+  "id": "kb_manual_credit_loan_comparison_partner_handoff_created",
+  "description": {
+    "purpose": "success task for 신용대출 비교하기",
+    "relevant_policies": "doc_kakao_product_신용대출_비교하기_001, doc_kakao_product_신용대출_비교하기_002, doc_kakao_product_신용대출_비교하기_003",
+    "notes": "source_task_id=kb_manual_credit_loan_comparison_partner_handoff_created; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_credit_loan_comparison_partner_handoff_created.md; notes=This success task rewards the narrow allowed mutation: a comparison-service partner handoff/application record. It must not be confused with a final loan contract, because KakaoBank has no authority to contract or execute the partner loan."
+  },
+  "user_prompt": "신용대출 비교하기에서 선라이즈캐피탈 조건이 연 6.70%, 한도 4,200만원으로 보입니다. 이 조건이 최종 확정은 아니고 제휴사 심사가 남는 건 이해했어요. 생활자금 4,000만원으로 제휴사 신청 서류 전달을 진행해 주세요.",
+  "user_scenario": {
+    "persona": "대출비교서비스 약관과 신용정보 제공 동의를 완료한 만 19세 이상 내국인 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n신용대출 비교하기에서 선라이즈캐피탈 조건이 연 6.70%, 한도 4,200만원으로 보입니다. 이 조건이 최종 확정은 아니고 제휴사 심사가 남는 건 이해했어요. 생활자금 4,000만원으로 제휴사 신청 서류 전달을 진행해 주세요.\n\nExpected assistant response points:\n- 대출비교서비스의 금리와 한도는 제휴사와 실제 계약을 체결하는 시점의 확정 조건이 아니라고 안내한다.\n- 카카오뱅크는 비교·중개와 신청 관련 서류 전달 범위에서 처리하고, 계약 심사·승인·실행은 제휴사가 수행한다고 설명한다.\n- 고객의 서비스 약관, 개인신용정보, 제3자 제공 동의와 기존 비교 세션을 확인한 뒤 제휴사 신청 handoff record를 만든다.\n- 카카오뱅크 직접 대출 계약이나 실행 loan record를 만들지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_029": {
+              "customer_id": "cust_029",
+              "name": "김비교",
+              "date_of_birth": "1991-07-22",
+              "age": 34,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "comparison_sessions": {
+          "data": {
+            "cmp_credit_029": {
+              "comparison_id": "cmp_credit_029",
+              "customer_id": "cust_029",
+              "service_type": "PERSONAL_CREDIT_LOAN",
+              "status": "QUOTE_VIEWED",
+              "partner_id": "partner_sunrise_capital",
+              "partner_name": "선라이즈캐피탈",
+              "partner_product_id": "sunrise_living_credit_2026",
+              "quoted_rate": "6.70%",
+              "quoted_limit_krw": 42000000,
+              "requested_amount_krw": 40000000,
+              "purpose": "생활자금",
+              "service_terms_consent": true,
+              "personal_credit_info_consent": true,
+              "third_party_info_consent": true,
+              "kakaobank_service_approved": true,
+              "quote_generated_at": "2026-04-20T10:05:00+09:00",
+              "quote_expires_at": "2026-04-20T23:59:59+09:00",
+              "final_contract_id": null
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {}
+        },
+        "loans": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_credit_loan_comparison_partner_handoff_created_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "신용대출 비교하기 제휴사 신청 서류 전달 금리 한도 확정 아님 계약체결권 없음"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_comparison_partner_handoff_created_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_029"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_comparison_partner_handoff_created_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "cmp_credit_029",
+          "table": "comparison_sessions"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_comparison_partner_handoff_created_03",
+        "requestor": "assistant",
+        "name": "create_loan_application",
+        "arguments": {
+          "application_id": "cmp_app_029",
+          "customer_id": "cust_029",
+          "product_name": "신용대출 비교하기",
+          "comparison_id": "cmp_credit_029",
+          "requested_amount_krw": 40000000,
+          "purpose": "생활자금",
+          "partner_id": "partner_sunrise_capital",
+          "expected_status": "PARTNER_HANDOFF_CREATED"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_application_decision",
+        "arguments": {
+          "application_id": "cmp_app_029",
+          "expected_status": "PARTNER_HANDOFF_CREATED",
+          "expected_reason": "QUOTE_NON_FINAL_PARTNER_CONTRACT_REQUIRED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "comparison_sessions",
+          "record_id": "cmp_credit_029",
+          "field_names": [
+            "quoted_rate",
+            "quoted_limit_krw",
+            "final_contract_id"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "대출비교서비스의 금리와 한도는 제휴사와 실제 계약을 체결하는 시점의 확정 조건이 아니라고 안내한다.",
+      "카카오뱅크는 비교·중개와 신청 관련 서류 전달 범위에서 처리하고, 계약 심사·승인·실행은 제휴사가 수행한다고 설명한다.",
+      "고객의 서비스 약관, 개인신용정보, 제3자 제공 동의와 기존 비교 세션을 확인한 뒤 제휴사 신청 handoff record를 만든다.",
+      "카카오뱅크 직접 대출 계약이나 실행 loan record를 만들지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_신용대출_비교하기_001",
+    "doc_kakao_product_신용대출_비교하기_002",
+    "doc_kakao_product_신용대출_비교하기_003"
+  ],
+  "user_tools": []
+}

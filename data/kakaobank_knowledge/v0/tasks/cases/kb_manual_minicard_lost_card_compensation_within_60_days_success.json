@@ -1,0 +1,194 @@
+{
+  "id": "kb_manual_minicard_lost_card_compensation_within_60_days_success",
+  "description": {
+    "purpose": "success task for mini카드",
+    "relevant_policies": "doc_kakao_common_policy_card_common_003",
+    "notes": "source_task_id=kb_manual_minicard_lost_card_compensation_within_60_days_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_minicard_lost_card_compensation_within_60_days_success.md; notes=The task separates the report action from the compensation dispute action. The decisive edge is that the transaction is within the 60-day lookback and no member-fault exception is present."
+  },
+  "user_prompt": "오늘 mini카드 도난 신고를 바로 했어요. 3월 25일에 제가 모르는 사람이 8만 7천원을 쓴 내역이 있는데, 신고일 기준 60일 안쪽이면 보상 접수를 해줄 수 있나요?",
+  "user_scenario": {
+    "persona": "mini카드를 도난당한 뒤 즉시 신고한 만 16세 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘 mini카드 도난 신고를 바로 했어요. 3월 25일에 제가 모르는 사람이 8만 7천원을 쓴 내역이 있는데, 신고일 기준 60일 안쪽이면 보상 접수를 해줄 수 있나요?\n\nExpected assistant response points:\n- 분실 또는 도난 시 즉시 모바일앱이나 고객센터로 신고해야 한다고 확인한다.\n- 신고 접수시점부터 60일 전 이후 제3자 사용 손해는 배상 대상이 될 수 있다고 안내한다.\n- 거래일이 신고일 기준 60일 안쪽이고 회원 귀책 사유가 없는 상태임을 확인한다.\n- 카드를 분실/도난 신고 상태로 바꾸고 해당 거래에 대한 보상 조사/이의 접수를 남긴다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_086": {
+              "customer_id": "cust_086",
+              "name": "박도난",
+              "date_of_birth": "2009-05-09",
+              "age": 16,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_086": {
+              "wallet_id": "mini_wallet_086",
+              "customer_id": "cust_086",
+              "status": "ACTIVE",
+              "balance_krw": 42000,
+              "daily_spend_used_krw": 87000,
+              "monthly_spend_used_krw": 187000,
+              "age_band": "AGE_14_TO_18"
+            }
+          }
+        },
+        "cards": {
+          "data": {
+            "mini_card_086": {
+              "card_id": "mini_card_086",
+              "customer_id": "cust_086",
+              "linked_account_or_wallet_id": "mini_wallet_086",
+              "product_name": "mini카드",
+              "status": "ACTIVE",
+              "issued_at": "2025-11-01",
+              "expires_at": "2030-10-31",
+              "signed_by_member": true,
+              "daily_limit_krw": 500000,
+              "monthly_limit_krw": 2000000,
+              "lost_reported_at": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {
+            "txn_mini_086_001": {
+              "transaction_id": "txn_mini_086_001",
+              "customer_id": "cust_086",
+              "card_id": "mini_card_086",
+              "wallet_id": "mini_wallet_086",
+              "type": "CARD_PURCHASE",
+              "status": "POSTED",
+              "amount_krw": 87000,
+              "occurred_at": "2026-03-25T18:42:00+09:00",
+              "merchant_name": "서울문구센터",
+              "authorized_by_customer": false,
+              "actor_relationship": "UNKNOWN_THIRD_PARTY",
+              "disputed": false
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_minicard_lost_card_compensation_within_60_days_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "mini카드 분실 도난 신고 60일 전 이후 제3자 사용 손해 배상"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_compensation_within_60_days_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_086"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_compensation_within_60_days_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_card_086",
+          "table": "cards"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_compensation_within_60_days_success_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "txn_mini_086_001",
+          "table": "transactions"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_compensation_within_60_days_success_04",
+        "requestor": "assistant",
+        "name": "update_card_state",
+        "arguments": {
+          "card_id": "mini_card_086",
+          "operation": "REPORT_LOST_CARD",
+          "reason": "CUSTOMER_REPORTED_STOLEN_CARD_IMMEDIATELY",
+          "requested_at": "2026-04-20T15:10:00+09:00",
+          "new_status": "LOST_REPORTED",
+          "customer_id": "cust_086"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_lost_card_compensation_within_60_days_success_05",
+        "requestor": "assistant",
+        "name": "file_dispute_or_objection",
+        "arguments": {
+          "customer_id": "cust_086",
+          "target_type": "transaction",
+          "target_id": "txn_mini_086_001",
+          "reason": "LOST_CARD_COMPENSATION_ELIGIBLE_WITHIN_60_DAYS",
+          "options": {
+            "card_id": "mini_card_086",
+            "reported_at": "2026-04-20T15:10:00+09:00",
+            "transaction_occurred_at": "2026-03-25T18:42:00+09:00",
+            "within_60_days": true,
+            "member_fault_flags": [],
+            "investigation_status": "PENDING"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "cards",
+          "record_id": "mini_card_086",
+          "expected_status": "LOST_REPORTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_dispute_logged",
+        "arguments": {
+          "customer_id": "cust_086",
+          "target_id": "txn_mini_086_001",
+          "reason": "LOST_CARD_COMPENSATION_ELIGIBLE_WITHIN_60_DAYS"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "분실 또는 도난 시 즉시 모바일앱이나 고객센터로 신고해야 한다고 확인한다.",
+      "신고 접수시점부터 60일 전 이후 제3자 사용 손해는 배상 대상이 될 수 있다고 안내한다.",
+      "거래일이 신고일 기준 60일 안쪽이고 회원 귀책 사유가 없는 상태임을 확인한다.",
+      "카드를 분실/도난 신고 상태로 바꾸고 해당 거래에 대한 보상 조사/이의 접수를 남긴다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_common_policy_card_common_003"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_해외송금_보내기_005",
+  "title": "KakaoBank Product Facts: 해외송금 보내기 (part 5)",
+  "content": "Product: 해외송금 보내기\nScope: product-specific reviewed facts\nCommon policy links: remittance_common\n\n## 수동 검수 fact\n\n- `dispute_help`: 분쟁 발생 시 금융감독원 1332 등에 도움 요청 가능\n  - Evidence: `해외송금 서비스 설명서.md:134`"
+}

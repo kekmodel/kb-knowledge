@@ -1,0 +1,158 @@
+{
+  "id": "kb_manual_lease_resident_document_failure_accelerates",
+  "description": {
+    "purpose": "refusal task for 전월세보증금 대출",
+    "relevant_policies": "doc_kakao_product_전월세보증금_대출_004, doc_kakao_product_전월세보증금_대출_005",
+    "notes": "source_task_id=kb_manual_lease_resident_document_failure_accelerates; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_lease_resident_document_failure_accelerates.md; notes=This task extends the earlier user-tool document submission case with the negative post-deadline consequence."
+  },
+  "user_prompt": "전월세보증금 대출 실행한 지 한 달이 넘었는데 전입신고 주민등록등본을 아직 못 냈어요. 제출기한은 지났지만 대출은 그대로 정상 유지해 주세요.",
+  "user_scenario": {
+    "persona": "전월세보증금 대출 실행 후 주민등록등본 제출기한을 넘긴 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n전월세보증금 대출 실행한 지 한 달이 넘었는데 전입신고 주민등록등본을 아직 못 냈어요. 제출기한은 지났지만 대출은 그대로 정상 유지해 주세요.\n\nExpected assistant response points:\n- 전입신고가 기재된 주민등록등본은 대출 실행일부터 1개월 이내 제출해야 한다고 안내한다.\n- 객관적으로 적정한 조치 없이 자료 제출의무를 이행하지 못하면 기한의 이익을 상실할 수 있다고 설명한다.\n- 문서 미제출 상태를 확인하고 대출을 기한이익상실/즉시상환 필요 상태로 변경한다.\n- 문서 제출 상태는 미제출 또는 기한초과로 남긴다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_085": {
+              "customer_id": "cust_085",
+              "name": "문미제",
+              "date_of_birth": "1982-03-01",
+              "age": 44,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "lease_loan_085": {
+              "loan_id": "lease_loan_085",
+              "customer_id": "cust_085",
+              "product_name": "전월세보증금 대출",
+              "status": "EXECUTED",
+              "principal_krw": 150000000,
+              "outstanding_krw": 150000000,
+              "principal_balance": 150000000,
+              "repayment_mode": "BULLET_OR_INSTALLMENT_BY_CONTRACT",
+              "maturity_date": "2028-03-15",
+              "late_days": 0,
+              "restriction_flags": [],
+              "executed_at": "2026-03-15",
+              "currency": "KRW",
+              "accelerated": false,
+              "acceleration_reason": null
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_doc_085": {
+              "document_id": "req_doc_085",
+              "customer_id": "cust_085",
+              "loan_id": "lease_loan_085",
+              "document_type": "RESIDENT_REGISTRATION_WITH_MOVE_IN",
+              "status": "OVERDUE",
+              "deadline": "2026-04-15",
+              "submitted_at": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_lease_resident_document_failure_accelerates_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "전월세보증금 대출 주민등록등본 1개월 이내 제출 미이행 기한의 이익 상실"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_resident_document_failure_accelerates_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_085"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_resident_document_failure_accelerates_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_loan_085",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_resident_document_failure_accelerates_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "lease_loan_085",
+          "operation": "ACCELERATE_FOR_DOCUMENT_FAILURE",
+          "reason": "RESIDENT_REGISTRATION_DOCUMENT_NOT_SUBMITTED_WITHIN_ONE_MONTH",
+          "effective_at": "2026-04-20T14:00:00+09:00",
+          "options": {
+            "document_id": "req_doc_085",
+            "document_type": "RESIDENT_REGISTRATION_WITH_MOVE_IN",
+            "deadline": "2026-04-15",
+            "document_status": "OVERDUE",
+            "immediate_repayment_required": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "lease_loan_085",
+          "expected_accelerated": true,
+          "expected_reason": "RESIDENT_REGISTRATION_DOCUMENT_NOT_SUBMITTED_WITHIN_ONE_MONTH"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "lease_loan_085",
+          "document_type": "RESIDENT_REGISTRATION_WITH_MOVE_IN",
+          "expected_status": "OVERDUE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "전입신고가 기재된 주민등록등본은 대출 실행일부터 1개월 이내 제출해야 한다고 안내한다.",
+      "객관적으로 적정한 조치 없이 자료 제출의무를 이행하지 못하면 기한의 이익을 상실할 수 있다고 설명한다.",
+      "문서 미제출 상태를 확인하고 대출을 기한이익상실/즉시상환 필요 상태로 변경한다.",
+      "문서 제출 상태는 미제출 또는 기한초과로 남긴다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_전월세보증금_대출_004",
+    "doc_kakao_product_전월세보증금_대출_005"
+  ],
+  "user_tools": []
+}

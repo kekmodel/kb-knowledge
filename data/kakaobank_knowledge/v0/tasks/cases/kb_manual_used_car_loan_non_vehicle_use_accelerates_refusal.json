@@ -1,0 +1,207 @@
+{
+  "id": "kb_manual_used_car_loan_non_vehicle_use_accelerates_refusal",
+  "description": {
+    "purpose": "refusal task for 중고차 구매대출",
+    "relevant_policies": "doc_kakao_product_중고차_구매대출_001",
+    "notes": "source_task_id=kb_manual_used_car_loan_non_vehicle_use_accelerates_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_used_car_loan_non_vehicle_use_accelerates_refusal.md; notes=This refusal separates a non-vehicle-use violation from title-transfer delay or sale cancellation. The decisive point is confirmed use of funds outside the car purchase, so the loan must be accelerated even though the customer promises to replenish the money later."
+  },
+  "user_prompt": "중고차 구매대출을 실행받았는데 딜러 계약금만 먼저 내고 나머지 600만원은 급해서 생활비와 보험료로 썼습니다. 이번 주 안에 다른 돈으로 다시 채워서 차를 살 예정이니 목적 외 사용으로 보지 말고 대출을 정상 유지해 주세요.",
+  "user_scenario": {
+    "persona": "중고차 구매대출 실행 후 대출금 일부를 차량 구입 외 용도로 사용한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n중고차 구매대출을 실행받았는데 딜러 계약금만 먼저 내고 나머지 600만원은 급해서 생활비와 보험료로 썼습니다. 이번 주 안에 다른 돈으로 다시 채워서 차를 살 예정이니 목적 외 사용으로 보지 말고 대출을 정상 유지해 주세요.\n\nExpected assistant response points:\n- 중고차 구매대출금은 자동차를 구입하기 위한 목적으로 사용해야 한다고 안내한다.\n- 이미 대출금 일부를 생활비나 보험료 등 자동차 구입 외 용도로 사용한 사실이 확인되면 나중에 보충하겠다는 의사와 관계없이 약정 위반이라고 설명한다.\n- 자동차 구입 외 용도 사용은 기한의 이익 상실 및 즉시변제 사유라고 안내한다.\n- 대출 정상 유지 요청은 거절하고, 해당 대출을 즉시변제 필요 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_050": {
+              "customer_id": "cust_050",
+              "name": "최용도",
+              "date_of_birth": "1986-09-13",
+              "age": 39,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "used_car_loan_050": {
+              "loan_id": "used_car_loan_050",
+              "customer_id": "cust_050",
+              "product_name": "중고차 구매대출",
+              "status": "EXECUTED",
+              "principal_krw": 26000000,
+              "outstanding_krw": 26000000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2031-04-12",
+              "late_days": 0,
+              "restriction_flags": [
+                "VEHICLE_PURCHASE_MONITORING"
+              ],
+              "executed_at": "2026-04-12T10:30:00+09:00",
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false
+            }
+          }
+        },
+        "vehicle_purchase_cases": {
+          "data": {
+            "vehicle_case_050": {
+              "vehicle_case_id": "vehicle_case_050",
+              "loan_id": "used_car_loan_050",
+              "customer_id": "cust_050",
+              "dealer_id": "dealer_auto_050",
+              "payment_status": "PARTIALLY_USED_OUTSIDE_PURCHASE",
+              "title_transfer_due_date": "2026-04-27",
+              "title_transfer_status": "NOT_REGISTERED",
+              "sale_contract_status": "ACTIVE",
+              "misuse_confirmed_at": "2026-04-20T09:20:00+09:00",
+              "misuse_amount_krw": 6000000,
+              "misuse_categories": [
+                "LIVING_EXPENSE",
+                "INSURANCE_PREMIUM"
+              ],
+              "customer_promised_replenishment": true,
+              "status": "NON_VEHICLE_USE_CONFIRMED"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_vehicle_title_050": {
+              "document_id": "req_vehicle_title_050",
+              "customer_id": "cust_050",
+              "target_type": "loan",
+              "target_id": "used_car_loan_050",
+              "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+              "status": "PENDING",
+              "due_date": "2026-04-27",
+              "submitted_at": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_used_car_loan_non_vehicle_use_accelerates_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "중고차 구매대출 자동차 구입 외 용도 사용 기한의 이익 상실 즉시 변제"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_non_vehicle_use_accelerates_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_050"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_non_vehicle_use_accelerates_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "used_car_loan_050",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_non_vehicle_use_accelerates_refusal_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "vehicle_case_050",
+          "table": "vehicle_purchase_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_non_vehicle_use_accelerates_refusal_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "used_car_loan_050",
+          "operation": "ACCELERATE_IMMEDIATE_REPAYMENT",
+          "reason": "USED_CAR_LOAN_FUNDS_USED_OUTSIDE_VEHICLE_PURCHASE",
+          "effective_at": "2026-04-20T09:30:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "used_car_loan_050",
+          "expected_accelerated": true,
+          "expected_reason": "USED_CAR_LOAN_FUNDS_USED_OUTSIDE_VEHICLE_PURCHASE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "used_car_loan_050",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "vehicle_purchase_cases",
+          "record_id": "vehicle_case_050",
+          "expected_status": "NON_VEHICLE_USE_REPAYMENT_REQUIRED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "used_car_loan_050",
+          "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+          "expected_status": "PENDING"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "중고차 구매대출금은 자동차를 구입하기 위한 목적으로 사용해야 한다고 안내한다.",
+      "이미 대출금 일부를 생활비나 보험료 등 자동차 구입 외 용도로 사용한 사실이 확인되면 나중에 보충하겠다는 의사와 관계없이 약정 위반이라고 설명한다.",
+      "자동차 구입 외 용도 사용은 기한의 이익 상실 및 즉시변제 사유라고 안내한다.",
+      "대출 정상 유지 요청은 거절하고, 해당 대출을 즉시변제 필요 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_중고차_구매대출_001"
+  ],
+  "user_tools": []
+}

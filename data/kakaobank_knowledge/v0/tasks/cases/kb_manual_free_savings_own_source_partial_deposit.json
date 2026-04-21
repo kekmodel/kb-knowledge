@@ -1,0 +1,212 @@
+{
+  "id": "kb_manual_free_savings_own_source_partial_deposit",
+  "description": {
+    "purpose": "success task for 자유적금",
+    "relevant_policies": "doc_kakao_product_자유적금_001",
+    "notes": "source_task_id=kb_manual_free_savings_own_source_partial_deposit; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_free_savings_own_source_partial_deposit.md; notes=This success task is a partial-allow case. The agent must not use a non-owner source account to fill the last 100,000 KRW of monthly capacity, even though the customer's stated goal is to maximize this month's contribution."
+  },
+  "user_prompt": "이번 달 자유적금에 이미 40만원 넣었어요. 월 300만원 한도까지 최대한 더 넣고 싶은데, 제 카카오뱅크 입출금통장에 250만원이 있고 배우자 명의 카카오뱅크 계좌에서 50만원을 보태도 된다고 했어요. 가능한 만큼 지금 넣어 주세요.",
+  "user_scenario": {
+    "persona": "이번 달 자유적금 월 납입한도를 최대한 채우려는 직장인 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n이번 달 자유적금에 이미 40만원 넣었어요. 월 300만원 한도까지 최대한 더 넣고 싶은데, 제 카카오뱅크 입출금통장에 250만원이 있고 배우자 명의 카카오뱅크 계좌에서 50만원을 보태도 된다고 했어요. 가능한 만큼 지금 넣어 주세요.\n\nExpected assistant response points:\n- 자유적금 월 적립한도는 1,000원 이상 월 3,000,000원 이하라고 안내한다.\n- 이번 달 이미 400,000원을 납입했으므로 월 한도상 추가 가능 금액은 2,600,000원이라고 계산한다.\n- 자유적금은 본인의 실명확인된 카카오뱅크 입출금이자유로운예금을 통해서만 납입할 수 있으므로 배우자 명의 계좌에서는 납입할 수 없다고 설명한다.\n- 본인 명의 입출금통장 잔액 2,500,000원만 자유적금으로 납입하고, 배우자 계좌의 500,000원은 사용하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_037": {
+              "customer_id": "cust_037",
+              "name": "서자유",
+              "date_of_birth": "1992-08-04",
+              "age": 33,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "cust_037_spouse": {
+              "customer_id": "cust_037_spouse",
+              "name": "서배우",
+              "date_of_birth": "1991-02-17",
+              "age": 35,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_free_base_037": {
+              "account_id": "acct_free_base_037",
+              "customer_id": "cust_037",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 2500000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_free_savings_037"
+              ],
+              "restriction_flags": []
+            },
+            "acct_spouse_base_037": {
+              "account_id": "acct_spouse_base_037",
+              "customer_id": "cust_037_spouse",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 500000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_free_savings_037": {
+              "deposit_id": "dep_free_savings_037",
+              "account_id": "acct_free_base_037",
+              "customer_id": "cust_037",
+              "product_name": "자유적금",
+              "status": "ACTIVE",
+              "opened_at": "2025-10-20",
+              "matures_at": "2026-10-20",
+              "principal_krw": 3200000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_free_base_037",
+              "monthly_deposit_limit_krw": 3000000,
+              "current_month_contribution_krw": 400000,
+              "payment_source_restriction_effective": true
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_free_savings_own_source_partial_deposit_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "자유적금 월 적립한도 300만원 본인 실명확인 카카오뱅크 입출금예금 통해서만 납입"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_own_source_partial_deposit_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_037"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_own_source_partial_deposit_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_free_savings_037",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_own_source_partial_deposit_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_free_base_037",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_own_source_partial_deposit_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "acct_free_base_037",
+          "target_id": "dep_free_savings_037",
+          "amount": 2500000,
+          "currency": "KRW",
+          "transaction_type": "FREE_SAVINGS_AD_HOC_DEPOSIT",
+          "new_current_month_contribution_krw": 2900000,
+          "rejected_source_account_ids": [
+            "acct_spouse_base_037"
+          ],
+          "rejection_reason_for_other_sources": "SOURCE_ACCOUNT_NOT_CUSTOMER_OWN_VERIFIED_KAKAOBANK_DEMAND_DEPOSIT"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_free_base_037",
+          "target_id": "dep_free_savings_037",
+          "amount": 2500000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_spouse_base_037",
+          "field_names": [
+            "status",
+            "balance_krw",
+            "linked_service_ids",
+            "restriction_flags"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "deposit_contracts",
+          "record_id": "dep_free_savings_037",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "자유적금 월 적립한도는 1,000원 이상 월 3,000,000원 이하라고 안내한다.",
+      "이번 달 이미 400,000원을 납입했으므로 월 한도상 추가 가능 금액은 2,600,000원이라고 계산한다.",
+      "자유적금은 본인의 실명확인된 카카오뱅크 입출금이자유로운예금을 통해서만 납입할 수 있으므로 배우자 명의 계좌에서는 납입할 수 없다고 설명한다.",
+      "본인 명의 입출금통장 잔액 2,500,000원만 자유적금으로 납입하고, 배우자 계좌의 500,000원은 사용하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_자유적금_001"
+  ],
+  "user_tools": []
+}

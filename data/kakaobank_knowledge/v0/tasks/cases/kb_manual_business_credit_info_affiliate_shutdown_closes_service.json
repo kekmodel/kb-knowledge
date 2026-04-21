@@ -1,0 +1,164 @@
+{
+  "id": "kb_manual_business_credit_info_affiliate_shutdown_closes_service",
+  "description": {
+    "purpose": "success task for 내 사업장 신용정보",
+    "relevant_policies": "doc_kakao_product_내_사업장_신용정보_001, doc_kakao_product_내_사업장_신용정보_002",
+    "notes": "source_task_id=kb_manual_business_credit_info_affiliate_shutdown_closes_service; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_info_affiliate_shutdown_closes_service.md; notes=The decisive state is not a customer-initiated cancellation but the notified affiliate-service stop. The task requires both the 30-day notice fact and the deemed-termination fact."
+  },
+  "user_prompt": "내 사업장 신용정보가 제휴 신용정보회사 계약 종료 때문에 오늘 중단된다고 30일 전에 안내받았어요. 제가 계속 쓰고 싶다고 해도 오늘 서비스 계약은 어떻게 처리되는지 확인해 주세요.",
+  "user_scenario": {
+    "persona": "제휴 종료 안내를 30일 전에 받은 기존 서비스 이용자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n내 사업장 신용정보가 제휴 신용정보회사 계약 종료 때문에 오늘 중단된다고 30일 전에 안내받았어요. 제가 계속 쓰고 싶다고 해도 오늘 서비스 계약은 어떻게 처리되는지 확인해 주세요.\n\nExpected assistant response points:\n- 제휴 신용정보회사 관련 부득이한 사유가 있으면 서비스 제공을 중단할 수 있다고 안내한다.\n- 이 사유의 중단은 서비스 중단 30일 전까지 게시 및 통지해야 한다고 확인한다.\n- 통지된 중단 시점에는 이용계약이 해지된 것으로 간주되므로 서비스 enrollment를 닫는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_092": {
+              "customer_id": "cust_092",
+              "name": "고중단",
+              "date_of_birth": "1979-05-08",
+              "age": 46,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_092": {
+              "business_id": "biz_092",
+              "customer_id": "cust_092",
+              "business_name": "고중단 식당",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "business_purpose": "RESTAURANT"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_biz_credit_info_092": {
+              "service_id": "svc_biz_credit_info_092",
+              "customer_id": "cust_092",
+              "service_name": "내 사업장 신용정보",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_base_092",
+              "business_id": "biz_092",
+              "started_at": "2025-11-20T10:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "affiliate_stop_notice_posted_at": "2026-03-21T09:00:00+09:00",
+              "notified_stop_at": "2026-04-20T09:00:00+09:00",
+              "affiliate_stop_reason": "AFFILIATE_CONTRACT_ENDED"
+            }
+          }
+        },
+        "consents": {
+          "data": {
+            "consent_biz_credit_info_terms_092": {
+              "consent_id": "consent_biz_credit_info_terms_092",
+              "customer_id": "cust_092",
+              "consent_type": "BUSINESS_CREDIT_INFO_KAKAOBANK_TERMS",
+              "status": "ACTIVE",
+              "effective_at": "2025-11-20T10:00:00+09:00",
+              "expires_at": null
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_info_affiliate_shutdown_closes_service_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 사업장 신용정보 제휴 종료 서비스 중단 30일 통지 해지 간주"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_affiliate_shutdown_closes_service_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_092"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_affiliate_shutdown_closes_service_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_biz_credit_info_092",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_affiliate_shutdown_closes_service_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_092",
+          "target_id": "svc_biz_credit_info_092",
+          "close_type": "AFFILIATE_SERVICE_STOP",
+          "reason": "AFFILIATE_CONTRACT_ENDED_AFTER_30_DAY_NOTICE",
+          "options": {
+            "notice_posted_at": "2026-03-21T09:00:00+09:00",
+            "effective_at": "2026-04-20T09:00:00+09:00",
+            "contract_deemed_terminated": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_biz_credit_info_092",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_biz_credit_info_092",
+          "feature": "SOHO_CREDIT_SCORE",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "제휴 신용정보회사 관련 부득이한 사유가 있으면 서비스 제공을 중단할 수 있다고 안내한다.",
+      "이 사유의 중단은 서비스 중단 30일 전까지 게시 및 통지해야 한다고 확인한다.",
+      "통지된 중단 시점에는 이용계약이 해지된 것으로 간주되므로 서비스 enrollment를 닫는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_사업장_신용정보_001",
+    "doc_kakao_product_내_사업장_신용정보_002"
+  ],
+  "user_tools": []
+}

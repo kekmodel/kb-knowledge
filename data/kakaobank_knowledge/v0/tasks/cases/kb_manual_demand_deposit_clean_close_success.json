@@ -1,0 +1,118 @@
+{
+  "id": "kb_manual_demand_deposit_clean_close_success",
+  "description": {
+    "purpose": "success task for 입출금통장",
+    "relevant_policies": "doc_kakao_product_입출금통장_002, doc_kakao_product_입출금통장_003",
+    "notes": "source_task_id=kb_manual_demand_deposit_clean_close_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_demand_deposit_clean_close_success.md; notes=This is the positive counterpart to the linked-service close refusal. It uses a zero-balance account to avoid inventing payout mechanics not stated in the selected source."
+  },
+  "user_prompt": "입출금통장 잔액은 0원이고 자동이체, 카드 결제계좌, 세이프박스, 대출 연결도 전부 정리했어요. 이제 모바일앱으로 이 통장을 해지해 주세요.",
+  "user_scenario": {
+    "persona": "연결 항목을 모두 정리한 뒤 입출금통장을 닫으려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n입출금통장 잔액은 0원이고 자동이체, 카드 결제계좌, 세이프박스, 대출 연결도 전부 정리했어요. 이제 모바일앱으로 이 통장을 해지해 주세요.\n\nExpected assistant response points:\n- 입출금통장은 모바일앱을 통해 해지할 수 있다고 안내한다.\n- 자동이체와 카드 결제계좌 등 결제성 거래가 모두 해제되어야 한다는 조건을 확인한다.\n- 실명확인을 근거로 개설된 상품이 모두 해지되어 있고 대출 연결계좌도 아니므로 해지 가능하다고 확인한다.\n- 입출금통장을 CLOSED 상태로 처리한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_217": {
+              "customer_id": "cust_217",
+              "name": "오정리",
+              "date_of_birth": "1988-12-21",
+              "age": 37,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_demand_217": {
+              "account_id": "acct_demand_217",
+              "customer_id": "cust_217",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 0,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": [],
+              "linked_loan_id": null
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_demand_deposit_clean_close_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "입출금통장 모바일앱 해지 자동이체 카드 결제계좌 실명확인 기반 상품 대출 연결계좌 아닌 경우"
+        }
+      },
+      {
+        "action_id": "kb_manual_demand_deposit_clean_close_success_01",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_demand_217",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_demand_deposit_clean_close_success_02",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_217",
+          "target_id": "acct_demand_217",
+          "close_type": "CLOSE_DEMAND_DEPOSIT_ACCOUNT",
+          "reason": "NO_PAYMENT_PRODUCT_OR_LOAN_LINKS_REMAIN"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_demand_217",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "입출금통장은 모바일앱을 통해 해지할 수 있다고 안내한다.",
+      "자동이체와 카드 결제계좌 등 결제성 거래가 모두 해제되어야 한다는 조건을 확인한다.",
+      "실명확인을 근거로 개설된 상품이 모두 해지되어 있고 대출 연결계좌도 아니므로 해지 가능하다고 확인한다.",
+      "입출금통장을 CLOSED 상태로 처리한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_입출금통장_002",
+    "doc_kakao_product_입출금통장_003"
+  ],
+  "user_tools": []
+}

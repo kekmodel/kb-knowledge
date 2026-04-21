@@ -1,0 +1,185 @@
+{
+  "id": "kb_manual_my_credit_info_reapply_after_cancel_success",
+  "description": {
+    "purpose": "success task for 내 신용정보",
+    "relevant_policies": "doc_kakao_product_내_신용정보_001, doc_kakao_product_내_신용정보_002",
+    "notes": "source_task_id=kb_manual_my_credit_info_reapply_after_cancel_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_my_credit_info_reapply_after_cancel_success.md; notes=This task pairs with the consent-withdrawal closure task. Cancellation does not permanently block reapplication, but the same consent and approval prerequisites must be satisfied again."
+  },
+  "user_prompt": "전에 내 신용정보 서비스를 해지했는데 다시 가입하고 싶어요. 내국인 실명 개인이고 카카오뱅크 약관, 개인정보 동의서, KCB 올크레딧 약관, NICE 지키미 회원 약관에 모두 다시 동의합니다.",
+  "user_scenario": {
+    "persona": "이전에 내 신용정보를 해지했지만 다시 모든 약관에 동의하고 쓰려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n전에 내 신용정보 서비스를 해지했는데 다시 가입하고 싶어요. 내국인 실명 개인이고 카카오뱅크 약관, 개인정보 동의서, KCB 올크레딧 약관, NICE 지키미 회원 약관에 모두 다시 동의합니다.\n\nExpected assistant response points:\n- 내 신용정보는 해지 이후에도 언제든지 다시 가입 신청할 수 있다고 안내한다.\n- 재가입에도 카카오뱅크 약관, 개인정보 동의서, KCB/NICE 약관 동의와 카카오뱅크 승인이 필요하다고 확인한다.\n- 조건이 충족되면 새 service enrollment와 새 KCB/NICE consent를 활성 상태로 만든다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_118": {
+              "customer_id": "cust_118",
+              "name": "재신청",
+              "date_of_birth": "1990-08-21",
+              "age": 35,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {
+            "consent_my_credit_terms_118_old": {
+              "consent_id": "consent_my_credit_terms_118_old",
+              "customer_id": "cust_118",
+              "consent_type": "MY_CREDIT_INFO_KAKAOBANK_TERMS",
+              "status": "WITHDRAWN",
+              "effective_at": "2025-10-03T10:00:00+09:00",
+              "expires_at": "2026-02-12T14:00:00+09:00"
+            },
+            "consent_kcb_allcredit_118_old": {
+              "consent_id": "consent_kcb_allcredit_118_old",
+              "customer_id": "cust_118",
+              "consent_type": "KCB_ALLCREDIT_TERMS",
+              "status": "WITHDRAWN",
+              "effective_at": "2025-10-03T10:00:00+09:00",
+              "expires_at": "2026-02-12T14:00:00+09:00"
+            },
+            "consent_nice_jikimi_118_old": {
+              "consent_id": "consent_nice_jikimi_118_old",
+              "customer_id": "cust_118",
+              "consent_type": "NICE_JIKIMI_TERMS",
+              "status": "WITHDRAWN",
+              "effective_at": "2025-10-03T10:00:00+09:00",
+              "expires_at": "2026-02-12T14:00:00+09:00"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_my_credit_info_118_old": {
+              "service_id": "svc_my_credit_info_118_old",
+              "customer_id": "cust_118",
+              "service_name": "내 신용정보",
+              "status": "CLOSED",
+              "started_at": "2025-10-03T10:00:00+09:00",
+              "ended_at": "2026-02-12T14:00:00+09:00",
+              "restriction_flags": [],
+              "close_reason": "USER_WITHDREW_CONSENT"
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_my_credit_info_reapply_after_cancel_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 신용정보 해지 이후 언제든지 재가입 신청 KCB NICE 약관 동의"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_reapply_after_cancel_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_118"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_reapply_after_cancel_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_my_credit_info_118_old",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_reapply_after_cancel_success_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_118",
+          "product_name": "내 신용정보",
+          "source_account_id": null,
+          "options": {
+            "service_id": "svc_my_credit_info_118_reapply",
+            "operation": "REENROLL_SERVICE",
+            "previous_service_id": "svc_my_credit_info_118_old",
+            "kakaobank_terms_consent_id": "consent_my_credit_terms_118_new",
+            "privacy_consent_id": "consent_my_credit_privacy_118_new",
+            "kcb_terms_consent_id": "consent_kcb_allcredit_118_new",
+            "nice_terms_consent_id": "consent_nice_jikimi_118_new",
+            "kakaobank_approval_status": "APPROVED",
+            "provided_services": [
+              "CREDIT_INFO_LOOKUP",
+              "CREDIT_INFO_ALERT",
+              "CREDIT_SCORE_UP",
+              "RATE_CUT_NOTICE",
+              "CUSTOM_FINANCIAL_PRODUCT_NOTICE"
+            ]
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_my_credit_info_118_reapply",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "consents",
+          "record_id": "consent_kcb_allcredit_118_new",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "consents",
+          "record_id": "consent_nice_jikimi_118_new",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "내 신용정보는 해지 이후에도 언제든지 다시 가입 신청할 수 있다고 안내한다.",
+      "재가입에도 카카오뱅크 약관, 개인정보 동의서, KCB/NICE 약관 동의와 카카오뱅크 승인이 필요하다고 확인한다.",
+      "조건이 충족되면 새 service enrollment와 새 KCB/NICE consent를 활성 상태로 만든다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_신용정보_001",
+    "doc_kakao_product_내_신용정보_002"
+  ],
+  "user_tools": []
+}

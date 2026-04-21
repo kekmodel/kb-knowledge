@@ -1,0 +1,193 @@
+{
+  "id": "kb_manual_inbound_remittance_under_5000_immediate_deposit_success",
+  "description": {
+    "purpose": "success task for 해외송금 받기",
+    "relevant_policies": "doc_kakao_product_해외송금_받기_001, doc_kakao_product_해외송금_받기_002, doc_kakao_product_해외송금_받기_003",
+    "notes": "source_task_id=kb_manual_inbound_remittance_under_5000_immediate_deposit_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_inbound_remittance_under_5000_immediate_deposit_success.md; notes=This task covers the simpler but important positive counterpart to the existing 7,500 USD no-application bulk-deposit task: under 5,000 USD is immediate deposit without a receive application."
+  },
+  "user_prompt": "캐나다에서 4,900달러 생활비가 들어왔다는 알림을 받았어요. 5천불 이하라면 별도 받기 신청 없이 바로 입금되는 걸로 알고 있는데, 제 카카오뱅크 입출금통장으로 입금 처리해 주세요. 지금 프로모션 수수료도 면제인지 알려 주세요.",
+  "user_scenario": {
+    "persona": "캐나다에서 4,900 USD 생활비 송금이 도착한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n캐나다에서 4,900달러 생활비가 들어왔다는 알림을 받았어요. 5천불 이하라면 별도 받기 신청 없이 바로 입금되는 걸로 알고 있는데, 제 카카오뱅크 입출금통장으로 입금 처리해 주세요. 지금 프로모션 수수료도 면제인지 알려 주세요.\n\nExpected assistant response points:\n- 수취금액이 미화 5천불 이하이면 별도 입금 신청 없이 즉시 입금된다고 안내한다.\n- 송금 받을 때 환율은 입금시점의 대고객 전신환 매입율을 적용한다고 안내한다.\n- 2026-04-20은 2024-10-01부터 2026-09-30까지의 수취 수수료 면제 기간이므로 카카오뱅크 받기 수수료 0원 fixture를 적용한다고 안내한다.\n- remittance case를 DEPOSITED로 처리하고 수취계좌에 6,737,500원을 입금한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_159": {
+              "customer_id": "cust_159",
+              "name": "이즉시",
+              "date_of_birth": "1993-01-09",
+              "age": 33,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_remit_base_159": {
+              "account_id": "acct_remit_base_159",
+              "customer_id": "cust_159",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 1800000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_profiles": {
+          "data": {
+            "remit_profile_159": {
+              "remittance_profile_id": "remit_profile_159",
+              "customer_id": "cust_159",
+              "base_account_id": "acct_remit_base_159",
+              "annual_usd_sent": 0,
+              "annual_usd_received": 12000,
+              "auto_receive_enabled": false,
+              "verified_purpose_codes": [
+                "LIVING_EXPENSE"
+              ],
+              "daily_received_usd_before_case": 0,
+              "resident_verified": true
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {
+            "remit_inbound_159": {
+              "remittance_id": "remit_inbound_159",
+              "customer_id": "cust_159",
+              "direction": "INBOUND",
+              "status": "ARRIVED",
+              "amount": 4900,
+              "currency": "USD",
+              "country": "CA",
+              "requested_at": "2026-04-20T10:00:00+09:00",
+              "arrived_at": "2026-04-20T10:00:00+09:00",
+              "correction_due_date": null,
+              "purpose_code": "LIVING_EXPENSE",
+              "sender_bank_id": "ca_bank_009",
+              "sender_name": "Jin Lee",
+              "target_account_id": "acct_remit_base_159",
+              "receive_application_required": false,
+              "auto_receive_matched": false,
+              "daily_aggregate_usd_after_case": 4900,
+              "applied_exchange_rate_krw_per_unit": 1375,
+              "expected_credit_amount_krw": 6737500,
+              "receive_fee_krw": 0,
+              "fee_waiver_reason": "PROMO_2024_10_01_TO_2026_09_30",
+              "deposited_transaction_id": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_inbound_remittance_under_5000_immediate_deposit_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "해외송금 받기 수취금액 5천불 이하 별도 입금 신청 없이 즉시 입금 입금시점 전신환 매입율 수수료 면제"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_under_5000_immediate_deposit_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_159"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_under_5000_immediate_deposit_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "remit_inbound_159",
+          "table": "remittance_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_inbound_remittance_under_5000_immediate_deposit_success_03",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_159",
+          "direction": "INBOUND_IMMEDIATE_DEPOSIT",
+          "amount": 4900,
+          "currency": "USD",
+          "country": "CA",
+          "purpose_code": "LIVING_EXPENSE",
+          "options": {
+            "remittance_id": "remit_inbound_159",
+            "target_account_id": "acct_remit_base_159",
+            "deposit_reason": "UNDER_5000_USD_NO_RECEIVE_APPLICATION_REQUIRED",
+            "deposit_date": "2026-04-20",
+            "exchange_rate_krw_per_unit": 1375,
+            "credit_amount_krw": 6737500,
+            "receive_fee_krw": 0,
+            "fee_waiver_reason": "PROMO_2024_10_01_TO_2026_09_30",
+            "transaction_id": "txn_inbound_remit_159"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_remittance_outcome",
+        "arguments": {
+          "remittance_id": "remit_inbound_159",
+          "expected_status": "DEPOSITED",
+          "expected_fee_refunded": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "remit_inbound_159",
+          "target_id": "acct_remit_base_159",
+          "amount": 6737500,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "수취금액이 미화 5천불 이하이면 별도 입금 신청 없이 즉시 입금된다고 안내한다.",
+      "송금 받을 때 환율은 입금시점의 대고객 전신환 매입율을 적용한다고 안내한다.",
+      "2026-04-20은 2024-10-01부터 2026-09-30까지의 수취 수수료 면제 기간이므로 카카오뱅크 받기 수수료 0원 fixture를 적용한다고 안내한다.",
+      "remittance case를 DEPOSITED로 처리하고 수취계좌에 6,737,500원을 입금한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_해외송금_받기_001",
+    "doc_kakao_product_해외송금_받기_002",
+    "doc_kakao_product_해외송금_받기_003"
+  ],
+  "user_tools": []
+}

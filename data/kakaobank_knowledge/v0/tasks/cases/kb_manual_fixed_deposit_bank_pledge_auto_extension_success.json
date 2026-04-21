@@ -1,0 +1,150 @@
+{
+  "id": "kb_manual_fixed_deposit_bank_pledge_auto_extension_success",
+  "description": {
+    "purpose": "success task for 정기예금",
+    "relevant_policies": "doc_kakao_product_정기예금_002, doc_kakao_product_정기예금_003",
+    "notes": "source_task_id=kb_manual_fixed_deposit_bank_pledge_auto_extension_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_fixed_deposit_bank_pledge_auto_extension_success.md; notes=This task forces the agent to distinguish generic pledge restrictions from the narrower KakaoBank-as-pledgee exception."
+  },
+  "user_prompt": "제 정기예금 만기일인데 카카오뱅크를 질권자로 하는 질권이 설정되어 있어요. 질권이 있으면 자동연장이 안 된다고 들어서 걱정인데, 이 경우에는 같은 12개월로 자동연장해 주세요.",
+  "user_scenario": {
+    "persona": "카카오뱅크 질권 설정 정기예금을 만기 자동연장하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 정기예금 만기일인데 카카오뱅크를 질권자로 하는 질권이 설정되어 있어요. 질권이 있으면 자동연장이 안 된다고 들어서 걱정인데, 이 경우에는 같은 12개월로 자동연장해 주세요.\n\nExpected assistant response points:\n- 정기예금은 만기 시 처음 계약한 기간과 동일하게 최대 5회까지 자동연장할 수 있다고 안내한다.\n- 압류, 사고신고, 질권설정 등 법적 지급제한은 일반적으로 자동연장을 막는다고 설명한다.\n- 다만 당행을 질권자로 하는 질권 설정은 예외적으로 자동연장이 가능하다고 구분한다.\n- 비과세 가입이 아니고 자동연장 가능 횟수가 남아 있으므로 자동연장을 처리한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_243": {
+              "customer_id": "cust_243",
+              "name": "정질권",
+              "date_of_birth": "1978-03-18",
+              "age": 48,
+              "residency": "KR",
+              "employment_type": "SELF_EMPLOYED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_fixed_base_243": {
+              "account_id": "acct_fixed_base_243",
+              "customer_id": "cust_243",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 900000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_fixed_243"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_fixed_243": {
+              "deposit_id": "dep_fixed_243",
+              "account_id": "acct_fixed_base_243",
+              "customer_id": "cust_243",
+              "product_name": "정기예금",
+              "status": "ACTIVE",
+              "opened_at": "2025-04-20",
+              "matures_at": "2026-04-20",
+              "principal_krw": 20000000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [
+                "PLEDGE_TO_KAKAOBANK"
+              ],
+              "base_account_id": "acct_fixed_base_243",
+              "tax_free_savings": false,
+              "auto_extension_requested": true,
+              "auto_extension_count": 1,
+              "auto_extension_max_count": 5,
+              "contract_months": 12
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_fixed_deposit_bank_pledge_auto_extension_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "정기예금 자동연장 질권 설정 법적 지급제한 당행 카카오뱅크 질권자 예외"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_bank_pledge_auto_extension_success_01",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_fixed_243",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_bank_pledge_auto_extension_success_02",
+        "requestor": "assistant",
+        "name": "request_maturity_or_extension",
+        "arguments": {
+          "target_id": "dep_fixed_243",
+          "operation": "AUTO_EXTEND",
+          "requested_at": "2026-04-20T09:20:00+09:00",
+          "options": {
+            "reason": "KAKAOBANK_PLEDGE_EXCEPTION_ALLOWS_AUTO_EXTENSION",
+            "new_auto_extension_count": 2,
+            "same_contract_months": 12,
+            "legal_restriction_flags": [
+              "PLEDGE_TO_KAKAOBANK"
+            ],
+            "tax_free_savings": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_maturity_or_close_result",
+        "arguments": {
+          "deposit_id": "dep_fixed_243",
+          "expected_status": "ACTIVE_EXTENDED",
+          "expected_close_type": "AUTO_EXTENSION",
+          "expected_reason": "KAKAOBANK_PLEDGE_EXCEPTION_ALLOWS_AUTO_EXTENSION"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "정기예금은 만기 시 처음 계약한 기간과 동일하게 최대 5회까지 자동연장할 수 있다고 안내한다.",
+      "압류, 사고신고, 질권설정 등 법적 지급제한은 일반적으로 자동연장을 막는다고 설명한다.",
+      "다만 당행을 질권자로 하는 질권 설정은 예외적으로 자동연장이 가능하다고 구분한다.",
+      "비과세 가입이 아니고 자동연장 가능 횟수가 남아 있으므로 자동연장을 처리한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_정기예금_002",
+    "doc_kakao_product_정기예금_003"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,139 @@
+{
+  "id": "kb_manual_child_account_opening_limit_account_success",
+  "description": {
+    "purpose": "success task for 우리아이통장",
+    "relevant_policies": "doc_kakao_product_우리아이통장_001",
+    "notes": "source_task_id=kb_manual_child_account_opening_limit_account_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_child_account_opening_limit_account_success.md; notes=This success task covers the opening workflow that was missing from the previous two child-account tasks."
+  },
+  "user_prompt": "제가 법정대리인으로 확인된 부모이고 아이는 만 8세예요. 아이 명의로 우리아이통장을 새로 만들어 주세요. 처음부터 일반계좌인지 한도계좌인지도 알려 주세요.",
+  "user_scenario": {
+    "persona": "만 8세 자녀의 첫 카카오뱅크 계좌를 만들려는 주대리인 부모",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제가 법정대리인으로 확인된 부모이고 아이는 만 8세예요. 아이 명의로 우리아이통장을 새로 만들어 주세요. 처음부터 일반계좌인지 한도계좌인지도 알려 주세요.\n\nExpected assistant response points:\n- 우리아이통장은 만 0세 이상 만 17세 미만 실명의 개인이 가입 대상이라고 확인한다.\n- 우리아이서비스를 통해 법정대리인으로 확인된 부 또는 모가 대리 가입할 수 있다고 안내한다.\n- 금융사고 방지를 위해 우리아이통장은 금융거래 한도계좌로 개설된다고 설명한다.\n- 자녀 명의 우리아이통장과 우리아이서비스 enrollment를 생성한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_211": {
+              "customer_id": "cust_211",
+              "name": "윤개설",
+              "date_of_birth": "1987-07-19",
+              "age": 38,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "child_211": {
+              "customer_id": "child_211",
+              "name": "윤아이",
+              "date_of_birth": "2017-06-02",
+              "age": 8,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "child_relationships": {
+          "data": {
+            "rel_child_account_211": {
+              "relationship_id": "rel_child_account_211",
+              "child_customer_id": "child_211",
+              "representative_customer_id": "cust_211",
+              "representative_role": "MAIN_REPRESENTATIVE_PARENT",
+              "status": "ACTIVE",
+              "legal_representative_verified": true
+            }
+          }
+        },
+        "accounts": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_child_account_opening_limit_account_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "우리아이통장 가입대상 법정대리인 대리 가입 금융거래 한도계좌로 개설"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_account_opening_limit_account_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_211"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_account_opening_limit_account_success_02",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "child_211",
+          "product_name": "우리아이통장",
+          "source_account_id": null,
+          "options": {
+            "operation": "OPEN_CHILD_ACCOUNT",
+            "requested_by_customer_id": "cust_211",
+            "new_account_id": "acct_child_211",
+            "service_id": "svc_child_211",
+            "is_limit_account": true,
+            "expected_status": "ACTIVE"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_child_211",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_child_211",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "우리아이통장은 만 0세 이상 만 17세 미만 실명의 개인이 가입 대상이라고 확인한다.",
+      "우리아이서비스를 통해 법정대리인으로 확인된 부 또는 모가 대리 가입할 수 있다고 안내한다.",
+      "금융사고 방지를 위해 우리아이통장은 금융거래 한도계좌로 개설된다고 설명한다.",
+      "자녀 명의 우리아이통장과 우리아이서비스 enrollment를 생성한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_우리아이통장_001"
+  ],
+  "user_tools": []
+}

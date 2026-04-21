@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_우리아이적금_005",
+  "title": "KakaoBank Product Facts: 우리아이적금 (part 5)",
+  "content": "Product: 우리아이적금\nScope: product-specific reviewed facts\nCommon policy links: deposit_basic, deposit_installment, auto_transfer, tax_free_savings, document_box, child_service_common\n\n## 수동 검수 fact\n\n- `joint_custody_consent`: 공동친권자의 대표자로 가입과 금융거래를 대리하려면 다른 부모의 동의가 필요\n  - Evidence: `우리아이서비스 설명서.md:61`, `우리아이서비스 이용약관.md:160`\n- `product_terms_effective`: 우리아이적금 특약 시행일은 2025년 08월 27일\n  - Evidence: `카카오뱅크 우리아이적금 특약.md:90`, `카카오뱅크 우리아이적금 특약.md:94`\n- `compliance_review_validity`: 우리아이적금 상품설명서 준법감시인 심의필 25-1535, 유효기간 2025.08.27~2027.08.26\n  - Evidence: `카카오뱅크 우리아이적금 상품설명서.md:3`\n- `complaint_channel`: 문의 또는 민원은 고객센터 1599-3333 또는 인터넷홈페이지에서 가능\n  - Evidence: `카카오뱅크 우리아이적금 상품설명서.md:42`, `카카오뱅크 우리아이적금 상품설명서.md:188`"
+}

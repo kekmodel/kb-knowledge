@@ -1,0 +1,148 @@
+{
+  "id": "kb_manual_business_credit_info_phone_change_delay_dispute_refusal",
+  "description": {
+    "purpose": "refusal task for 내 사업장 신용정보",
+    "relevant_policies": "doc_kakao_product_내_사업장_신용정보_002, doc_kakao_product_내_사업장_신용정보_004",
+    "notes": "source_task_id=kb_manual_business_credit_info_phone_change_delay_dispute_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_info_phone_change_delay_dispute_refusal.md; notes=This task does not deny dispute intake. It denies immediate compensation or KakaoBank liability where the fixture says the customer delayed phone-change notification and no bank/NICE fault is found."
+  },
+  "user_prompt": "휴대폰 번호를 바꿨는데 한 달 동안 앱에 변경 등록을 안 했어요. 그 사이 신용정보변동 앱푸쉬를 못 받아서 손해를 봤으니 카카오뱅크가 책임지고 보상 처리해 주세요.",
+  "user_scenario": {
+    "persona": "휴대폰 번호 변경을 늦게 알려 알림을 받지 못한 뒤 손해 배상을 요구하는 이용자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n휴대폰 번호를 바꿨는데 한 달 동안 앱에 변경 등록을 안 했어요. 그 사이 신용정보변동 앱푸쉬를 못 받아서 손해를 봤으니 카카오뱅크가 책임지고 보상 처리해 주세요.\n\nExpected assistant response points:\n- 회원은 휴대폰 번호 등 변경 시 즉시 카카오뱅크 앱을 통해 변경 내용을 통지해야 한다고 안내한다.\n- 고지 또는 통지 지연으로 손해가 발생해도 NICE와 카카오뱅크에 고의 또는 과실이 없는 한 책임지지 않는다고 설명한다.\n- 즉시 보상 승인으로 처리하지 않고 이용자 정보 변경 지연 관련 dispute로 접수한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_097": {
+              "customer_id": "cust_097",
+              "name": "번호지연",
+              "date_of_birth": "1985-08-02",
+              "age": 40,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": [],
+              "registered_phone": "010-1111-2222",
+              "actual_phone": "010-9999-8888",
+              "phone_changed_at": "2026-03-15T10:00:00+09:00",
+              "phone_change_reported_at": null
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_biz_credit_info_097": {
+              "service_id": "svc_biz_credit_info_097",
+              "customer_id": "cust_097",
+              "service_name": "내 사업장 신용정보",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_base_097",
+              "started_at": "2026-01-10T09:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "provided_services": [
+                "CREDIT_CHANGE_ALERT",
+                "SOHO_SCORE_CHANGE_ALERT"
+              ],
+              "last_push_target_phone": "010-1111-2222",
+              "missed_alert_reason": "CUSTOMER_PHONE_CHANGE_NOT_REPORTED"
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_info_phone_change_delay_dispute_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "NICE 사장님 신용관리 휴대폰 번호 변경 즉시 통지 지연 책임"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_phone_change_delay_dispute_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_097"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_phone_change_delay_dispute_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_biz_credit_info_097",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_phone_change_delay_dispute_refusal_03",
+        "requestor": "assistant",
+        "name": "file_dispute_or_objection",
+        "arguments": {
+          "customer_id": "cust_097",
+          "target_type": "service_alert",
+          "target_id": "svc_biz_credit_info_097",
+          "reason": "CUSTOMER_PHONE_CHANGE_NOTICE_DELAY_NO_BANK_OR_NICE_FAULT",
+          "options": {
+            "missed_feature": "CREDIT_CHANGE_ALERT",
+            "compensation_approved": false,
+            "customer_fault_flags": [
+              "PHONE_CHANGE_NOT_REPORTED"
+            ],
+            "bank_or_nice_fault_found": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_dispute_logged",
+        "arguments": {
+          "customer_id": "cust_097",
+          "target_id": "svc_biz_credit_info_097",
+          "reason": "CUSTOMER_PHONE_CHANGE_NOTICE_DELAY_NO_BANK_OR_NICE_FAULT"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_biz_credit_info_097",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "회원은 휴대폰 번호 등 변경 시 즉시 카카오뱅크 앱을 통해 변경 내용을 통지해야 한다고 안내한다.",
+      "고지 또는 통지 지연으로 손해가 발생해도 NICE와 카카오뱅크에 고의 또는 과실이 없는 한 책임지지 않는다고 설명한다.",
+      "즉시 보상 승인으로 처리하지 않고 이용자 정보 변경 지연 관련 dispute로 접수한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_사업장_신용정보_002",
+    "doc_kakao_product_내_사업장_신용정보_004"
+  ],
+  "user_tools": []
+}

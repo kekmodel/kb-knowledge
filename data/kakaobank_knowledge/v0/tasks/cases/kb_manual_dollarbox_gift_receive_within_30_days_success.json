@@ -1,0 +1,196 @@
+{
+  "id": "kb_manual_dollarbox_gift_receive_within_30_days_success",
+  "description": {
+    "purpose": "success task for 달러박스",
+    "relevant_policies": "doc_kakao_product_달러박스_002, doc_kakao_product_달러박스_003",
+    "notes": "source_task_id=kb_manual_dollarbox_gift_receive_within_30_days_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_dollarbox_gift_receive_within_30_days_success.md; notes=This complements the existing auto-cancel task by covering the opposite valid branch: receipt within the 30-day window."
+  },
+  "user_prompt": "친구가 저한테 달러박스로 250달러 선물을 보냈고 아직 30일 안입니다. 저는 달러박스를 가지고 있고 친구가 입력한 제 이름도 실명과 일치합니다. 지금 선물받기를 완료해 주세요.",
+  "user_scenario": {
+    "persona": "친구가 보낸 달러 선물을 기한 안에 받으려는 달러박스 보유 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n친구가 저한테 달러박스로 250달러 선물을 보냈고 아직 30일 안입니다. 저는 달러박스를 가지고 있고 친구가 입력한 제 이름도 실명과 일치합니다. 지금 선물받기를 완료해 주세요.\n\nExpected assistant response points:\n- 수취인은 달러박스를 보유해야 하며 송금인이 입력한 수취인명과 실명이 일치해야 한다고 확인한다.\n- 수취인이 30일 이내 선물받기를 완료하면 보낸 달러가 수취인 달러박스로 입금된다고 안내한다.\n- pending gift case를 수취 완료 상태로 바꾸고 수취인 달러박스에 250달러를 입금한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_126_sender": {
+              "customer_id": "cust_126_sender",
+              "name": "선물송금",
+              "date_of_birth": "1989-03-02",
+              "age": 37,
+              "residency": "KR",
+              "citizenship": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "cust_126": {
+              "customer_id": "cust_126",
+              "name": "선물수취",
+              "date_of_birth": "1993-05-11",
+              "age": 32,
+              "residency": "KR",
+              "citizenship": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {}
+        },
+        "savings_boxes": {
+          "data": {
+            "box_dollar_126_sender": {
+              "box_id": "box_dollar_126_sender",
+              "customer_id": "cust_126_sender",
+              "product_name": "달러박스",
+              "status": "ACTIVE",
+              "balance": 700,
+              "currency": "USD",
+              "limit_amount": 10000,
+              "pending_outbound_gift_ids": [
+                "remit_gift_126"
+              ],
+              "restriction_flags": []
+            },
+            "box_dollar_126": {
+              "box_id": "box_dollar_126",
+              "customer_id": "cust_126",
+              "product_name": "달러박스",
+              "status": "ACTIVE",
+              "balance": 1200,
+              "currency": "USD",
+              "limit_amount": 10000,
+              "pending_inbound_gift_ids": [
+                "remit_gift_126"
+              ],
+              "travelwallet_link_status": "NONE",
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {
+            "remit_gift_126": {
+              "remittance_id": "remit_gift_126",
+              "customer_id": "cust_126_sender",
+              "recipient_customer_id": "cust_126",
+              "direction": "DOLLARBOX_GIFT_SEND",
+              "status": "PENDING_RECEIPT",
+              "amount": 250,
+              "currency": "USD",
+              "country": "KR",
+              "requested_at": "2026-04-12T11:00:00+09:00",
+              "receive_deadline_at": "2026-05-12T11:00:00+09:00",
+              "sender_box_id": "box_dollar_126_sender",
+              "recipient_box_id": "box_dollar_126",
+              "recipient_real_name_confirmed": true,
+              "recipient_completed_at": null
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_dollarbox_gift_receive_within_30_days_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "달러박스 선물받기 30일 이내 완료 수취인 달러박스 입금 실명 일치"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_gift_receive_within_30_days_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_126"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_gift_receive_within_30_days_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_dollar_126",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_dollarbox_gift_receive_within_30_days_success_03",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_126",
+          "direction": "DOLLARBOX_GIFT_RECEIVE",
+          "amount": 250,
+          "currency": "USD",
+          "country": "KR",
+          "purpose_code": "GIFT_RECEIVE_WITHIN_30_DAYS",
+          "options": {
+            "remittance_id": "remit_gift_126",
+            "sender_box_id": "box_dollar_126_sender",
+            "recipient_box_id": "box_dollar_126",
+            "recipient_real_name_confirmed": true,
+            "receive_completed_at": "2026-04-20T10:00:00+09:00",
+            "receive_transaction_id": "txn_dollar_gift_receive_126"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "remittance_cases",
+          "record_id": "remit_gift_126",
+          "expected_status": "RECEIVED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "remit_gift_126",
+          "target_id": "box_dollar_126",
+          "amount": 250,
+          "currency": "USD"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "수취인은 달러박스를 보유해야 하며 송금인이 입력한 수취인명과 실명이 일치해야 한다고 확인한다.",
+      "수취인이 30일 이내 선물받기를 완료하면 보낸 달러가 수취인 달러박스로 입금된다고 안내한다.",
+      "pending gift case를 수취 완료 상태로 바꾸고 수취인 달러박스에 250달러를 입금한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_달러박스_002",
+    "doc_kakao_product_달러박스_003"
+  ],
+  "user_tools": []
+}

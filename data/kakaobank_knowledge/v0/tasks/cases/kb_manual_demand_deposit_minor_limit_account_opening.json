@@ -1,0 +1,118 @@
+{
+  "id": "kb_manual_demand_deposit_minor_limit_account_opening",
+  "description": {
+    "purpose": "success task for 입출금통장",
+    "relevant_policies": "doc_kakao_product_입출금통장_001, doc_kakao_product_입출금통장_002",
+    "notes": "source_task_id=kb_manual_demand_deposit_minor_limit_account_opening; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_demand_deposit_minor_limit_account_opening.md; notes=This task intentionally allows account opening but blocks the customer's requested immediate 600,000 KRW transfer capability. The decisive mutation is creating the account as an ACTIVE_LIMIT_ACCOUNT, not a normal account."
+  },
+  "user_prompt": "저는 만 16세이고 실명확인은 가능해요. 입출금통장을 새로 만들고 바로 이번 달 학원비 60만원을 앱으로 이체할 수 있게 일반계좌로 열어 주세요.",
+  "user_scenario": {
+    "persona": "첫 카카오뱅크 입출금통장을 만들려는 만 16세 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n저는 만 16세이고 실명확인은 가능해요. 입출금통장을 새로 만들고 바로 이번 달 학원비 60만원을 앱으로 이체할 수 있게 일반계좌로 열어 주세요.\n\nExpected assistant response points:\n- 만 14세 이상의 실명 개인이면 입출금통장 가입대상이라고 안내한다.\n- 금융사고 방지를 위해 새 입출금통장은 금융거래 한도계좌로 개설된다고 안내한다.\n- 만 17세 미만 금융거래 한도계좌의 앱 이체 한도는 1일 통합 500,000원, 월 5,000,000원이므로 600,000원 즉시 이체 가능 계좌로 열 수는 없다고 설명한다.\n- 한도제한 해제 및 일반계좌 전환에는 금융거래목적 확인서류 제출과 법정대리인 동의가 필요하다고 안내한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_035": {
+              "customer_id": "cust_035",
+              "name": "문하늘",
+              "date_of_birth": "2009-11-10",
+              "age": 16,
+              "residency": "KR",
+              "employment_type": "STUDENT",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {}
+        },
+        "required_documents": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_demand_deposit_minor_limit_account_opening_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "입출금통장 만 16세 가입 금융거래 한도계좌 17세 미만 앱 이체 월 500만원 법정대리인 동의"
+        }
+      },
+      {
+        "action_id": "kb_manual_demand_deposit_minor_limit_account_opening_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_035"
+        }
+      },
+      {
+        "action_id": "kb_manual_demand_deposit_minor_limit_account_opening_02",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_035",
+          "product_name": "입출금통장",
+          "source_account_id": null,
+          "options": {
+            "account_id": "acct_demand_035",
+            "opening_mode": "NEW_LIMIT_ACCOUNT",
+            "financial_purpose_verified": false,
+            "is_limit_account": true,
+            "minor_account_holder": true,
+            "daily_app_transfer_limit_krw": 500000,
+            "monthly_app_transfer_limit_krw": 5000000,
+            "legal_guardian_consent_required_for_limit_release": true,
+            "requested_immediate_transfer_krw": 600000,
+            "requested_immediate_transfer_status": "REJECTED_OVER_UNDER_17_DAILY_LIMIT"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_demand_035",
+          "expected_status": "ACTIVE_LIMIT_ACCOUNT"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "만 14세 이상의 실명 개인이면 입출금통장 가입대상이라고 안내한다.",
+      "금융사고 방지를 위해 새 입출금통장은 금융거래 한도계좌로 개설된다고 안내한다.",
+      "만 17세 미만 금융거래 한도계좌의 앱 이체 한도는 1일 통합 500,000원, 월 5,000,000원이므로 600,000원 즉시 이체 가능 계좌로 열 수는 없다고 설명한다.",
+      "한도제한 해제 및 일반계좌 전환에는 금융거래목적 확인서류 제출과 법정대리인 동의가 필요하다고 안내한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_입출금통장_001",
+    "doc_kakao_product_입출금통장_002"
+  ],
+  "user_tools": []
+}

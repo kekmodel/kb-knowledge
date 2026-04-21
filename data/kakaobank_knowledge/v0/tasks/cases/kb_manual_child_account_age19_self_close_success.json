@@ -1,0 +1,162 @@
+{
+  "id": "kb_manual_child_account_age19_self_close_success",
+  "description": {
+    "purpose": "success task for 우리아이통장",
+    "relevant_policies": "doc_kakao_product_우리아이통장_002, doc_kakao_product_우리아이통장_004, doc_kakao_common_policy_child_service_common_002",
+    "notes": "source_task_id=kb_manual_child_account_age19_self_close_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_child_account_age19_self_close_success.md; notes=This success task covers the age-19 lifecycle boundary and service termination, distinct from the existing parent/assistant transfer tasks."
+  },
+  "user_prompt": "제가 이제 만 19세가 됐고 제 우리아이통장에 연결된 적금이나 자동이체는 다 정리됐어요. 부모님 대신 제가 직접 이 통장을 해지하고 잔액을 제 일반 입출금통장으로 옮겨 주세요.",
+  "user_scenario": {
+    "persona": "만 19세가 된 우리아이통장 예금주 본인",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제가 이제 만 19세가 됐고 제 우리아이통장에 연결된 적금이나 자동이체는 다 정리됐어요. 부모님 대신 제가 직접 이 통장을 해지하고 잔액을 제 일반 입출금통장으로 옮겨 주세요.\n\nExpected assistant response points:\n- 예금주가 만 19세에 도달하면 본인이 직접 우리아이통장을 해지할 수 있다고 확인한다.\n- 자녀가 만 19세가 되면 주대리인, 보조대리인, 자녀의 우리아이서비스가 해지된다고 안내한다.\n- 활성 전용 상품이나 결제성 거래가 남아 있지 않으므로 통장 해지를 처리한다.\n- 우리아이통장 상태를 닫고 서비스 enrollment도 종료한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "child_215": {
+              "customer_id": "child_215",
+              "name": "장성인",
+              "age": 19,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_child_215": {
+              "account_id": "acct_child_215",
+              "customer_id": "child_215",
+              "product_name": "우리아이통장",
+              "status": "ACTIVE",
+              "balance_krw": 520000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "svc_child_215"
+              ],
+              "restriction_flags": []
+            },
+            "acct_adult_215": {
+              "account_id": "acct_adult_215",
+              "customer_id": "child_215",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 180000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_child_215": {
+              "service_id": "svc_child_215",
+              "customer_id": "child_215",
+              "service_name": "우리아이서비스",
+              "status": "ACTIVE",
+              "child_age": 19,
+              "main_representative_customer_id": "cust_parent_215"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_child_account_age19_self_close_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "우리아이통장 만 19세 예금주 본인 직접 해지 우리아이서비스 해지"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_account_age19_self_close_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "child_215"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_account_age19_self_close_success_02",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "child_215",
+          "target_id": "acct_child_215",
+          "close_type": "CHILD_ACCOUNT_SELF_CLOSE_AT_AGE_19",
+          "reason": "ACCOUNT_HOLDER_REACHED_AGE_19",
+          "destination_account_id": "acct_adult_215",
+          "also_close_service_id": "svc_child_215"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_child_215",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_child_215",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_child_215",
+          "target_id": "acct_adult_215",
+          "amount": 520000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "예금주가 만 19세에 도달하면 본인이 직접 우리아이통장을 해지할 수 있다고 확인한다.",
+      "자녀가 만 19세가 되면 주대리인, 보조대리인, 자녀의 우리아이서비스가 해지된다고 안내한다.",
+      "활성 전용 상품이나 결제성 거래가 남아 있지 않으므로 통장 해지를 처리한다.",
+      "우리아이통장 상태를 닫고 서비스 enrollment도 종료한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_우리아이통장_002",
+    "doc_kakao_product_우리아이통장_004",
+    "doc_kakao_common_policy_child_service_common_002"
+  ],
+  "user_tools": []
+}

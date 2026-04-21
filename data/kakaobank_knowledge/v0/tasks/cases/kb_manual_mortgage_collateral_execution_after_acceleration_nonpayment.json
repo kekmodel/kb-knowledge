@@ -1,0 +1,182 @@
+{
+  "id": "kb_manual_mortgage_collateral_execution_after_acceleration_nonpayment",
+  "description": {
+    "purpose": "refusal task for 주택담보대출",
+    "relevant_policies": "doc_kakao_product_주택담보대출_003",
+    "notes": "source_task_id=kb_manual_mortgage_collateral_execution_after_acceleration_nonpayment; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mortgage_collateral_execution_after_acceleration_nonpayment.md; notes=This task converts the collateral-risk disclosure into a state-changing lifecycle task only after acceleration and nonpayment are already present in hidden state."
+  },
+  "user_prompt": "지난주 주택담보대출이 기한의 이익 상실로 즉시상환 대상이 됐는데 아직 갚지 못했어요. 담보권 실행은 하지 말고 연체정보만 남기는 정도로 처리해 주세요.",
+  "user_scenario": {
+    "persona": "이미 기한의 이익이 상실된 주택담보대출을 상환하지 못한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n지난주 주택담보대출이 기한의 이익 상실로 즉시상환 대상이 됐는데 아직 갚지 못했어요. 담보권 실행은 하지 말고 연체정보만 남기는 정도로 처리해 주세요.\n\nExpected assistant response points:\n- 담보 제공은 재산상 손실을 가져올 수 있는 중요한 법률행위이고 은행은 담보부동산에 근저당권 등 담보권을 설정할 수 있다고 안내한다.\n- 변제기 도래 또는 기한의 이익 상실 후 상환이 없으면 법정절차에 따라 담보권이 실행될 수 있다고 설명한다.\n- 담보권 실행 시 담보주택 소유권을 상실할 수 있다는 위험을 명확히 말한다.\n- 고객 요청처럼 신용 영향만 남기고 담보권 실행을 보류하지 않고, 법정절차 기반 담보권 실행 착수 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_250": {
+              "customer_id": "cust_250",
+              "name": "권담보",
+              "date_of_birth": "1977-04-15",
+              "age": 49,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": [
+                "MORTGAGE_ACCELERATED_UNPAID"
+              ]
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "mortgage_loan_250": {
+              "loan_id": "mortgage_loan_250",
+              "customer_id": "cust_250",
+              "product_name": "주택담보대출",
+              "status": "ACCELERATED",
+              "principal_krw": 360000000,
+              "outstanding_krw": 357900000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2052-06-30",
+              "late_days": 42,
+              "restriction_flags": [
+                "IMMEDIATE_REPAYMENT_REQUIRED"
+              ],
+              "purpose": "PURCHASE_HOME",
+              "collateral_type": "APARTMENT_MORTGAGE",
+              "home_type": "APARTMENT",
+              "executed_at": "2024-06-30T09:00:00+09:00",
+              "accelerated": true,
+              "acceleration_reason": "MORTGAGE_MOVE_IN_PROOF_NOT_SUBMITTED_WITHIN_6_MONTHS",
+              "immediate_repayment_due_at": "2026-04-13T18:00:00+09:00",
+              "repayment_received_after_acceleration": false
+            }
+          }
+        },
+        "mortgage_collateral": {
+          "data": {
+            "collateral_mortgage_250": {
+              "collateral_id": "collateral_mortgage_250",
+              "customer_id": "cust_250",
+              "loan_id": "mortgage_loan_250",
+              "home_type": "APARTMENT",
+              "address": "부산광역시 해운대구 우동 321",
+              "owner_customer_id": "cust_250",
+              "status": "MORTGAGE_RIGHT_ACTIVE",
+              "mortgage_right_registered": true,
+              "collateral_execution_started_at": null,
+              "ownership_loss_risk_disclosed": false
+            }
+          }
+        },
+        "required_documents": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mortgage_collateral_execution_after_acceleration_nonpayment_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "주택담보대출 기한의 이익 상실 후 상환 없으면 담보권 실행 담보주택 소유권 상실"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_collateral_execution_after_acceleration_nonpayment_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_250"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_collateral_execution_after_acceleration_nonpayment_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mortgage_loan_250",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_collateral_execution_after_acceleration_nonpayment_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "mortgage_loan_250",
+          "operation": "START_COLLATERAL_ENFORCEMENT",
+          "reason": "ACCELERATED_MORTGAGE_NOT_REPAID",
+          "effective_at": "2026-04-20T15:30:00+09:00",
+          "options": {
+            "collateral_id": "collateral_mortgage_250",
+            "legal_procedure_required": true,
+            "outstanding_krw": 357900000,
+            "immediate_repayment_due_at": "2026-04-13T18:00:00+09:00",
+            "repayment_received_after_acceleration": false,
+            "ownership_loss_risk_disclosed": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "mortgage_loan_250",
+          "expected_status": "COLLATERAL_ENFORCEMENT"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "mortgage_collateral",
+          "record_id": "collateral_mortgage_250",
+          "expected_status": "COLLATERAL_EXECUTION_STARTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "mortgage_loan_250",
+          "expected_accelerated": true,
+          "expected_reason": "MORTGAGE_MOVE_IN_PROOF_NOT_SUBMITTED_WITHIN_6_MONTHS"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "담보 제공은 재산상 손실을 가져올 수 있는 중요한 법률행위이고 은행은 담보부동산에 근저당권 등 담보권을 설정할 수 있다고 안내한다.",
+      "변제기 도래 또는 기한의 이익 상실 후 상환이 없으면 법정절차에 따라 담보권이 실행될 수 있다고 설명한다.",
+      "담보권 실행 시 담보주택 소유권을 상실할 수 있다는 위험을 명확히 말한다.",
+      "고객 요청처럼 신용 영향만 남기고 담보권 실행을 보류하지 않고, 법정절차 기반 담보권 실행 착수 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_주택담보대출_003"
+  ],
+  "user_tools": []
+}

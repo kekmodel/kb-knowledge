@@ -1,0 +1,138 @@
+{
+  "id": "kb_manual_my_credit_info_affiliate_terms_enrolls_service",
+  "description": {
+    "purpose": "success task for 내 신용정보",
+    "relevant_policies": "doc_kakao_product_내_신용정보_001",
+    "notes": "source_task_id=kb_manual_my_credit_info_affiliate_terms_enrolls_service; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_my_credit_info_affiliate_terms_enrolls_service.md; notes=This success task checks that full service enrollment depends on both KakaoBank-side consent and affiliate KCB/NICE terms consent, not only customer identity."
+  },
+  "user_prompt": "내 신용정보 서비스를 신청할게요. 내국인 실명 개인이고, 내 신용정보 약관과 개인정보 동의서, KCB 올크레딧 약관, NICE 지키미 회원 약관 모두 동의합니다. 바로 조회랑 알림을 쓸 수 있게 해 주세요.",
+  "user_scenario": {
+    "persona": "카카오뱅크 앱에서 개인신용평점과 변동 알림을 함께 쓰려는 내국인 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n내 신용정보 서비스를 신청할게요. 내국인 실명 개인이고, 내 신용정보 약관과 개인정보 동의서, KCB 올크레딧 약관, NICE 지키미 회원 약관 모두 동의합니다. 바로 조회랑 알림을 쓸 수 있게 해 주세요.\n\nExpected assistant response points:\n- 내 신용정보 서비스 이용 대상은 내국인 실명의 개인이라고 확인한다.\n- 카카오뱅크 약관, 개인정보 동의, KCB 올크레딧 약관, NICE 지키미 회원 약관 동의와 카카오뱅크 승인이 필요하다고 확인한다.\n- 조건이 충족되면 이용계약을 성립시키고 신용정보 조회, 알림, 신용정보 관리 등 서비스를 즉시 제공 상태로 만든다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_014": {
+              "customer_id": "cust_014",
+              "name": "오신용",
+              "date_of_birth": "1994-06-02",
+              "age": 31,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "consents": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_my_credit_info_affiliate_terms_enrolls_service_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 신용정보 서비스 가입 KCB 올크레딧 NICE 지키미 약관 동의 즉시 제공"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_affiliate_terms_enrolls_service_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_014"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_affiliate_terms_enrolls_service_02",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_014",
+          "product_name": "내 신용정보",
+          "source_account_id": null,
+          "options": {
+            "service_id": "svc_my_credit_info_014",
+            "operation": "ENROLL_SERVICE",
+            "kakaobank_terms_consent_id": "consent_my_credit_terms_014",
+            "privacy_consent_id": "consent_my_credit_privacy_014",
+            "kcb_terms_consent_id": "consent_kcb_allcredit_014",
+            "nice_terms_consent_id": "consent_nice_jikimi_014",
+            "kakaobank_approval_status": "APPROVED",
+            "provided_services": [
+              "CREDIT_INFO_LOOKUP",
+              "CREDIT_INFO_ALERT",
+              "CREDIT_SCORE_UP",
+              "RATE_CUT_NOTICE",
+              "CUSTOM_FINANCIAL_PRODUCT_NOTICE"
+            ]
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_my_credit_info_014",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "consents",
+          "record_id": "consent_kcb_allcredit_014",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "consents",
+          "record_id": "consent_nice_jikimi_014",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "내 신용정보 서비스 이용 대상은 내국인 실명의 개인이라고 확인한다.",
+      "카카오뱅크 약관, 개인정보 동의, KCB 올크레딧 약관, NICE 지키미 회원 약관 동의와 카카오뱅크 승인이 필요하다고 확인한다.",
+      "조건이 충족되면 이용계약을 성립시키고 신용정보 조회, 알림, 신용정보 관리 등 서비스를 즉시 제공 상태로 만든다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_신용정보_001"
+  ],
+  "user_tools": []
+}

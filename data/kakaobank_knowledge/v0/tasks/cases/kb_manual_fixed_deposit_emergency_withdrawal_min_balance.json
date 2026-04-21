@@ -1,0 +1,186 @@
+{
+  "id": "kb_manual_fixed_deposit_emergency_withdrawal_min_balance",
+  "description": {
+    "purpose": "success task for 정기예금",
+    "relevant_policies": "doc_kakao_product_정기예금_002",
+    "notes": "source_task_id=kb_manual_fixed_deposit_emergency_withdrawal_min_balance; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_fixed_deposit_emergency_withdrawal_min_balance.md; notes=This success task uses the exact remaining-balance boundary: after withdrawing 2,000,000 KRW from a 3,000,000 KRW fixed deposit, the remaining principal is exactly the required 1,000,000 KRW minimum."
+  },
+  "user_prompt": "정기예금 원금이 300만원이고 아직 만기 전이에요. 이번 계약기간 긴급출금은 한 번만 썼습니다. 해지하지 말고 200만원만 긴급출금해서 연결된 입출금통장으로 보내 주세요. 100만원은 남길 수 있어요.",
+  "user_scenario": {
+    "persona": "만기 전 목돈 일부만 필요한 정기예금 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n정기예금 원금이 300만원이고 아직 만기 전이에요. 이번 계약기간 긴급출금은 한 번만 썼습니다. 해지하지 말고 200만원만 긴급출금해서 연결된 입출금통장으로 보내 주세요. 100만원은 남길 수 있어요.\n\nExpected assistant response points:\n- 정기예금은 만기 전 해지하지 않고 일부 금액만 긴급출금할 수 있다고 안내한다.\n- 긴급출금은 가입일 또는 자동연장일부터 만기일 전일까지 가능하고 계약기간 중 최대 2회까지 가능하다고 확인한다.\n- 현재 1회 사용 상태라 한 번 더 가능하며, 3,000,000원에서 2,000,000원을 출금하면 잔액이 정확히 1,000,000원이라 최소 유지금액 조건을 충족한다고 계산한다.\n- 출금금액에는 중도해지금리가 적용되고, 예금은 해지되지 않은 ACTIVE 상태로 남는다고 설명한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_041": {
+              "customer_id": "cust_041",
+              "name": "정예금",
+              "date_of_birth": "1984-04-12",
+              "age": 42,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_fixed_base_041": {
+              "account_id": "acct_fixed_base_041",
+              "customer_id": "cust_041",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 350000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_fixed_041"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_fixed_041": {
+              "deposit_id": "dep_fixed_041",
+              "account_id": "acct_fixed_base_041",
+              "customer_id": "cust_041",
+              "product_name": "정기예금",
+              "status": "ACTIVE",
+              "opened_at": "2025-10-20",
+              "matures_at": "2026-10-20",
+              "principal_krw": 3000000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_fixed_base_041",
+              "tax_free_savings": false,
+              "emergency_withdrawal_count_current_term": 1,
+              "emergency_withdrawal_limit_per_term": 2,
+              "minimum_balance_after_emergency_withdrawal_krw": 1000000
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_fixed_deposit_emergency_withdrawal_min_balance_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "정기예금 긴급출금 계약기간 최대 2회 출금 후 잔액 100만원 이상 중도해지금리"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_emergency_withdrawal_min_balance_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_041"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_emergency_withdrawal_min_balance_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_fixed_041",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_emergency_withdrawal_min_balance_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_fixed_base_041",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_fixed_deposit_emergency_withdrawal_min_balance_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "dep_fixed_041",
+          "target_id": "acct_fixed_base_041",
+          "amount": 2000000,
+          "currency": "KRW",
+          "transaction_type": "FIXED_DEPOSIT_EMERGENCY_WITHDRAWAL",
+          "interest_rate_type_for_withdrawn_amount": "EARLY_CLOSE_RATE",
+          "remaining_principal_krw": 1000000,
+          "emergency_withdrawal_count_after": 2
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_fixed_041",
+          "target_id": "acct_fixed_base_041",
+          "amount": 2000000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "deposit_contracts",
+          "record_id": "dep_fixed_041",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "deposit_contracts",
+          "record_id": "dep_fixed_041",
+          "field_names": [
+            "status",
+            "close_type",
+            "legal_restriction_flags",
+            "matures_at"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "정기예금은 만기 전 해지하지 않고 일부 금액만 긴급출금할 수 있다고 안내한다.",
+      "긴급출금은 가입일 또는 자동연장일부터 만기일 전일까지 가능하고 계약기간 중 최대 2회까지 가능하다고 확인한다.",
+      "현재 1회 사용 상태라 한 번 더 가능하며, 3,000,000원에서 2,000,000원을 출금하면 잔액이 정확히 1,000,000원이라 최소 유지금액 조건을 충족한다고 계산한다.",
+      "출금금액에는 중도해지금리가 적용되고, 예금은 해지되지 않은 ACTIVE 상태로 남는다고 설명한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_정기예금_002"
+  ],
+  "user_tools": []
+}

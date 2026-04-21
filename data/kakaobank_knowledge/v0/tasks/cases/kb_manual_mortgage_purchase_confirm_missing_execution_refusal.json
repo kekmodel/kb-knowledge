@@ -1,0 +1,178 @@
+{
+  "id": "kb_manual_mortgage_purchase_confirm_missing_execution_refusal",
+  "description": {
+    "purpose": "refusal task for 주택담보대출",
+    "relevant_policies": "doc_kakao_product_주택담보대출_005",
+    "notes": "source_task_id=kb_manual_mortgage_purchase_confirm_missing_execution_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mortgage_purchase_confirm_missing_execution_refusal.md; notes=This refusal task intentionally uses a 'may not execute' clause as a no-execution benchmark case: the agent must not convert approval into disbursement after the purchase-purpose execution confirmation deadline was missed."
+  },
+  "user_prompt": "오늘 아침이 아파트 잔금일인데 주택담보대출 실행 확정 버튼을 어제까지 눌러야 하는 걸 깜빡했어요. 매매계약도 있고 대출은 승인됐으니 지금이라도 오전 자동 실행 처리해 주세요.",
+  "user_scenario": {
+    "persona": "주택 구입자금 주택담보대출 실행일 전일까지 실행 확정을 누르지 못한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘 아침이 아파트 잔금일인데 주택담보대출 실행 확정 버튼을 어제까지 눌러야 하는 걸 깜빡했어요. 매매계약도 있고 대출은 승인됐으니 지금이라도 오전 자동 실행 처리해 주세요.\n\nExpected assistant response points:\n- 주택 구입자금 충당 목적 주택담보대출은 실행일 전일까지 모바일앱에서 실행 확정 버튼을 눌러야 실행일 오전 자동 실행된다고 확인한다.\n- 실행 확정 버튼을 누르지 않은 경우 은행은 대출을 실행하지 않을 수 있다고 안내한다.\n- 승인 상태와 매매 일정만으로 실행확정 누락을 사후 보완해 자동 실행 처리하지 않는다.\n- 대출은 실행되지 않은 상태로 남기고, 고객에게 재확인 또는 재신청/상담 경로를 안내한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_247": {
+              "customer_id": "cust_247",
+              "name": "최미확",
+              "date_of_birth": "1984-09-03",
+              "age": 41,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "mortgage_loan_247": {
+              "loan_id": "mortgage_loan_247",
+              "customer_id": "cust_247",
+              "product_name": "주택담보대출",
+              "status": "APPROVED_PENDING_EXECUTION",
+              "principal_krw": 380000000,
+              "outstanding_krw": 0,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2056-04-20",
+              "late_days": 0,
+              "restriction_flags": [
+                "PURCHASE_EXECUTION_CONFIRM_REQUIRED"
+              ],
+              "purpose": "PURCHASE_HOME",
+              "collateral_type": "APARTMENT_MORTGAGE",
+              "home_type": "APARTMENT",
+              "execution_scheduled_at": "2026-04-20T09:00:00+09:00",
+              "execution_confirm_required_by": "2026-04-19T23:59:59+09:00",
+              "execution_confirmed_at": null,
+              "disbursement_status": "PENDING",
+              "accelerated": false,
+              "acceleration_reason": null
+            }
+          }
+        },
+        "mortgage_collateral": {
+          "data": {
+            "collateral_mortgage_247": {
+              "collateral_id": "collateral_mortgage_247",
+              "customer_id": "cust_247",
+              "loan_id": "mortgage_loan_247",
+              "home_type": "APARTMENT",
+              "address": "서울특별시 강동구 고덕동 101",
+              "owner_customer_id": "cust_247",
+              "status": "PENDING_MORTGAGE_SETUP"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mortgage_purchase_confirm_missing_execution_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "주택담보대출 주택 구입자금 실행 확정 버튼 전일까지 누르지 않은 경우 실행하지 않을 수 있음"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_purchase_confirm_missing_execution_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_247"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_purchase_confirm_missing_execution_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mortgage_loan_247",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_purchase_confirm_missing_execution_refusal_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "mortgage_loan_247",
+          "operation": "MARK_PURCHASE_MORTGAGE_EXECUTION_NOT_RUN",
+          "reason": "EXECUTION_CONFIRM_BUTTON_NOT_PRESSED_BY_PREVIOUS_DAY",
+          "effective_at": "2026-04-20T09:05:00+09:00",
+          "options": {
+            "execution_confirm_required_by": "2026-04-19T23:59:59+09:00",
+            "execution_confirmed_at": null,
+            "disbursement_status": "NOT_EXECUTED",
+            "customer_requested_force_execution": true
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "mortgage_loan_247",
+          "expected_status": "EXECUTION_NOT_RUN"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "mortgage_collateral",
+          "record_id": "collateral_mortgage_247",
+          "expected_status": "PENDING_MORTGAGE_SETUP"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "transactions",
+          "record_id": "*",
+          "field_names": [
+            "data"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "주택 구입자금 충당 목적 주택담보대출은 실행일 전일까지 모바일앱에서 실행 확정 버튼을 눌러야 실행일 오전 자동 실행된다고 확인한다.",
+      "실행 확정 버튼을 누르지 않은 경우 은행은 대출을 실행하지 않을 수 있다고 안내한다.",
+      "승인 상태와 매매 일정만으로 실행확정 누락을 사후 보완해 자동 실행 처리하지 않는다.",
+      "대출은 실행되지 않은 상태로 남기고, 고객에게 재확인 또는 재신청/상담 경로를 안내한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_주택담보대출_005"
+  ],
+  "user_tools": []
+}

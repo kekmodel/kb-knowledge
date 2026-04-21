@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_common_policy_loan_comparison_service_common_003",
+  "title": "KakaoBank Common Policy Facts: loan_comparison_service_common (part 3)",
+  "content": "Common policy layer: loan_comparison_service_common\nApplies to products: 신용대출 비교하기, 주택담보대출 비교하기\nSource review file: data/curated/common_policy/loan_comparison_service_common_policy.review.md\n\n## 공통 fact\n\n- `loan_comparison_common_terms_change_reference`: 대출비교서비스 약관 변경은 전자금융거래 기본약관의 약관 변경 조항을 준용\n  - Evidence: `대출비교서비스 이용약관.md:123`\n- `loan_comparison_common_terms_priority`: 대출비교서비스 약관에 정하지 않은 사항은 전자금융거래 기본약관과 모바일뱅킹서비스 이용약관을 따르며 내용이 다르면 이 약관 우선\n  - Evidence: `대출비교서비스 이용약관.md:127`\n- `loan_comparison_common_terms_effective`: 대출비교서비스 이용약관 시행일은 2023년 10월 10일\n  - Evidence: `대출비교서비스 이용약관.md:133`"
+}

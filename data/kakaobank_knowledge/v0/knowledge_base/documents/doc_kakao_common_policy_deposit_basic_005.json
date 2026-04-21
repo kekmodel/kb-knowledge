@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_common_policy_deposit_basic_005",
+  "title": "KakaoBank Common Policy Facts: deposit_basic (part 5)",
+  "content": "Common policy layer: deposit_basic\nApplies to products: 26주적금, 개인사업자통장, 기록통장, 부가세박스, 세이프박스, 우리아이적금, 우리아이통장, 입출금통장, 자유적금, 저금통, 정기예금, 한달적금\nSource review file: data/curated/common_policy/deposit_basic_policy.review.md\n\n## 공통 fact\n\n- `aml_individual_additional_info`: 개인 고객확인 추가정보는 거래목적, 자금원천, 재산현황 등을 포함\n  - Evidence: `예금거래기본약관.md:207`\n- `aml_legal_entity_identity_info`: 법인 또는 단체 고객확인 신원정보는 법인명, 실명번호, 주소, 연락처, 대표자 정보, 업종, 설립목적, 법인관계인 등을 포함\n  - Evidence: `예금거래기본약관.md:213`\n- `aml_legal_entity_additional_info`: 법인 또는 단체 고객확인 추가정보는 회사 일반정보, 거래목적, 자금원천 등을 포함\n  - Evidence: `예금거래기본약관.md:214`\n- `virtual_asset_business_notice_required`: 가상자산사업자인 고객은 은행에 가상자산사업자임을 고지해야 하며 미고지로 검증이 충분하지 않으면 금융거래가 거절 또는 종료됨\n  - Evidence: `예금거래기본약관.md:216`\n- `sanctions_restricted_party`: 금융거래제한대상자 또는 국제 자금세탁방지 관련 금융거래제한 대상자는 금융거래가 제한 또는 거절됨\n  - Evidence: `예금거래기본약관.md:218`"
+}

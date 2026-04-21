@@ -1,0 +1,164 @@
+{
+  "id": "kb_manual_business_account_purpose_verified_converts_normal",
+  "description": {
+    "purpose": "success task for 개인사업자통장",
+    "relevant_policies": "doc_kakao_product_개인사업자통장_001",
+    "notes": "source_task_id=kb_manual_business_account_purpose_verified_converts_normal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_account_purpose_verified_converts_normal.md; notes=This task fills the lifecycle gap after initial opening: the agent must not leave the account in limit-account status once business-purpose verification is already available."
+  },
+  "user_prompt": "개인사업자통장이 처음에는 한도계좌로 열렸는데, 지금 사업자 정보 확인까지 끝났어요. 이제 일반계좌로 전환해서 앱 이체한도도 올릴 수 있나요?",
+  "user_scenario": {
+    "persona": "개인사업자통장을 한도계좌로 개설한 뒤 사업자 정보 확인을 마친 카페 사장",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n개인사업자통장이 처음에는 한도계좌로 열렸는데, 지금 사업자 정보 확인까지 끝났어요. 이제 일반계좌로 전환해서 앱 이체한도도 올릴 수 있나요?\n\nExpected assistant response points:\n- 개인사업자통장은 금융거래목적 확인 전까지 한도계좌로 제한된다고 안내한다.\n- 간편인증서 발급 또는 사업자 정보 확인으로 금융거래 목적이 확인되면 일반계좌 전환이 가능하다고 안내한다.\n- 전환 후 일반계좌의 카카오뱅크 앱 이체한도는 OTP 기준 1일 최대 5억원이라고 안내한다.\n- 이미 확인된 사업자 정보에 따라 기존 한도계좌를 일반계좌 상태로 전환한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_061": {
+              "customer_id": "cust_061",
+              "name": "서카페",
+              "date_of_birth": "1991-05-12",
+              "age": 34,
+              "residency": "KR",
+              "employment_type": "SOLE_PROPRIETOR",
+              "identity_verified": true,
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_061": {
+              "business_id": "biz_061",
+              "customer_id": "cust_061",
+              "business_name": "서카페",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "business_purpose": "CAFE_OPERATIONS",
+              "business_information_verified": true
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_biz_061": {
+              "account_id": "acct_biz_061",
+              "customer_id": "cust_061",
+              "product_name": "개인사업자통장",
+              "status": "ACTIVE_LIMIT_ACCOUNT",
+              "balance_krw": 1250000,
+              "is_limit_account": true,
+              "daily_app_transfer_limit_krw": 2000000,
+              "financial_purpose_verified": false,
+              "linked_service_ids": [],
+              "restriction_flags": [],
+              "linked_loan_id": null,
+              "business_id": "biz_061"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_account_purpose_verified_converts_normal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "개인사업자통장 금융거래 한도계좌 사업자 정보 확인 일반계좌 전환 이체한도"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_account_purpose_verified_converts_normal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_061"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_account_purpose_verified_converts_normal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_biz_061",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_account_purpose_verified_converts_normal_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_061",
+          "product_name": "개인사업자통장",
+          "source_account_id": "acct_biz_061",
+          "options": {
+            "operation": "CONVERT_LIMIT_TO_NORMAL_ACCOUNT",
+            "business_id": "biz_061",
+            "verification_method": "BUSINESS_INFORMATION_CONFIRMED",
+            "financial_purpose_verified": true,
+            "is_limit_account": false,
+            "daily_app_transfer_limit_krw": 500000000,
+            "expected_status": "ACTIVE"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_biz_061",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_biz_061",
+          "field_names": [
+            "account_id",
+            "customer_id",
+            "product_name",
+            "business_id"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "개인사업자통장은 금융거래목적 확인 전까지 한도계좌로 제한된다고 안내한다.",
+      "간편인증서 발급 또는 사업자 정보 확인으로 금융거래 목적이 확인되면 일반계좌 전환이 가능하다고 안내한다.",
+      "전환 후 일반계좌의 카카오뱅크 앱 이체한도는 OTP 기준 1일 최대 5억원이라고 안내한다.",
+      "이미 확인된 사업자 정보에 따라 기존 한도계좌를 일반계좌 상태로 전환한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_개인사업자통장_001"
+  ],
+  "user_tools": []
+}

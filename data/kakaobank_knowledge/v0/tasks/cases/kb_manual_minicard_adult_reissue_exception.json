@@ -1,0 +1,123 @@
+{
+  "id": "kb_manual_minicard_adult_reissue_exception",
+  "description": {
+    "purpose": "success task for mini카드",
+    "relevant_policies": "doc_kakao_product_mini카드_001, doc_kakao_product_mini카드_004",
+    "notes": "source_task_id=kb_manual_minicard_adult_reissue_exception; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_minicard_adult_reissue_exception.md; notes=The trap is treating the adult new-issue restriction as a blanket card action block."
+  },
+  "user_prompt": "제가 이제 만 19세인데 기존 mini카드가 훼손됐어요. 신규 발급은 안 된다던데 같은 카드 재발급도 막히나요?",
+  "user_scenario": {
+    "persona": "만 19세가 된 기존 mini카드 보유 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제가 이제 만 19세인데 기존 mini카드가 훼손됐어요. 신규 발급은 안 된다던데 같은 카드 재발급도 막히나요?\n\nExpected assistant response points:\n- 만 19세 이상은 신규 발급이 불가능하다는 제한을 설명한다.\n- 기존 보유 mini카드는 동일 유효기간 조건으로 재발급 가능하다고 구분한다.\n- 훼손 재발급 주문을 승인 상태로 남긴다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_002": {
+              "name": "이미니",
+              "age": 19,
+              "identity_verified": true,
+              "status": "ACTIVE"
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_001": {
+              "customer_id": "cust_002",
+              "balance": 42000,
+              "currency": "KRW",
+              "status": "ACTIVE"
+            }
+          }
+        },
+        "cards": {
+          "data": {
+            "mini_card_001": {
+              "customer_id": "cust_002",
+              "wallet_id": "mini_wallet_001",
+              "product_name": "mini카드",
+              "status": "ACTIVE",
+              "valid_until": "2026-09-30"
+            }
+          }
+        },
+        "card_orders": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_minicard_adult_reissue_exception_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "mini카드 만 19세 재발급 동일 유효기간"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_adult_reissue_exception_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_002"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_adult_reissue_exception_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_card_001",
+          "table": "cards"
+        }
+      },
+      {
+        "action_id": "kb_manual_minicard_adult_reissue_exception_03",
+        "requestor": "assistant",
+        "name": "update_card_state",
+        "arguments": {
+          "card_id": "mini_card_001",
+          "operation": "REISSUE_CARD",
+          "reason": "DAMAGED_CARD",
+          "order_id": "card_order_001",
+          "expected_valid_until": "2026-09-30"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_card_order_outcome",
+        "arguments": {
+          "order_id": "card_order_001",
+          "expected_status": "APPROVED",
+          "expected_valid_until": "2026-09-30"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "만 19세 이상은 신규 발급이 불가능하다는 제한을 설명한다.",
+      "기존 보유 mini카드는 동일 유효기간 조건으로 재발급 가능하다고 구분한다.",
+      "훼손 재발급 주문을 승인 상태로 남긴다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_mini카드_001",
+    "doc_kakao_product_mini카드_004"
+  ],
+  "user_tools": []
+}

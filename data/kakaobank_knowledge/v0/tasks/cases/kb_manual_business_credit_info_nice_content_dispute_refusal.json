@@ -1,0 +1,156 @@
+{
+  "id": "kb_manual_business_credit_info_nice_content_dispute_refusal",
+  "description": {
+    "purpose": "refusal task for 내 사업장 신용정보",
+    "relevant_policies": "doc_kakao_product_내_사업장_신용정보_003, doc_kakao_product_내_사업장_신용정보_004",
+    "notes": "source_task_id=kb_manual_business_credit_info_nice_content_dispute_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_info_nice_content_dispute_refusal.md; notes=This is a refusal-boundary task: the agent should not promise KakaoBank content guarantees or direct correction, but should log a dispute/objection against the affiliate-service content while preserving service enrollment."
+  },
+  "user_prompt": "내 사업장 신용정보의 사업장 신용리포트가 틀렸어요. 카카오뱅크 앱에 나온 내용이니 카카오뱅크가 진위성을 보증하고 바로 정상 리포트로 고쳐 주세요. 대출 심사에도 이 리포트가 맞다고 보장해 주세요.",
+  "user_scenario": {
+    "persona": "NICE가 산출한 사업장 신용리포트 내용이 틀렸다고 주장하며 카카오뱅크 보증과 즉시 정정을 요구하는 이용자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n내 사업장 신용정보의 사업장 신용리포트가 틀렸어요. 카카오뱅크 앱에 나온 내용이니 카카오뱅크가 진위성을 보증하고 바로 정상 리포트로 고쳐 주세요. 대출 심사에도 이 리포트가 맞다고 보장해 주세요.\n\nExpected assistant response points:\n- NICE 서비스 구성과 내용은 NICE가 정하고 카카오뱅크는 진위성 및 유효성에 책임을 지지 않는다고 안내한다.\n- 사장님 신용관리서비스는 NICE평가정보 책임하에 운영된다는 책임 경계를 설명한다.\n- 카카오뱅크가 즉시 정정 또는 보증 처리하지 않고 제휴서비스 내용 이의로 접수한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_093": {
+              "customer_id": "cust_093",
+              "name": "문리포트",
+              "date_of_birth": "1987-04-14",
+              "age": 39,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_093": {
+              "business_id": "biz_093",
+              "customer_id": "cust_093",
+              "business_name": "문리포트 카페",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "business_purpose": "CAFE"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_biz_credit_info_093": {
+              "service_id": "svc_biz_credit_info_093",
+              "customer_id": "cust_093",
+              "service_name": "내 사업장 신용정보",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_base_093",
+              "business_id": "biz_093",
+              "started_at": "2026-02-03T11:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "provided_services": [
+                "SOHO_CREDIT_SCORE",
+                "CREDIT_INFO_LOOKUP",
+                "BUSINESS_CREDIT_REPORT"
+              ]
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_info_nice_content_dispute_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 사업장 신용정보 NICE 내용 진위성 유효성 카카오뱅크 책임 아님"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_nice_content_dispute_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_093"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_nice_content_dispute_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_biz_credit_info_093",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_info_nice_content_dispute_refusal_03",
+        "requestor": "assistant",
+        "name": "file_dispute_or_objection",
+        "arguments": {
+          "customer_id": "cust_093",
+          "target_type": "affiliate_service_content",
+          "target_id": "svc_biz_credit_info_093",
+          "reason": "NICE_CONTENT_VALIDITY_NOT_KAKAOBANK_GUARANTEED",
+          "options": {
+            "business_id": "biz_093",
+            "contested_feature": "BUSINESS_CREDIT_REPORT",
+            "kakaobank_content_guarantee_refused": true,
+            "affiliate_responsibility": "NICE",
+            "service_status_change": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_dispute_logged",
+        "arguments": {
+          "customer_id": "cust_093",
+          "target_id": "svc_biz_credit_info_093",
+          "reason": "NICE_CONTENT_VALIDITY_NOT_KAKAOBANK_GUARANTEED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_biz_credit_info_093",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "NICE 서비스 구성과 내용은 NICE가 정하고 카카오뱅크는 진위성 및 유효성에 책임을 지지 않는다고 안내한다.",
+      "사장님 신용관리서비스는 NICE평가정보 책임하에 운영된다는 책임 경계를 설명한다.",
+      "카카오뱅크가 즉시 정정 또는 보증 처리하지 않고 제휴서비스 내용 이의로 접수한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_사업장_신용정보_003",
+    "doc_kakao_product_내_사업장_신용정보_004"
+  ],
+  "user_tools": []
+}

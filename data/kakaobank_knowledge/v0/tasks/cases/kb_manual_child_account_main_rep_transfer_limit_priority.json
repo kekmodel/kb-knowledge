@@ -1,0 +1,219 @@
+{
+  "id": "kb_manual_child_account_main_rep_transfer_limit_priority",
+  "description": {
+    "purpose": "success task for 우리아이통장",
+    "relevant_policies": "doc_kakao_product_우리아이통장_001, doc_kakao_product_우리아이통장_003",
+    "notes": "source_task_id=kb_manual_child_account_main_rep_transfer_limit_priority; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_child_account_main_rep_transfer_limit_priority.md; notes=This success task is intentionally above the under-17 financial-limit-account daily amount of 500,000 KRW, because the product disclosure says the Woori Child Service transfer limit takes priority for a minor account holder and the requester is the main representative."
+  },
+  "user_prompt": "아이 우리아이통장이 아직 금융거래 한도계좌이고 아이가 만 10세라 1일 50만원 한도라고 보이는데요. 제가 주대리인으로 제 카카오뱅크 입출금통장에 교육비 정산용 90만원을 이체할 수 있으면 지금 처리해 주세요.",
+  "user_scenario": {
+    "persona": "자녀 우리아이통장의 주대리인인 부모",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n아이 우리아이통장이 아직 금융거래 한도계좌이고 아이가 만 10세라 1일 50만원 한도라고 보이는데요. 제가 주대리인으로 제 카카오뱅크 입출금통장에 교육비 정산용 90만원을 이체할 수 있으면 지금 처리해 주세요.\n\nExpected assistant response points:\n- 우리아이통장은 기본적으로 금융거래 한도계좌로 개설되지만 예금주가 미성년자인 경우 우리아이서비스 이용약관의 이체한도가 우선 적용된다고 안내한다.\n- 주대리인은 본인 또는 자녀 명의의 당행·타행 계좌로만 이체할 수 있고 ATM 출금은 불가하다고 설명한다.\n- 주대리인 이체한도는 1회 10,000,000원, 1일 50,000,000원이므로 900,000원 이체는 한도 내라고 확인한다.\n- 자녀 우리아이통장에서 주대리인 본인 명의 계좌로 900,000원을 이체한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_033": {
+              "customer_id": "cust_033",
+              "name": "강주대",
+              "date_of_birth": "1985-04-12",
+              "age": 41,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            },
+            "child_033": {
+              "customer_id": "child_033",
+              "name": "강아이",
+              "date_of_birth": "2015-10-07",
+              "age": 10,
+              "residency": "KR",
+              "employment_type": "MINOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "child_relationships": {
+          "data": {
+            "rel_child_account_033": {
+              "relationship_id": "rel_child_account_033",
+              "child_customer_id": "child_033",
+              "representative_customer_id": "cust_033",
+              "representative_role": "MAIN_REPRESENTATIVE_PARENT",
+              "status": "ACTIVE",
+              "child_age": 10,
+              "legal_representative_verified": true
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_child_033": {
+              "account_id": "acct_child_033",
+              "customer_id": "child_033",
+              "product_name": "우리아이통장",
+              "status": "ACTIVE",
+              "balance_krw": 1500000,
+              "currency": "KRW",
+              "is_limit_account": true,
+              "linked_service_ids": [
+                "svc_child_033"
+              ],
+              "restriction_flags": [],
+              "minor_account_holder": true,
+              "financial_limit_daily_krw": 500000,
+              "wooriai_service_limit_priority": true
+            },
+            "acct_parent_033": {
+              "account_id": "acct_parent_033",
+              "customer_id": "cust_033",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 250000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_child_033": {
+              "service_id": "svc_child_033",
+              "customer_id": "child_033",
+              "service_name": "우리아이서비스",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_child_033",
+              "started_at": "2025-11-01T09:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "main_representative_customer_id": "cust_033",
+              "main_representative_single_transfer_limit_krw": 10000000,
+              "main_representative_daily_transfer_limit_krw": 50000000
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_child_account_main_rep_transfer_limit_priority_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "우리아이통장 미성년자 금융거래한도계좌 우리아이서비스 한도 우선 주대리인 1회 1천만원 이체"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_account_main_rep_transfer_limit_priority_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_033"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_account_main_rep_transfer_limit_priority_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_child_033",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_account_main_rep_transfer_limit_priority_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_parent_033",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_child_account_main_rep_transfer_limit_priority_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "acct_child_033",
+          "target_id": "acct_parent_033",
+          "amount": 900000,
+          "currency": "KRW",
+          "transaction_type": "CHILD_ACCOUNT_MAIN_REP_MOBILE_TRANSFER",
+          "requested_by_customer_id": "cust_033",
+          "representative_role": "MAIN_REPRESENTATIVE_PARENT"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_child_033",
+          "target_id": "acct_parent_033",
+          "amount": 900000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_child_033",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_child_033",
+          "field_names": [
+            "status",
+            "restriction_flags",
+            "main_representative_single_transfer_limit_krw",
+            "main_representative_daily_transfer_limit_krw"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "우리아이통장은 기본적으로 금융거래 한도계좌로 개설되지만 예금주가 미성년자인 경우 우리아이서비스 이용약관의 이체한도가 우선 적용된다고 안내한다.",
+      "주대리인은 본인 또는 자녀 명의의 당행·타행 계좌로만 이체할 수 있고 ATM 출금은 불가하다고 설명한다.",
+      "주대리인 이체한도는 1회 10,000,000원, 1일 50,000,000원이므로 900,000원 이체는 한도 내라고 확인한다.",
+      "자녀 우리아이통장에서 주대리인 본인 명의 계좌로 900,000원을 이체한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_우리아이통장_001",
+    "doc_kakao_product_우리아이통장_003"
+  ],
+  "user_tools": []
+}

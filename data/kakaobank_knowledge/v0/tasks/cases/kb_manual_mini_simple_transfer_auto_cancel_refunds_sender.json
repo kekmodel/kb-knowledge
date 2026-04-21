@@ -1,0 +1,173 @@
+{
+  "id": "kb_manual_mini_simple_transfer_auto_cancel_refunds_sender",
+  "description": {
+    "purpose": "success task for 카카오뱅크 mini",
+    "relevant_policies": "doc_kakao_product_카카오뱅크_mini_002",
+    "notes": "source_task_id=kb_manual_mini_simple_transfer_auto_cancel_refunds_sender; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mini_simple_transfer_auto_cancel_refunds_sender.md; notes=This task requires both elapsed-time state and receiver non-acceptance. If the receiver had accepted within 24 hours, the refund would be wrong."
+  },
+  "user_prompt": "어제 오전 10시에 친구에게 mini 간편이체로 4만원을 보냈는데 친구가 아직 입금받지 않았어요. 24시간이 지났으면 자동취소하고 제 mini로 돌려주세요.",
+  "user_scenario": {
+    "persona": "mini 간편이체를 보냈지만 수취인이 24시간 동안 받지 않은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n어제 오전 10시에 친구에게 mini 간편이체로 4만원을 보냈는데 친구가 아직 입금받지 않았어요. 24시간이 지났으면 자동취소하고 제 mini로 돌려주세요.\n\nExpected assistant response points:\n- mini 간편이체 금액은 수취인이 24시간 이내 입금받지 않으면 자동 취소된다고 안내한다.\n- 현재 전송 후 24시간이 지났고 수취인이 입금받지 않은 상태임을 확인한다.\n- 원 간편이체를 자동취소 처리하고 송금인 mini wallet으로 4만원을 환급한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_097": {
+              "customer_id": "cust_097",
+              "name": "강미수",
+              "date_of_birth": "2009-01-08",
+              "age": 17,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_097": {
+              "wallet_id": "mini_wallet_097",
+              "customer_id": "cust_097",
+              "status": "ACTIVE",
+              "balance_krw": 26000,
+              "holding_limit_krw": 500000,
+              "daily_limit_krw": 200000,
+              "monthly_limit_krw": 1000000,
+              "daily_spend_used_krw": 40000,
+              "monthly_spend_used_krw": 220000,
+              "age_band": "AGE_13_PLUS"
+            }
+          }
+        },
+        "transactions": {
+          "data": {
+            "simple_transfer_097": {
+              "transaction_id": "simple_transfer_097",
+              "customer_id": "cust_097",
+              "source_wallet_id": "mini_wallet_097",
+              "target_phone_hash": "receiver_phone_hash_097",
+              "type": "MINI_SIMPLE_TRANSFER",
+              "status": "PENDING_RECEIVER_ACCEPTANCE",
+              "amount_krw": 40000,
+              "sent_at": "2026-04-19T10:00:00+09:00",
+              "expires_at": "2026-04-20T10:00:00+09:00",
+              "received_at": null,
+              "refunded_at": null
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mini_simple_transfer_auto_cancel_refunds_sender_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "카카오뱅크 mini 간편이체 24시간 이내 입금받지 않으면 자동 취소 송금인 환급"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_simple_transfer_auto_cancel_refunds_sender_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_097"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_simple_transfer_auto_cancel_refunds_sender_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_wallet_097",
+          "table": "prepaid_wallets"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_simple_transfer_auto_cancel_refunds_sender_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "simple_transfer_097",
+          "table": "transactions"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_simple_transfer_auto_cancel_refunds_sender_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "simple_transfer_097",
+          "target_id": "mini_wallet_097",
+          "amount": 40000,
+          "currency": "KRW",
+          "transaction_type": "MINI_SIMPLE_TRANSFER_AUTO_CANCEL_REFUND",
+          "original_transfer_status": "PENDING_RECEIVER_ACCEPTANCE",
+          "new_transfer_status": "AUTO_CANCELED",
+          "sent_at": "2026-04-19T10:00:00+09:00",
+          "auto_cancel_at": "2026-04-20T10:00:00+09:00",
+          "refunded_at": "2026-04-20T16:50:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "simple_transfer_097",
+          "target_id": "mini_wallet_097",
+          "amount": 40000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "transactions",
+          "record_id": "simple_transfer_097",
+          "expected_status": "AUTO_CANCELED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_097",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "mini 간편이체 금액은 수취인이 24시간 이내 입금받지 않으면 자동 취소된다고 안내한다.",
+      "현재 전송 후 24시간이 지났고 수취인이 입금받지 않은 상태임을 확인한다.",
+      "원 간편이체를 자동취소 처리하고 송금인 mini wallet으로 4만원을 환급한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_카카오뱅크_mini_002"
+  ],
+  "user_tools": []
+}

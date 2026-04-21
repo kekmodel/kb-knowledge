@@ -1,0 +1,140 @@
+{
+  "id": "kb_manual_safebox_eligible_customer_opens_zero_balance",
+  "description": {
+    "purpose": "success task for 세이프박스",
+    "relevant_policies": "doc_kakao_product_세이프박스_001",
+    "notes": "source_task_id=kb_manual_safebox_eligible_customer_opens_zero_balance; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_safebox_eligible_customer_opens_zero_balance.md; notes=This task covers the SafeBox positive opening branch, including the zero-won opening allowance and one SafeBox per base account constraint."
+  },
+  "user_prompt": "제 카카오뱅크 입출금통장에 연결해서 세이프박스를 새로 만들고 싶어요. 이 계좌에는 세이프박스가 아직 없고, 처음에는 0원으로 시작해 주세요.",
+  "user_scenario": {
+    "persona": "카카오뱅크 입출금통장을 보유한 실명확인 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 카카오뱅크 입출금통장에 연결해서 세이프박스를 새로 만들고 싶어요. 이 계좌에는 세이프박스가 아직 없고, 처음에는 0원으로 시작해 주세요.\n\nExpected assistant response points:\n- 세이프박스는 카카오뱅크 입출금이자유로운예금을 보유한 실명의 개인이 만들 수 있다고 확인한다.\n- 실명확인된 입출금이자유로운예금을 통한 연결 신규만 가능하고 근거계좌당 1개씩만 만들 수 있다고 확인한다.\n- 해당 근거계좌에 기존 세이프박스가 없고 0원 신규가 가능하므로 `box_safe_148`을 개설한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_148": {
+              "customer_id": "cust_148",
+              "name": "오금고",
+              "date_of_birth": "1996-05-18",
+              "age": 29,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_148": {
+              "account_id": "acct_base_148",
+              "customer_id": "cust_148",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 560000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_safebox_eligible_customer_opens_zero_balance_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "세이프박스 가입대상 입출금이자유로운예금 연결 신규 0원 신규 근거계좌당 1개"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_eligible_customer_opens_zero_balance_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_148"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_eligible_customer_opens_zero_balance_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_base_148",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_eligible_customer_opens_zero_balance_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_148",
+          "product_name": "세이프박스",
+          "source_account_id": "acct_base_148",
+          "options": {
+            "operation": "OPEN_SAFEBOX",
+            "box_id": "box_safe_148",
+            "opening_amount_krw": 0,
+            "base_account_id": "acct_base_148",
+            "limit_amount": 10000000,
+            "limit_increased": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_safe_148",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_base_148",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "세이프박스는 카카오뱅크 입출금이자유로운예금을 보유한 실명의 개인이 만들 수 있다고 확인한다.",
+      "실명확인된 입출금이자유로운예금을 통한 연결 신규만 가능하고 근거계좌당 1개씩만 만들 수 있다고 확인한다.",
+      "해당 근거계좌에 기존 세이프박스가 없고 0원 신규가 가능하므로 `box_safe_148`을 개설한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_세이프박스_001"
+  ],
+  "user_tools": []
+}

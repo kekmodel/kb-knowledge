@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_정기예금_008",
+  "title": "KakaoBank Product Facts: 정기예금 (part 8)",
+  "content": "Product: 정기예금\nScope: product-specific reviewed facts\nCommon policy links: deposit_basic\n\n## 수동 검수 fact\n\n- `retirement_transfer_name_change_condition`: 퇴직연금신탁 실물이전제도 명의변경은 양수인이 퇴직연금사업자인 경우에 한해 가능\n  - Evidence: `카카오뱅크 퇴직연금 정기예금 상품설명서.md:197`\n- `retirement_restrictions`: 퇴직연금 정기예금은 압류, 상계, 양도, 질권설정, 담보제공, 지급정지가 불가\n  - Evidence: `카카오뱅크 퇴직연금 정기예금 특약.md:93`\n- `retirement_terms_effective`: 퇴직연금 정기예금 특약 시행일은 2025년 12월 01일\n  - Evidence: `카카오뱅크 퇴직연금 정기예금 특약.md:95`, `카카오뱅크 퇴직연금 정기예금 특약.md:99`\n- `retirement_compliance_review_validity`: 퇴직연금 정기예금 상품설명서 준법감시인 심의필 25-2286, 유효기간 2025.12.01~2027.11.30\n  - Evidence: `카카오뱅크 퇴직연금 정기예금 상품설명서.md:3`\n- `general_compliance_review_validity`: 일반 정기예금 상품설명서 준법감시인 심의필 25-1948, 유효기간 2025.10.17~2027.10.16\n  - Evidence: `카카오뱅크 정기예금 상품설명서.md:3`\n- `special_compliance_review_validity`: 특별판매 정기예금 상품설명서 준법감시인 심의필 19-251, 유효기간 2019.07.15~2020.07.14\n  - Evidence: `특별판매 정기예금 상품설명서.md:3`"
+}

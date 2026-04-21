@@ -1,0 +1,268 @@
+{
+  "id": "kb_manual_lease_sgi_refinance_remaining_to_landlord_success",
+  "description": {
+    "purpose": "success task for 전월세보증금 대출",
+    "relevant_policies": "doc_kakao_product_전월세보증금_대출_005",
+    "notes": "source_task_id=kb_manual_lease_sgi_refinance_remaining_to_landlord_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_lease_sgi_refinance_remaining_to_landlord_success.md; notes=This is the positive SGI refinance counterpart to proof-missing execution refusals. The decisive amount is not the full approved amount to the landlord, but the remainder after the old-loan repayment amount."
+  },
+  "user_prompt": "오늘 SGI 전월세보증금 대출 실행일이라 실행버튼을 눌렀어요. 기존 전세대출 1억 2천만원은 안내 기간 안에 상환했고 상환영수증도 은행 확인이 끝났습니다. 승인금 1억 8천만원 중 남은 6천만원만 임대인 계좌로 입금해 주세요.",
+  "user_scenario": {
+    "persona": "SGI 전월세보증금 대출을 기존 보유대출 상환조건부로 승인받은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘 SGI 전월세보증금 대출 실행일이라 실행버튼을 눌렀어요. 기존 전세대출 1억 2천만원은 안내 기간 안에 상환했고 상환영수증도 은행 확인이 끝났습니다. 승인금 1억 8천만원 중 남은 6천만원만 임대인 계좌로 입금해 주세요.\n\nExpected assistant response points:\n- SGI 대출은 실행예정일에 앱 실행버튼을 누른 시점에 실행된다고 확인한다.\n- 상환조건부 SGI 대출은 기존 보유대출 상환과 은행 확인이 필요하며, 이 조건이 충족됐다고 확인한다.\n- 대환 목적 실행에서는 기존대출 상환 후 남은 금액만 임대인 계좌로 입금된다고 안내한다.\n- 대출을 실행하고 임대인 계좌에는 잔여 6천만원만 입금한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_093": {
+              "customer_id": "cust_093",
+              "name": "성대환",
+              "date_of_birth": "1986-03-12",
+              "age": 40,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {
+            "lease_app_093": {
+              "application_id": "lease_app_093",
+              "customer_id": "cust_093",
+              "product_name": "전월세보증금 대출",
+              "status": "APPROVED",
+              "requested_amount_krw": 180000000,
+              "approved_amount_krw": 180000000,
+              "screening_result": "APPROVED",
+              "execution_date": "2026-04-20",
+              "selected_terms": {
+                "guarantee_provider": "SGI",
+                "purpose": "SGI_LEASE_DEPOSIT_REFINANCE",
+                "refinance_condition": true,
+                "old_loan_id": "old_lease_loan_093",
+                "landlord_account_id": "landlord_acct_093"
+              }
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "old_lease_loan_093": {
+              "loan_id": "old_lease_loan_093",
+              "customer_id": "cust_093",
+              "product_name": "타행 전세대출",
+              "status": "REPAID_CONFIRMED",
+              "principal_krw": 120000000,
+              "outstanding_krw": 0,
+              "repayment_mode": "BULLET",
+              "maturity_date": "2026-10-30",
+              "late_days": 0,
+              "restriction_flags": []
+            },
+            "lease_loan_093": {
+              "loan_id": "lease_loan_093",
+              "application_id": "lease_app_093",
+              "customer_id": "cust_093",
+              "product_name": "전월세보증금 대출",
+              "status": "APPROVED_NOT_EXECUTED",
+              "guarantee_provider": "SGI",
+              "principal_krw": 180000000,
+              "outstanding_krw": 0,
+              "principal_balance": 0,
+              "repayment_mode": "BULLET_OR_INSTALLMENT_BY_CONTRACT",
+              "maturity_date": "2028-04-20",
+              "late_days": 0,
+              "restriction_flags": [],
+              "currency": "KRW",
+              "execution_block_reason": null,
+              "executed_at": null
+            }
+          }
+        },
+        "lease_contracts": {
+          "data": {
+            "lease_contract_093": {
+              "contract_id": "lease_contract_093",
+              "application_id": "lease_app_093",
+              "loan_id": "lease_loan_093",
+              "tenant_customer_id": "cust_093",
+              "landlord_account_id": "landlord_acct_093",
+              "landlord_account_number": "110-222-000093",
+              "landlord_account_status": "ACTIVE",
+              "lease_deposit_amount_krw": 240000000,
+              "execution_button_pressed": true,
+              "guarantee_provider": "SGI",
+              "refinance_condition": true,
+              "old_loan_repaid": true,
+              "old_loan_repayment_verified_by_bank": true,
+              "old_loan_repayment_amount_krw": 120000000,
+              "remaining_to_landlord_krw": 60000000
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "landlord_acct_093": {
+              "account_id": "landlord_acct_093",
+              "customer_id": "landlord_093",
+              "product_name": "임대인 수취계좌",
+              "status": "ACTIVE",
+              "balance_krw": 0,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_doc_093": {
+              "document_id": "req_doc_093",
+              "customer_id": "cust_093",
+              "loan_id": "lease_loan_093",
+              "target_type": "loan",
+              "target_id": "lease_loan_093",
+              "document_type": "OLD_LOAN_FULL_REPAYMENT_PROOF",
+              "status": "VERIFIED",
+              "due_date": "2026-04-20",
+              "submitted_at": "2026-04-18T09:20:00+09:00",
+              "verified_at": "2026-04-19T10:00:00+09:00"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_lease_sgi_refinance_remaining_to_landlord_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "SGI 전월세보증금 대출 기존 보유대출 상환 확인 대환 실행 남은 금액 임대인 계좌 입금"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_refinance_remaining_to_landlord_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_093"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_refinance_remaining_to_landlord_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_loan_093",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_refinance_remaining_to_landlord_success_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_contract_093",
+          "table": "lease_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_sgi_refinance_remaining_to_landlord_success_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "lease_loan_093",
+          "application_id": "lease_app_093",
+          "operation": "EXECUTE_SGI_LEASE_REFINANCE_REMAINING_TO_LANDLORD",
+          "reason": "SGI_REFINANCE_CONDITIONS_SATISFIED",
+          "effective_at": "2026-04-20T16:35:00+09:00",
+          "options": {
+            "guarantee_provider": "SGI",
+            "old_loan_id": "old_lease_loan_093",
+            "old_loan_repaid": true,
+            "old_loan_repayment_verified_by_bank": true,
+            "old_loan_repayment_proof_document_id": "req_doc_093",
+            "approved_amount_krw": 180000000,
+            "old_loan_repayment_amount_krw": 120000000,
+            "landlord_account_id": "landlord_acct_093",
+            "landlord_disbursement_amount_krw": 60000000,
+            "landlord_account_status": "ACTIVE"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_application_decision",
+        "arguments": {
+          "application_id": "lease_app_093",
+          "expected_status": "EXECUTED",
+          "expected_reason": "SGI_REFINANCE_CONDITIONS_SATISFIED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "lease_loan_093",
+          "expected_status": "EXECUTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "lease_loan_093",
+          "target_id": "landlord_acct_093",
+          "amount": 60000000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "lease_loan_093",
+          "document_type": "OLD_LOAN_FULL_REPAYMENT_PROOF",
+          "expected_status": "VERIFIED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "SGI 대출은 실행예정일에 앱 실행버튼을 누른 시점에 실행된다고 확인한다.",
+      "상환조건부 SGI 대출은 기존 보유대출 상환과 은행 확인이 필요하며, 이 조건이 충족됐다고 확인한다.",
+      "대환 목적 실행에서는 기존대출 상환 후 남은 금액만 임대인 계좌로 입금된다고 안내한다.",
+      "대출을 실행하고 임대인 계좌에는 잔여 6천만원만 입금한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_전월세보증금_대출_005"
+  ],
+  "user_tools": []
+}

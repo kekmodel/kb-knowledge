@@ -1,0 +1,175 @@
+{
+  "id": "kb_manual_safebox_linked_base_fills_remaining_limit",
+  "description": {
+    "purpose": "success task for 세이프박스",
+    "relevant_policies": "doc_kakao_product_세이프박스_001, doc_kakao_product_세이프박스_002",
+    "notes": "source_task_id=kb_manual_safebox_linked_base_fills_remaining_limit; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_safebox_linked_base_fills_remaining_limit.md; notes=This success task checks that the agent computes the remaining deposit capacity and moves only 500,000 KRW from the linked base account, not the full 1,200,000 KRW available balance."
+  },
+  "user_prompt": "세이프박스에 950만원이 있고 기본 한도는 1천만원인 상태예요. 연결된 입출금통장에는 120만원이 있는데, 한도를 넘기지 않게 가능한 만큼만 세이프박스로 옮겨 주세요.",
+  "user_scenario": {
+    "persona": "비상금을 세이프박스 기본 한도까지 채우려는 입출금통장 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n세이프박스에 950만원이 있고 기본 한도는 1천만원인 상태예요. 연결된 입출금통장에는 120만원이 있는데, 한도를 넘기지 않게 가능한 만큼만 세이프박스로 옮겨 주세요.\n\nExpected assistant response points:\n- 세이프박스 입금은 연결된 카카오뱅크 입출금이자유로운예금에서의 이체만 가능하다고 안내한다.\n- 세이프박스는 설정된 입금한도까지만 입금 가능하므로 현재 남은 한도는 500,000원이라고 계산한다.\n- 연결 입출금통장에서 세이프박스로 500,000원만 이체하고, 나머지 700,000원은 한도 때문에 이체하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_025": {
+              "customer_id": "cust_025",
+              "name": "박세이프",
+              "date_of_birth": "1988-02-14",
+              "age": 38,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_025": {
+              "account_id": "acct_base_025",
+              "customer_id": "cust_025",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 1200000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "box_safe_025"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_safe_025": {
+              "box_id": "box_safe_025",
+              "customer_id": "cust_025",
+              "product_name": "세이프박스",
+              "base_account_id": "acct_base_025",
+              "status": "ACTIVE",
+              "balance": 9500000,
+              "currency": "KRW",
+              "limit_amount": 10000000,
+              "limit_increased": false,
+              "restriction_flags": []
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_safebox_linked_base_fills_remaining_limit_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "세이프박스 연결 입출금통장 입금 한도 1천만원까지만 입금"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_linked_base_fills_remaining_limit_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_025"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_linked_base_fills_remaining_limit_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "box_safe_025",
+          "table": "savings_boxes"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_linked_base_fills_remaining_limit_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_base_025",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_safebox_linked_base_fills_remaining_limit_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "acct_base_025",
+          "target_id": "box_safe_025",
+          "amount": 500000,
+          "currency": "KRW",
+          "transaction_type": "SAFEBOX_LINKED_BASE_DEPOSIT"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_base_025",
+          "target_id": "box_safe_025",
+          "amount": 500000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_safe_025",
+          "field_names": [
+            "status",
+            "base_account_id",
+            "limit_amount"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_base_025",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "세이프박스 입금은 연결된 카카오뱅크 입출금이자유로운예금에서의 이체만 가능하다고 안내한다.",
+      "세이프박스는 설정된 입금한도까지만 입금 가능하므로 현재 남은 한도는 500,000원이라고 계산한다.",
+      "연결 입출금통장에서 세이프박스로 500,000원만 이체하고, 나머지 700,000원은 한도 때문에 이체하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_세이프박스_001",
+    "doc_kakao_product_세이프박스_002"
+  ],
+  "user_tools": []
+}

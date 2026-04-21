@@ -1,0 +1,164 @@
+{
+  "id": "kb_manual_vat_box_eligible_business_opens_zero_balance",
+  "description": {
+    "purpose": "success task for 부가세박스",
+    "relevant_policies": "doc_kakao_product_부가세박스_001",
+    "notes": "source_task_id=kb_manual_vat_box_eligible_business_opens_zero_balance; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_vat_box_eligible_business_opens_zero_balance.md; notes=This task covers the positive opening branch. It intentionally uses a zero-won opening amount because the source says 0 KRW opening is allowed."
+  },
+  "user_prompt": "제 명의 카카오뱅크 개인사업자통장으로 부가세박스를 새로 만들고 싶어요. 사업자번호에는 아직 부가세박스가 없고, 일단 0원으로 시작해 주세요.",
+  "user_scenario": {
+    "persona": "새로 부가세박스를 만들려는 개인사업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 명의 카카오뱅크 개인사업자통장으로 부가세박스를 새로 만들고 싶어요. 사업자번호에는 아직 부가세박스가 없고, 일단 0원으로 시작해 주세요.\n\nExpected assistant response points:\n- 부가세박스는 만 17세 이상 실명의 개인이 카카오뱅크 개인사업자통장을 통해 연결 신규할 수 있다고 확인한다.\n- 사업자번호별 1계좌 제한을 확인하고, 해당 사업자번호에 기존 부가세박스가 없으므로 개설 가능하다고 판단한다.\n- 0원 신규가 가능하므로 연결 개인사업자통장을 근거계좌로 고정해 부가세박스를 개설한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_141": {
+              "customer_id": "cust_141",
+              "name": "오부가",
+              "date_of_birth": "1991-04-03",
+              "age": 35,
+              "residency": "KR",
+              "employment_type": "SOLE_PROPRIETOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_141": {
+              "business_id": "biz_141",
+              "customer_id": "cust_141",
+              "business_name": "오부가 스튜디오",
+              "business_number": "123-45-67141",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "tax_type": "VAT_TAXABLE"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_biz_141": {
+              "account_id": "acct_biz_141",
+              "customer_id": "cust_141",
+              "product_name": "개인사업자통장",
+              "status": "ACTIVE",
+              "balance_krw": 850000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": [],
+              "business_id": "biz_141"
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {}
+        },
+        "auto_transfer_rules": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_vat_box_eligible_business_opens_zero_balance_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "부가세박스 가입대상 개인사업자통장 연결 신규 0원 신규 사업자번호별 1계좌"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_eligible_business_opens_zero_balance_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_141"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_eligible_business_opens_zero_balance_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_biz_141",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_eligible_business_opens_zero_balance_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_141",
+          "product_name": "부가세박스",
+          "source_account_id": "acct_biz_141",
+          "options": {
+            "operation": "OPEN_VAT_BOX",
+            "box_id": "box_vat_141",
+            "business_id": "biz_141",
+            "business_number": "123-45-67141",
+            "opening_amount_krw": 0,
+            "base_account_id": "acct_biz_141",
+            "base_account_changeable": false,
+            "limit_amount": 100000000
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_vat_141",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_biz_141",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "부가세박스는 만 17세 이상 실명의 개인이 카카오뱅크 개인사업자통장을 통해 연결 신규할 수 있다고 확인한다.",
+      "사업자번호별 1계좌 제한을 확인하고, 해당 사업자번호에 기존 부가세박스가 없으므로 개설 가능하다고 판단한다.",
+      "0원 신규가 가능하므로 연결 개인사업자통장을 근거계좌로 고정해 부가세박스를 개설한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_부가세박스_001"
+  ],
+  "user_tools": []
+}

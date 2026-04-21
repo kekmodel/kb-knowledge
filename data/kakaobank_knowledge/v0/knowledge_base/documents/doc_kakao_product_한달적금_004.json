@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_한달적금_004",
+  "title": "KakaoBank Product Facts: 한달적금 (part 4)",
+  "content": "Product: 한달적금\nScope: product-specific reviewed facts\nCommon policy links: deposit_basic, deposit_installment\n\n## 수동 검수 fact\n\n- `deposit_protection`: 예금자보호법에 따라 원금과 이자를 합해 본 은행 보호상품과 합산하여 1인당 1억원까지 보호\n  - Evidence: `카카오뱅크 한달적금 상품설명서.md:179`\n- `latest_terms_scope`: 2024년 10월 17일 개정 내용은 기존 가입고객에게 적용되지 않고 시행일 이후 가입 고객에 한해 적용\n  - Evidence: `카카오뱅크 한달적금 특약.md:88`, `카카오뱅크 한달적금 특약.md:96`\n- `compliance_review_validity`: 상품설명서 준법감시인 심의필 25-1949, 유효기간 2025.10.17~2027.10.16\n  - Evidence: `카카오뱅크 한달적금 상품설명서.md:3`\n- `complaint_channel`: 문의 또는 민원은 고객센터 1599-3333 또는 인터넷홈페이지에서 가능\n  - Evidence: `카카오뱅크 한달적금 상품설명서.md:39`, `카카오뱅크 한달적금 상품설명서.md:177`"
+}

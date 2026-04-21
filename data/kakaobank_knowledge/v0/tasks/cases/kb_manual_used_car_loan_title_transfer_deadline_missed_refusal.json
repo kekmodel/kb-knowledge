@@ -1,0 +1,203 @@
+{
+  "id": "kb_manual_used_car_loan_title_transfer_deadline_missed_refusal",
+  "description": {
+    "purpose": "refusal task for 중고차 구매대출",
+    "relevant_policies": "doc_kakao_product_중고차_구매대출_001",
+    "notes": "source_task_id=kb_manual_used_car_loan_title_transfer_deadline_missed_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_used_car_loan_title_transfer_deadline_missed_refusal.md; notes=This refusal is the opposite side of the earlier title-transfer success task. It requires calculating the due date from the day after execution and refusing a grace-period request once the 15-day title-transfer window has already expired."
+  },
+  "user_prompt": "4월 1일에 중고차 구매대출이 실행됐는데 아직 제 명의로 이전 등록을 못 했습니다. 딜러가 이번 주 안에는 해 준다고 하니 한 주만 더 기다려 주고 대출은 정상으로 유지해 주세요. 기한의 이익 상실 처리는 하지 말아 주세요.",
+  "user_scenario": {
+    "persona": "중고차 구매대출 실행 후 명의이전 기한을 넘긴 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n4월 1일에 중고차 구매대출이 실행됐는데 아직 제 명의로 이전 등록을 못 했습니다. 딜러가 이번 주 안에는 해 준다고 하니 한 주만 더 기다려 주고 대출은 정상으로 유지해 주세요. 기한의 이익 상실 처리는 하지 말아 주세요.\n\nExpected assistant response points:\n- 대출 실행 후 자동차 구입 여부 확인을 위해 실행일 다음날부터 15일 이내 자동차 이전 등록을 완료해야 한다고 안내한다.\n- 2026-04-01 실행 건의 fixture상 명의이전 due date는 2026-04-16이고, 2026-04-20 현재 미완료이므로 기한을 넘긴 상태라고 판단한다.\n- 딜러가 추후 처리하겠다고 하더라도 기일 내 자동차 명의 이전 등록이 완료되지 않았으면 약정상 기한의 이익이 상실되고 즉시변제 의무가 발생한다고 설명한다.\n- 대출 정상 유지 요청은 거절하고 즉시변제 필요 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_051": {
+              "customer_id": "cust_051",
+              "name": "이기한",
+              "date_of_birth": "1980-05-18",
+              "age": 45,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SELF_EMPLOYED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "used_car_loan_051": {
+              "loan_id": "used_car_loan_051",
+              "customer_id": "cust_051",
+              "product_name": "중고차 구매대출",
+              "status": "EXECUTED",
+              "principal_krw": 31000000,
+              "outstanding_krw": 30930000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2031-04-01",
+              "late_days": 0,
+              "restriction_flags": [
+                "VEHICLE_TITLE_TRANSFER_PENDING"
+              ],
+              "executed_at": "2026-04-01T11:00:00+09:00",
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false
+            }
+          }
+        },
+        "vehicle_purchase_cases": {
+          "data": {
+            "vehicle_case_051": {
+              "vehicle_case_id": "vehicle_case_051",
+              "loan_id": "used_car_loan_051",
+              "customer_id": "cust_051",
+              "dealer_id": "dealer_used_051",
+              "payment_status": "PAID_TO_DEALER",
+              "title_transfer_due_date": "2026-04-16",
+              "title_transfer_status": "NOT_REGISTERED",
+              "title_transfer_completed_at": null,
+              "sale_contract_status": "ACTIVE",
+              "dealer_delay_claimed": true,
+              "requested_grace_extension_days": 7,
+              "status": "TITLE_TRANSFER_OVERDUE"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_vehicle_title_051": {
+              "document_id": "req_vehicle_title_051",
+              "customer_id": "cust_051",
+              "target_type": "loan",
+              "target_id": "used_car_loan_051",
+              "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+              "status": "OVERDUE",
+              "due_date": "2026-04-16",
+              "submitted_at": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_deadline_missed_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "중고차 구매대출 대출실행일 다음날 15일 명의이전 미완료 기한의 이익 상실 즉시 변제"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_deadline_missed_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_051"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_deadline_missed_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "used_car_loan_051",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_deadline_missed_refusal_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "vehicle_case_051",
+          "table": "vehicle_purchase_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_title_transfer_deadline_missed_refusal_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "used_car_loan_051",
+          "operation": "ACCELERATE_IMMEDIATE_REPAYMENT",
+          "reason": "TITLE_TRANSFER_NOT_COMPLETED_WITHIN_15_DAYS",
+          "effective_at": "2026-04-20T10:20:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "used_car_loan_051",
+          "expected_accelerated": true,
+          "expected_reason": "TITLE_TRANSFER_NOT_COMPLETED_WITHIN_15_DAYS"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "used_car_loan_051",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "vehicle_purchase_cases",
+          "record_id": "vehicle_case_051",
+          "expected_status": "TITLE_TRANSFER_OVERDUE_REPAYMENT_REQUIRED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "used_car_loan_051",
+          "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+          "expected_status": "OVERDUE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "대출 실행 후 자동차 구입 여부 확인을 위해 실행일 다음날부터 15일 이내 자동차 이전 등록을 완료해야 한다고 안내한다.",
+      "2026-04-01 실행 건의 fixture상 명의이전 due date는 2026-04-16이고, 2026-04-20 현재 미완료이므로 기한을 넘긴 상태라고 판단한다.",
+      "딜러가 추후 처리하겠다고 하더라도 기일 내 자동차 명의 이전 등록이 완료되지 않았으면 약정상 기한의 이익이 상실되고 즉시변제 의무가 발생한다고 설명한다.",
+      "대출 정상 유지 요청은 거절하고 즉시변제 필요 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_중고차_구매대출_001"
+  ],
+  "user_tools": []
+}

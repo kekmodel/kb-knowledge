@@ -1,0 +1,240 @@
+{
+  "id": "kb_manual_vat_box_ten_percent_collects_included_deposits",
+  "description": {
+    "purpose": "success task for 부가세박스",
+    "relevant_policies": "doc_kakao_product_부가세박스_002, doc_kakao_product_부가세박스_003, doc_kakao_product_부가세박스_004",
+    "notes": "source_task_id=kb_manual_vat_box_ten_percent_collects_included_deposits; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_vat_box_ten_percent_collects_included_deposits.md; notes=This task intentionally mixes included and excluded prior-day deposits. The correct transfer is 10 percent of 3,000,000 KRW, not 10 percent of every inbound transaction."
+  },
+  "user_prompt": "어제 개인사업자통장에 카드 플랫폼 정산 240만원, 오픈뱅킹 입금 60만원, 대출 실행금 500만원, 카드 결제취소 8만원이 들어왔어요. 10%씩 모으기를 켜 둔 상태니까 오늘 12시 이후 부가세박스에 얼마를 모아야 하는지 계산해서 실행해 주세요.",
+  "user_scenario": {
+    "persona": "매출이 들어온 다음날 부가세박스 자동 모으기 결과를 확인하려는 개인사업자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n어제 개인사업자통장에 카드 플랫폼 정산 240만원, 오픈뱅킹 입금 60만원, 대출 실행금 500만원, 카드 결제취소 8만원이 들어왔어요. 10%씩 모으기를 켜 둔 상태니까 오늘 12시 이후 부가세박스에 얼마를 모아야 하는지 계산해서 실행해 주세요.\n\nExpected assistant response points:\n- 10%씩 모으기는 전일 입금 거래 중 포함 거래금액을 합산해 다음날 합산금액의 10%를 이체한다고 안내한다.\n- 카드사 및 플랫폼사 입금과 오픈뱅킹 입금은 포함하고, 대출실행 입금과 카드 결제취소 입금은 제외한다고 설명한다.\n- 포함 거래 3,000,000원의 10%인 300,000원을 연결 개인사업자통장에서 부가세박스로 이체한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_023": {
+              "customer_id": "cust_023",
+              "name": "차부가",
+              "date_of_birth": "1986-05-16",
+              "age": 39,
+              "residency": "KR",
+              "employment_type": "SOLE_PROPRIETOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_007": {
+              "business_id": "biz_007",
+              "customer_id": "cust_023",
+              "business_name": "차부가상점",
+              "business_number": "123-45-67023",
+              "registration_status": "ACTIVE",
+              "is_primary_representative": true,
+              "business_type": "SOLE_PROPRIETOR",
+              "tax_type": "VAT_TAXABLE"
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_biz_023": {
+              "account_id": "acct_biz_023",
+              "customer_id": "cust_023",
+              "product_name": "개인사업자통장",
+              "status": "ACTIVE",
+              "balance_krw": 4200000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "box_vat_023",
+                "auto_vat_023"
+              ],
+              "restriction_flags": [],
+              "business_id": "biz_007"
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {
+            "box_vat_023": {
+              "box_id": "box_vat_023",
+              "customer_id": "cust_023",
+              "product_name": "부가세박스",
+              "base_account_id": "acct_biz_023",
+              "business_id": "biz_007",
+              "business_number": "123-45-67023",
+              "status": "ACTIVE",
+              "balance": 1250000,
+              "currency": "KRW",
+              "limit_amount": 100000000,
+              "restriction_flags": []
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_vat_023": {
+              "auto_transfer_id": "auto_vat_023",
+              "source_account_id": "acct_biz_023",
+              "target_id": "box_vat_023",
+              "status": "ACTIVE",
+              "schedule": {
+                "type": "VAT_BOX_TEN_PERCENT",
+                "execution_time_after": "12:00",
+                "based_on_previous_day_deposits": true
+              },
+              "amount_krw": null,
+              "success_count": 12,
+              "failed_count": 0,
+              "last_run_at": "2026-04-19T12:10:00+09:00"
+            }
+          }
+        },
+        "transactions": {
+          "data": {
+            "txn_biz_card_platform_023": {
+              "transaction_id": "txn_biz_card_platform_023",
+              "account_id": "acct_biz_023",
+              "direction": "IN",
+              "amount_krw": 2400000,
+              "transaction_type": "CARD_PLATFORM_SETTLEMENT",
+              "posted_at": "2026-04-19T15:30:00+09:00",
+              "vat_box_ten_percent_inclusion": "INCLUDE"
+            },
+            "txn_biz_openbanking_023": {
+              "transaction_id": "txn_biz_openbanking_023",
+              "account_id": "acct_biz_023",
+              "direction": "IN",
+              "amount_krw": 600000,
+              "transaction_type": "OPENBANKING_DEPOSIT",
+              "posted_at": "2026-04-19T17:10:00+09:00",
+              "vat_box_ten_percent_inclusion": "INCLUDE"
+            },
+            "txn_biz_loan_disbursement_023": {
+              "transaction_id": "txn_biz_loan_disbursement_023",
+              "account_id": "acct_biz_023",
+              "direction": "IN",
+              "amount_krw": 5000000,
+              "transaction_type": "LOAN_DISBURSEMENT",
+              "posted_at": "2026-04-19T10:00:00+09:00",
+              "vat_box_ten_percent_inclusion": "EXCLUDE"
+            },
+            "txn_biz_card_cancel_023": {
+              "transaction_id": "txn_biz_card_cancel_023",
+              "account_id": "acct_biz_023",
+              "direction": "IN",
+              "amount_krw": 80000,
+              "transaction_type": "CARD_PAYMENT_CANCEL",
+              "posted_at": "2026-04-19T19:20:00+09:00",
+              "vat_box_ten_percent_inclusion": "EXCLUDE"
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_vat_box_ten_percent_collects_included_deposits_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "부가세박스 10%씩 모으기 포함 거래 제외 거래 대출실행 카드 결제취소"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_ten_percent_collects_included_deposits_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_023"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_ten_percent_collects_included_deposits_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_biz_023",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_vat_box_ten_percent_collects_included_deposits_03",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "acct_biz_023",
+          "target_id": "box_vat_023",
+          "amount": 300000,
+          "currency": "KRW",
+          "transaction_type": "VAT_BOX_TEN_PERCENT_AUTO_COLLECT"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "acct_biz_023",
+          "target_id": "box_vat_023",
+          "amount": 300000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "auto_transfer_rules",
+          "record_id": "auto_vat_023",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_vat_023",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "10%씩 모으기는 전일 입금 거래 중 포함 거래금액을 합산해 다음날 합산금액의 10%를 이체한다고 안내한다.",
+      "카드사 및 플랫폼사 입금과 오픈뱅킹 입금은 포함하고, 대출실행 입금과 카드 결제취소 입금은 제외한다고 설명한다.",
+      "포함 거래 3,000,000원의 10%인 300,000원을 연결 개인사업자통장에서 부가세박스로 이체한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_부가세박스_002",
+    "doc_kakao_product_부가세박스_003",
+    "doc_kakao_product_부가세박스_004"
+  ],
+  "user_tools": []
+}

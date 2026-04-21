@@ -1,0 +1,181 @@
+{
+  "id": "kb_manual_outbound_remittance_business_purpose_refusal",
+  "description": {
+    "purpose": "refusal task for 해외송금 보내기",
+    "relevant_policies": "doc_kakao_product_해외송금_보내기_002, doc_kakao_common_policy_remittance_common_003",
+    "notes": "source_task_id=kb_manual_outbound_remittance_business_purpose_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_outbound_remittance_business_purpose_refusal.md; notes=This refusal task is built around a narrow exception: the funding account type alone is not enough. The agent must distinguish allowed business-account funding from disallowed business-name or business-purpose outbound remittance."
+  },
+  "user_prompt": "제 개인사업자통장에서 일본 거래처에 4,000,000엔을 보내 주세요. 송금인은 제 사업자 상호인 '서울디자인스튜디오'로 넣고, 사유는 외주 디자인 비용 지급으로 처리하면 됩니다. 사업자통장에서 출금 가능한 거면 바로 보내 주세요.",
+  "user_scenario": {
+    "persona": "개인사업자통장에서 해외 공급업체 대금을 보내려는 개인사업자 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 개인사업자통장에서 일본 거래처에 4,000,000엔을 보내 주세요. 송금인은 제 사업자 상호인 '서울디자인스튜디오'로 넣고, 사유는 외주 디자인 비용 지급으로 처리하면 됩니다. 사업자통장에서 출금 가능한 거면 바로 보내 주세요.\n\nExpected assistant response points:\n- 개인사업자통장을 출금계좌로 이용할 수는 있다고 안내한다.\n- 하지만 개인사업자명으로 송금하거나 개인사업자의 사업목적 송금은 불가하다고 안내한다.\n- 고객이 출금 가능성을 근거로 압박해도 해당 사업자명/사업목적 송금을 실행하지 않는다.\n- remittance case를 송금 완료가 아니라 거절 상태로 기록한다.\n- 개인사업자통장 잔액과 상태는 변경하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_063": {
+              "customer_id": "cust_063",
+              "name": "이사업",
+              "date_of_birth": "1985-03-09",
+              "age": 41,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SOLE_PROPRIETOR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_business_outbound_063": {
+              "account_id": "acct_business_outbound_063",
+              "customer_id": "cust_063",
+              "product_name": "개인사업자통장",
+              "status": "ACTIVE",
+              "balance_krw": 12500000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "business_name": "서울디자인스튜디오",
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_profiles": {
+          "data": {
+            "remit_profile_063": {
+              "remittance_profile_id": "remit_profile_063",
+              "customer_id": "cust_063",
+              "base_account_id": "acct_business_outbound_063",
+              "annual_usd_sent": 12000,
+              "annual_usd_received": 0,
+              "auto_receive_enabled": false,
+              "verified_purpose_codes": [
+                "PERSONAL_TRANSFER"
+              ],
+              "fx_bank_designated": true,
+              "resident_verified": true
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_outbound_remittance_business_purpose_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "해외송금 보내기 개인사업자통장 출금계좌 개인사업자명 송금 사업목적 송금 불가"
+        }
+      },
+      {
+        "action_id": "kb_manual_outbound_remittance_business_purpose_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_063"
+        }
+      },
+      {
+        "action_id": "kb_manual_outbound_remittance_business_purpose_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_business_outbound_063",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_outbound_remittance_business_purpose_refusal_03",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_063",
+          "direction": "OUTBOUND_BUSINESS_PURPOSE_REJECTED",
+          "amount": 4000000,
+          "currency": "JPY",
+          "country": "JP",
+          "purpose_code": "BUSINESS_VENDOR_PAYMENT",
+          "options": {
+            "remittance_id": "remit_outbound_063",
+            "source_account_id": "acct_business_outbound_063",
+            "requested_sender_name": "서울디자인스튜디오",
+            "business_account_as_source": true,
+            "rejection_reason": "BUSINESS_NAME_OR_BUSINESS_PURPOSE_REMITTANCE_NOT_ALLOWED",
+            "expected_status": "REJECTED",
+            "transaction_id": null
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_remittance_outcome",
+        "arguments": {
+          "remittance_id": "remit_outbound_063",
+          "expected_status": "REJECTED",
+          "expected_fee_refunded": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "remittance_cases",
+          "record_id": "remit_outbound_063",
+          "expected_status": "REJECTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_business_outbound_063",
+          "field_names": [
+            "balance_krw",
+            "status"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "개인사업자통장을 출금계좌로 이용할 수는 있다고 안내한다.",
+      "하지만 개인사업자명으로 송금하거나 개인사업자의 사업목적 송금은 불가하다고 안내한다.",
+      "고객이 출금 가능성을 근거로 압박해도 해당 사업자명/사업목적 송금을 실행하지 않는다.",
+      "remittance case를 송금 완료가 아니라 거절 상태로 기록한다.",
+      "개인사업자통장 잔액과 상태는 변경하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_해외송금_보내기_002",
+    "doc_kakao_common_policy_remittance_common_003"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,238 @@
+{
+  "id": "kb_manual_lease_loan_execution_to_landlord_success",
+  "description": {
+    "purpose": "success task for 전월세보증금 대출",
+    "relevant_policies": "doc_kakao_product_전월세보증금_대출_004",
+    "notes": "source_task_id=kb_manual_lease_loan_execution_to_landlord_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_lease_loan_execution_to_landlord_success.md; notes=This success task complements the landlord-account-block refusal. The same execution article is used, but the hidden state has a clean landlord account and no preexisting acceleration, so the correct action is execution to the landlord plus creation of the post-execution resident-document obligation."
+  },
+  "user_prompt": "오늘이 전월세보증금 대출 실행예정일이라 앱에서 실행버튼을 눌렀습니다. 기존 보유대출 상환조건부가 아니고, 임대인 계좌도 정상 입금 가능하다고 확인됐고, 연체나 기한이익상실 사유도 없습니다. 승인된 1억 8천만원을 임대인 계좌로 실행해 주세요.",
+  "user_scenario": {
+    "persona": "전월세보증금 대출 실행예정일에 정상 실행을 요청하는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘이 전월세보증금 대출 실행예정일이라 앱에서 실행버튼을 눌렀습니다. 기존 보유대출 상환조건부가 아니고, 임대인 계좌도 정상 입금 가능하다고 확인됐고, 연체나 기한이익상실 사유도 없습니다. 승인된 1억 8천만원을 임대인 계좌로 실행해 주세요.\n\nExpected assistant response points:\n- 실행예정일에 고객이 앱 실행버튼을 누른 시점에 대출이 실행된다고 확인한다.\n- 임대인 계좌 입금정지나 기한이익상실 사유가 없으므로 실행 차단 사유가 없다고 확인한다.\n- 승인된 대출금을 약정 시 입력한 임대인 계좌로 입금한다.\n- 실행 후 전입신고가 기재된 주민등록등본을 실행일부터 1개월 이내 제출해야 한다고 안내하고 required document를 PENDING으로 남긴다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_063": {
+              "customer_id": "cust_063",
+              "name": "한실행",
+              "date_of_birth": "1988-07-19",
+              "age": 37,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {
+            "lease_app_063": {
+              "application_id": "lease_app_063",
+              "customer_id": "cust_063",
+              "product_name": "전월세보증금 대출",
+              "status": "APPROVED",
+              "requested_amount_krw": 180000000,
+              "approved_amount_krw": 180000000,
+              "screening_result": "APPROVED",
+              "execution_date": "2026-04-20",
+              "selected_terms": {
+                "purpose": "GENERAL_LEASE_DEPOSIT",
+                "refinance_condition": false,
+                "landlord_account_id": "landlord_acct_063"
+              }
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "lease_loan_063": {
+              "loan_id": "lease_loan_063",
+              "application_id": "lease_app_063",
+              "customer_id": "cust_063",
+              "product_name": "전월세보증금 대출",
+              "status": "APPROVED_NOT_EXECUTED",
+              "principal_krw": 180000000,
+              "outstanding_krw": 0,
+              "principal_balance": 0,
+              "repayment_mode": "BULLET_OR_INSTALLMENT_BY_CONTRACT",
+              "maturity_date": "2028-04-20",
+              "late_days": 0,
+              "restriction_flags": [],
+              "currency": "KRW",
+              "execution_block_reason": null,
+              "executed_at": null
+            }
+          }
+        },
+        "lease_contracts": {
+          "data": {
+            "lease_contract_063": {
+              "contract_id": "lease_contract_063",
+              "application_id": "lease_app_063",
+              "loan_id": "lease_loan_063",
+              "tenant_customer_id": "cust_063",
+              "landlord_account_id": "landlord_acct_063",
+              "landlord_account_number": "110-222-000063",
+              "landlord_account_status": "ACTIVE",
+              "lease_deposit_amount_krw": 250000000,
+              "move_in_address": "서울특별시 마포구 월드컵북로 63",
+              "execution_button_pressed": true,
+              "preexisting_acceleration_reason": null,
+              "refinance_condition": false
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "landlord_acct_063": {
+              "account_id": "landlord_acct_063",
+              "customer_id": "landlord_063",
+              "product_name": "임대인 수취계좌",
+              "status": "ACTIVE",
+              "balance_krw": 0,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "required_documents": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_lease_loan_execution_to_landlord_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "전월세보증금 대출 실행예정일 실행버튼 임대인 계좌 입금 기한의 이익 상실 주민등록등본 제출"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_loan_execution_to_landlord_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_063"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_loan_execution_to_landlord_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_loan_063",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_loan_execution_to_landlord_success_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_contract_063",
+          "table": "lease_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_loan_execution_to_landlord_success_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "lease_loan_063",
+          "application_id": "lease_app_063",
+          "operation": "EXECUTE_LEASE_LOAN_TO_LANDLORD",
+          "reason": "EXECUTION_CONDITIONS_SATISFIED",
+          "effective_at": "2026-04-20T11:00:00+09:00",
+          "options": {
+            "landlord_account_id": "landlord_acct_063",
+            "disbursement_amount_krw": 180000000,
+            "landlord_account_status": "ACTIVE",
+            "preexisting_acceleration_reason": null,
+            "refinance_condition": false,
+            "required_document_to_create": {
+              "document_id": "req_doc_063",
+              "document_type": "RESIDENT_REGISTRATION_WITH_MOVE_IN",
+              "status": "PENDING",
+              "deadline": "2026-05-20"
+            }
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_application_decision",
+        "arguments": {
+          "application_id": "lease_app_063",
+          "expected_status": "EXECUTED",
+          "expected_reason": "EXECUTION_CONDITIONS_SATISFIED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "lease_loan_063",
+          "expected_status": "EXECUTED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "lease_loan_063",
+          "target_id": "landlord_acct_063",
+          "amount": 180000000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "lease_loan_063",
+          "document_type": "RESIDENT_REGISTRATION_WITH_MOVE_IN",
+          "expected_status": "PENDING"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "실행예정일에 고객이 앱 실행버튼을 누른 시점에 대출이 실행된다고 확인한다.",
+      "임대인 계좌 입금정지나 기한이익상실 사유가 없으므로 실행 차단 사유가 없다고 확인한다.",
+      "승인된 대출금을 약정 시 입력한 임대인 계좌로 입금한다.",
+      "실행 후 전입신고가 기재된 주민등록등본을 실행일부터 1개월 이내 제출해야 한다고 안내하고 required document를 PENDING으로 남긴다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_전월세보증금_대출_004"
+  ],
+  "user_tools": []
+}

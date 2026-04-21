@@ -1,0 +1,205 @@
+{
+  "id": "kb_manual_free_savings_half_month_auto_transfer_bonus_success",
+  "description": {
+    "purpose": "success task for 자유적금",
+    "relevant_policies": "doc_kakao_product_자유적금_002",
+    "notes": "source_task_id=kb_manual_free_savings_half_month_auto_transfer_bonus_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_free_savings_half_month_auto_transfer_bonus_success.md; notes=This task covers the free-savings preferential-rate threshold that was not present in the initial two-task coverage."
+  },
+  "user_prompt": "제 자유적금은 12개월짜리였고 자동이체로 납입된 달이 딱 6개월이에요. 나머지는 수동으로 넣었고 오늘 만기일이니 자동이체 우대금리 0.20%p까지 반영해서 제 입출금통장으로 지급해 주세요.",
+  "user_scenario": {
+    "persona": "자유적금 만기 해지를 앞둔 직장인 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 자유적금은 12개월짜리였고 자동이체로 납입된 달이 딱 6개월이에요. 나머지는 수동으로 넣었고 오늘 만기일이니 자동이체 우대금리 0.20%p까지 반영해서 제 입출금통장으로 지급해 주세요.\n\nExpected assistant response points:\n- 자동이체 우대금리는 전체 계약월수 중 1/2 이상 개월 동안 자동이체로 납입하고 만기 해지해야 제공된다고 확인한다.\n- 12개월 계약에서 6개월 자동이체 납입은 1/2 이상 조건을 충족한다고 판단한다.\n- 1개월간 최소 1회 이상 자동이체 납입하면 해당 월 실적으로 본다고 설명한다.\n- 만기 직접해지를 처리하고 자동이체 우대금리 0.20%p를 반영해 근거계좌로 지급한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_219": {
+              "customer_id": "cust_219",
+              "name": "유혜택",
+              "date_of_birth": "1990-07-07",
+              "age": 35,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_free_base_219": {
+              "account_id": "acct_free_base_219",
+              "customer_id": "cust_219",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 310000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_free_savings_219"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_free_savings_219": {
+              "deposit_id": "dep_free_savings_219",
+              "account_id": "acct_free_base_219",
+              "customer_id": "cust_219",
+              "product_name": "자유적금",
+              "status": "ACTIVE",
+              "opened_at": "2025-04-20",
+              "matures_at": "2026-04-20",
+              "principal_krw": 6000000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "tax_free_savings": false,
+              "base_account_id": "acct_free_base_219",
+              "contract_months": 12,
+              "auto_transfer_success_month_count": 6,
+              "manual_deposit_month_count": 6,
+              "preferential_rate_points_if_closed_at_maturity": 0.2,
+              "maturity_payout_krw": 6073000
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_free_savings_219": {
+              "auto_transfer_id": "auto_free_savings_219",
+              "source_account_id": "acct_free_base_219",
+              "target_id": "dep_free_savings_219",
+              "status": "ACTIVE",
+              "schedule": {
+                "type": "MONTHLY",
+                "day_of_month": 20
+              },
+              "amount_krw": 500000,
+              "success_count": 6,
+              "failed_count": 0,
+              "successful_months": [
+                "2025-04",
+                "2025-05",
+                "2025-06",
+                "2025-07",
+                "2025-08",
+                "2025-09"
+              ]
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_free_savings_half_month_auto_transfer_bonus_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "자유적금 자동이체 우대금리 0.20 전체 계약월수 1/2 이상 만기 해지"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_half_month_auto_transfer_bonus_success_01",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_free_savings_219",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_half_month_auto_transfer_bonus_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "auto_free_savings_219",
+          "table": "auto_transfer_rules"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_half_month_auto_transfer_bonus_success_03",
+        "requestor": "assistant",
+        "name": "request_maturity_or_extension",
+        "arguments": {
+          "target_id": "dep_free_savings_219",
+          "operation": "MATURE_DIRECT_CLOSE",
+          "requested_at": "2026-04-20T09:00:00+09:00",
+          "options": {
+            "destination_account_id": "acct_free_base_219",
+            "auto_transfer_success_month_count": 6,
+            "contract_months": 12,
+            "preferential_rate_points": 0.2,
+            "close_type": "MATURITY_DIRECT_CLOSE",
+            "maturity_payout_krw": 6073000
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_auto_transfer_count",
+        "arguments": {
+          "auto_transfer_id": "auto_free_savings_219",
+          "expected_success_count": 6,
+          "expected_failed_count": 0
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_maturity_or_close_result",
+        "arguments": {
+          "deposit_id": "dep_free_savings_219",
+          "expected_status": "CLOSED",
+          "expected_close_type": "MATURITY_DIRECT_CLOSE",
+          "expected_destination_account_id": "acct_free_base_219",
+          "expected_preferential_rate_points": 0.2
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_free_savings_219",
+          "target_id": "acct_free_base_219",
+          "amount": 6073000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "자동이체 우대금리는 전체 계약월수 중 1/2 이상 개월 동안 자동이체로 납입하고 만기 해지해야 제공된다고 확인한다.",
+      "12개월 계약에서 6개월 자동이체 납입은 1/2 이상 조건을 충족한다고 판단한다.",
+      "1개월간 최소 1회 이상 자동이체 납입하면 해당 월 실적으로 본다고 설명한다.",
+      "만기 직접해지를 처리하고 자동이체 우대금리 0.20%p를 반영해 근거계좌로 지급한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_자유적금_002"
+  ],
+  "user_tools": []
+}

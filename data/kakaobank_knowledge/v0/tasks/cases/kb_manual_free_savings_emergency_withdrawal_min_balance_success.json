@@ -1,0 +1,149 @@
+{
+  "id": "kb_manual_free_savings_emergency_withdrawal_min_balance_success",
+  "description": {
+    "purpose": "success task for 자유적금",
+    "relevant_policies": "doc_kakao_product_자유적금_003",
+    "notes": "source_task_id=kb_manual_free_savings_emergency_withdrawal_min_balance_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_free_savings_emergency_withdrawal_min_balance_success.md; notes=This task uses the exact minimum remaining balance boundary: 400,000 KRW withdrawal from 500,000 KRW principal leaves 100,000 KRW."
+  },
+  "user_prompt": "자유적금 만기 전인데 급히 40만원이 필요해요. 이번 계약기간 긴급출금은 아직 한 번만 했고, 원금은 50만원 남아 있으니 10만원만 남기고 40만원을 제 입출금통장으로 긴급출금해 주세요.",
+  "user_scenario": {
+    "persona": "만기 전 일부 자금이 필요한 자유적금 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n자유적금 만기 전인데 급히 40만원이 필요해요. 이번 계약기간 긴급출금은 아직 한 번만 했고, 원금은 50만원 남아 있으니 10만원만 남기고 40만원을 제 입출금통장으로 긴급출금해 주세요.\n\nExpected assistant response points:\n- 자유적금은 만기 전 해지하지 않고 일부 금액만 긴급출금할 수 있다고 안내한다.\n- 계약기간 중 최대 2회까지 가능하므로 이번이 두 번째라면 횟수 조건을 충족한다고 판단한다.\n- 출금 후 잔액이 100,000원 이상이어야 하며 500,000원 중 400,000원 출금은 정확히 100,000원을 남긴다고 확인한다.\n- 긴급출금 금액에는 중도해지금리가 적용된다고 안내하고, 자유적금은 ACTIVE로 유지한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_220": {
+              "customer_id": "cust_220",
+              "name": "강긴급",
+              "age": 34,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_free_base_220": {
+              "account_id": "acct_free_base_220",
+              "customer_id": "cust_220",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 120000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_free_savings_220"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_free_savings_220": {
+              "deposit_id": "dep_free_savings_220",
+              "account_id": "acct_free_base_220",
+              "customer_id": "cust_220",
+              "product_name": "자유적금",
+              "status": "ACTIVE",
+              "opened_at": "2025-10-20",
+              "matures_at": "2026-10-20",
+              "principal_krw": 500000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_free_base_220",
+              "emergency_withdrawal_count_current_term": 1,
+              "emergency_withdrawal_max_count": 2
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_free_savings_emergency_withdrawal_min_balance_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "자유적금 긴급출금 최대 2회 잔액 10만원 이상 중도해지금리 먼저 납입한 금액"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_emergency_withdrawal_min_balance_success_01",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_free_savings_220",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_free_savings_emergency_withdrawal_min_balance_success_02",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "dep_free_savings_220",
+          "target_id": "acct_free_base_220",
+          "amount": 400000,
+          "currency": "KRW",
+          "transaction_type": "FREE_SAVINGS_EMERGENCY_WITHDRAWAL",
+          "remaining_principal_krw": 100000,
+          "apply_rate": "EARLY_CLOSE_RATE_ON_WITHDRAWN_AMOUNT"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_free_savings_220",
+          "target_id": "acct_free_base_220",
+          "amount": 400000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "deposit_contracts",
+          "record_id": "dep_free_savings_220",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "자유적금은 만기 전 해지하지 않고 일부 금액만 긴급출금할 수 있다고 안내한다.",
+      "계약기간 중 최대 2회까지 가능하므로 이번이 두 번째라면 횟수 조건을 충족한다고 판단한다.",
+      "출금 후 잔액이 100,000원 이상이어야 하며 500,000원 중 400,000원 출금은 정확히 100,000원을 남긴다고 확인한다.",
+      "긴급출금 금액에는 중도해지금리가 적용된다고 안내하고, 자유적금은 ACTIVE로 유지한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_자유적금_003"
+  ],
+  "user_tools": []
+}

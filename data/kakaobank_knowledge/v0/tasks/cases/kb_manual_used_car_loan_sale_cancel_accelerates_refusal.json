@@ -1,0 +1,203 @@
+{
+  "id": "kb_manual_used_car_loan_sale_cancel_accelerates_refusal",
+  "description": {
+    "purpose": "refusal task for 중고차 구매대출",
+    "relevant_policies": "doc_kakao_product_중고차_구매대출_001",
+    "notes": "source_task_id=kb_manual_used_car_loan_sale_cancel_accelerates_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_used_car_loan_sale_cancel_accelerates_refusal.md; notes=This refusal is intentionally not a pure no-op. The user request to keep or repurpose the loan is refused, and the correct state transition is acceleration plus immediate-repayment requirement because the sale contract was cancelled after dealer payment."
+  },
+  "user_prompt": "중고차 구매대출금이 이미 매매상사로 지급됐는데, 차량 하자가 발견돼서 매매계약을 취소했습니다. 대신 다른 차를 곧 살 거라 이 대출은 그대로 유지하고 새 차량에 이어서 쓰게 처리해 주세요. 즉시 상환 처리하지 말아 주세요.",
+  "user_scenario": {
+    "persona": "중고차 구매대출 실행 후 차량 하자로 매매계약을 취소한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n중고차 구매대출금이 이미 매매상사로 지급됐는데, 차량 하자가 발견돼서 매매계약을 취소했습니다. 대신 다른 차를 곧 살 거라 이 대출은 그대로 유지하고 새 차량에 이어서 쓰게 처리해 주세요. 즉시 상환 처리하지 말아 주세요.\n\nExpected assistant response points:\n- 대출금이 매매상사에 지급된 이후 차량 하자 등으로 매매계약을 취소한 경우에는 약정상 기한의 이익이 상실된다고 안내한다.\n- 고객이 다른 차량을 곧 살 예정이라도 기존 취소된 매매계약의 대출을 그대로 유지하거나 새 차량 구매 자금으로 전용할 수 없다고 설명한다.\n- 대출 유지 요청은 거절하고, 해당 중고차 구매대출을 즉시변제 필요 상태로 변경한다.\n- 명의이전 기한 문제와 구분해, 이 task의 결정 사유는 매매상사 지급 이후 매매계약 취소라고 명확히 말한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_049": {
+              "customer_id": "cust_049",
+              "name": "박하자",
+              "date_of_birth": "1991-02-09",
+              "age": 35,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "used_car_loan_049": {
+              "loan_id": "used_car_loan_049",
+              "customer_id": "cust_049",
+              "product_name": "중고차 구매대출",
+              "status": "EXECUTED",
+              "principal_krw": 22000000,
+              "outstanding_krw": 22000000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2031-04-07",
+              "late_days": 0,
+              "restriction_flags": [
+                "VEHICLE_PURCHASE_MONITORING"
+              ],
+              "executed_at": "2026-04-07T14:00:00+09:00",
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false
+            }
+          }
+        },
+        "vehicle_purchase_cases": {
+          "data": {
+            "vehicle_case_049": {
+              "vehicle_case_id": "vehicle_case_049",
+              "loan_id": "used_car_loan_049",
+              "customer_id": "cust_049",
+              "dealer_id": "dealer_goodcar_031",
+              "payment_status": "PAID_TO_DEALER",
+              "title_transfer_due_date": "2026-04-23",
+              "title_transfer_status": "NOT_REGISTERED",
+              "sale_contract_status": "CANCELLED_AFTER_DEALER_PAYMENT",
+              "sale_cancelled_at": "2026-04-19T15:20:00+09:00",
+              "cancellation_reason": "VEHICLE_DEFECT",
+              "replacement_vehicle_requested": true,
+              "status": "SALE_CANCELLED_AFTER_DEALER_PAYMENT"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_vehicle_title_049": {
+              "document_id": "req_vehicle_title_049",
+              "customer_id": "cust_049",
+              "target_type": "loan",
+              "target_id": "used_car_loan_049",
+              "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+              "status": "NOT_APPLICABLE_SALE_CANCELLED",
+              "due_date": "2026-04-23",
+              "submitted_at": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_used_car_loan_sale_cancel_accelerates_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "중고차 구매대출 매매상사 지급 이후 차량 하자 매매계약 취소 기한의 이익 상실 즉시 변제"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_sale_cancel_accelerates_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_049"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_sale_cancel_accelerates_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "used_car_loan_049",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_sale_cancel_accelerates_refusal_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "vehicle_case_049",
+          "table": "vehicle_purchase_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_sale_cancel_accelerates_refusal_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "used_car_loan_049",
+          "operation": "ACCELERATE_IMMEDIATE_REPAYMENT",
+          "reason": "USED_CAR_SALE_CANCEL_AFTER_DEALER_PAYMENT",
+          "effective_at": "2026-04-20T11:00:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "used_car_loan_049",
+          "expected_accelerated": true,
+          "expected_reason": "USED_CAR_SALE_CANCEL_AFTER_DEALER_PAYMENT"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "used_car_loan_049",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "vehicle_purchase_cases",
+          "record_id": "vehicle_case_049",
+          "expected_status": "SALE_CANCELLED_REPAYMENT_REQUIRED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "used_car_loan_049",
+          "document_type": "VEHICLE_TITLE_TRANSFER_REGISTRY_CHECK",
+          "expected_status": "NOT_APPLICABLE_SALE_CANCELLED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "대출금이 매매상사에 지급된 이후 차량 하자 등으로 매매계약을 취소한 경우에는 약정상 기한의 이익이 상실된다고 안내한다.",
+      "고객이 다른 차량을 곧 살 예정이라도 기존 취소된 매매계약의 대출을 그대로 유지하거나 새 차량 구매 자금으로 전용할 수 없다고 설명한다.",
+      "대출 유지 요청은 거절하고, 해당 중고차 구매대출을 즉시변제 필요 상태로 변경한다.",
+      "명의이전 기한 문제와 구분해, 이 task의 결정 사유는 매매상사 지급 이후 매매계약 취소라고 명확히 말한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_중고차_구매대출_001"
+  ],
+  "user_tools": []
+}

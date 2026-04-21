@@ -1,0 +1,5 @@
+{
+  "id": "doc_kakao_product_달러박스_007",
+  "title": "KakaoBank Product Facts: 달러박스 (part 7)",
+  "content": "Product: 달러박스\nScope: product-specific reviewed facts\nCommon policy links: \n\n## 수동 검수 fact\n\n- `seizure_possible`: 달러박스는 압류 또는 가압류 대상\n  - Evidence: `달러박스 서비스 설명서.md:114`\n- `deposit_protection`: 원금과 소정 이자를 합해 본 은행의 다른 보호상품과 합산하여 1인당 1억원까지 보호\n  - Evidence: `달러박스 서비스 설명서.md:119`\n- `latest_terms_effective_date`: 달러박스 서비스 이용약관 최신 부칙 시행일은 2026년 1월 21일\n  - Evidence: `달러박스 서비스 이용약관.md:212`, `달러박스 서비스 이용약관.md:216`\n- `compliance_review_validity`: 서비스 설명서 준법감시인 심의필 25-1569, 유효기간 2025.9.1.~2027.8.31.\n  - Evidence: `달러박스 서비스 설명서.md:3`"
+}

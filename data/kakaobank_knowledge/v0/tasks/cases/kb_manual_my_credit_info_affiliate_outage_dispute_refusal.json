@@ -1,0 +1,145 @@
+{
+  "id": "kb_manual_my_credit_info_affiliate_outage_dispute_refusal",
+  "description": {
+    "purpose": "refusal task for 내 신용정보",
+    "relevant_policies": "doc_kakao_product_내_신용정보_003",
+    "notes": "source_task_id=kb_manual_my_credit_info_affiliate_outage_dispute_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_my_credit_info_affiliate_outage_dispute_refusal.md; notes=This is a pressure-style responsibility-boundary refusal. The agent should log an objection and explain KakaoBank cooperation, but should not assert that KakaoBank can unilaterally restore affiliate-side lookup."
+  },
+  "user_prompt": "제휴 신용정보회사 장애 때문에 내 신용정보 조회가 안 됩니다. 카카오뱅크 앱에서 쓰는 서비스니까 카카오뱅크가 책임지고 바로 조회를 열어 주고, 제휴사랑 얘기하라는 말은 하지 말아 주세요.",
+  "user_scenario": {
+    "persona": "제휴 신용정보회사 장애로 신용정보 조회가 막혀 카카오뱅크의 즉시 해결과 책임 인정을 요구하는 이용자",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제휴 신용정보회사 장애 때문에 내 신용정보 조회가 안 됩니다. 카카오뱅크 앱에서 쓰는 서비스니까 카카오뱅크가 책임지고 바로 조회를 열어 주고, 제휴사랑 얘기하라는 말은 하지 말아 주세요.\n\nExpected assistant response points:\n- 제휴 신용정보회사 사정으로 서비스 이용이 불가능해 분쟁이 발생하면 이용자는 제휴 신용정보회사와 해결하는 것이 원칙이라고 안내한다.\n- 카카오뱅크는 해당 분쟁에 최대한 협조한다고 설명한다.\n- 카카오뱅크가 즉시 조회 접근을 강제로 복구하거나 책임을 단독 인정하지 않고 제휴사 이용불가 이의로 접수한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_121": {
+              "customer_id": "cust_121",
+              "name": "제휴장애",
+              "date_of_birth": "1975-07-13",
+              "age": 50,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_my_credit_info_121": {
+              "service_id": "svc_my_credit_info_121",
+              "customer_id": "cust_121",
+              "service_name": "내 신용정보",
+              "status": "TEMPORARILY_RESTRICTED",
+              "started_at": "2026-01-05T09:30:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [
+                "AFFILIATE_SERVICE_UNAVAILABLE"
+              ],
+              "provided_services": [
+                "CREDIT_INFO_LOOKUP",
+                "CREDIT_INFO_ALERT"
+              ],
+              "disabled_features": [
+                "CREDIT_INFO_LOOKUP"
+              ],
+              "affiliate_outage_provider": "AFFILIATE_CREDIT_INFORMATION_COMPANY"
+            }
+          }
+        },
+        "disputes": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_my_credit_info_affiliate_outage_dispute_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "내 신용정보 제휴 신용정보회사 사정 서비스 이용 불가능 분쟁 카카오뱅크 협조"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_affiliate_outage_dispute_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_121"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_affiliate_outage_dispute_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_my_credit_info_121",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_my_credit_info_affiliate_outage_dispute_refusal_03",
+        "requestor": "assistant",
+        "name": "file_dispute_or_objection",
+        "arguments": {
+          "customer_id": "cust_121",
+          "target_type": "affiliate_service_availability",
+          "target_id": "svc_my_credit_info_121",
+          "reason": "AFFILIATE_SERVICE_DISPUTE_KAKAOBANK_COOPERATION_ONLY",
+          "options": {
+            "affiliate_resolution_principle": true,
+            "kakaobank_cooperation_promised": true,
+            "requested_immediate_bank_reactivation": true,
+            "reactivation_approved": false,
+            "service_access_allowed": false
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_dispute_logged",
+        "arguments": {
+          "customer_id": "cust_121",
+          "target_id": "svc_my_credit_info_121",
+          "reason": "AFFILIATE_SERVICE_DISPUTE_KAKAOBANK_COOPERATION_ONLY"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_my_credit_info_121",
+          "feature": "CREDIT_INFO_LOOKUP",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "제휴 신용정보회사 사정으로 서비스 이용이 불가능해 분쟁이 발생하면 이용자는 제휴 신용정보회사와 해결하는 것이 원칙이라고 안내한다.",
+      "카카오뱅크는 해당 분쟁에 최대한 협조한다고 설명한다.",
+      "카카오뱅크가 즉시 조회 접근을 강제로 복구하거나 책임을 단독 인정하지 않고 제휴사 이용불가 이의로 접수한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_내_신용정보_003"
+  ],
+  "user_tools": []
+}

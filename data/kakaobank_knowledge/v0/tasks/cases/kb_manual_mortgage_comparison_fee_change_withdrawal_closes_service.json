@@ -1,0 +1,165 @@
+{
+  "id": "kb_manual_mortgage_comparison_fee_change_withdrawal_closes_service",
+  "description": {
+    "purpose": "success task for 주택담보대출 비교하기",
+    "relevant_policies": "doc_kakao_product_주택담보대출_비교하기_003, doc_kakao_product_주택담보대출_비교하기_004",
+    "notes": "source_task_id=kb_manual_mortgage_comparison_fee_change_withdrawal_closes_service; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mortgage_comparison_fee_change_withdrawal_closes_service.md; notes=This task covers the fee-boundary lifecycle without inventing a fee transaction: the benchmark state contains the notice, and the allowed mutation is service closure by consent withdrawal."
+  },
+  "user_prompt": "주택담보대출 비교하기가 지금은 무료지만 다음 달부터 별도 이용요금이 생긴다는 개별통지를 받았어요. 저는 유료로 쓰고 싶지 않으니 오늘 바로 서비스 이용 동의를 철회하고 해지해 주세요. 나중에 다시 가입할 수 있는지도 알려 주세요.",
+  "user_scenario": {
+    "persona": "주택담보대출 비교하기 요금 변경 고지를 받고 서비스 동의를 철회하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n주택담보대출 비교하기가 지금은 무료지만 다음 달부터 별도 이용요금이 생긴다는 개별통지를 받았어요. 저는 유료로 쓰고 싶지 않으니 오늘 바로 서비스 이용 동의를 철회하고 해지해 주세요. 나중에 다시 가입할 수 있는지도 알려 주세요.\n\nExpected assistant response points:\n- 현재 약관상 서비스는 무료이지만 별도 이용요금이 부과되는 경우 카카오뱅크가 약관 변경 고지 방식에 준해 개별통지해야 한다고 안내한다.\n- 이용자는 언제든지 모바일앱 등으로 서비스 이용 동의를 철회할 수 있고, 철회 시 이용계약이 즉시 해지된다고 설명한다.\n- 서비스 enrollment를 닫고, 해지 이후에도 언제든지 다시 가입 신청할 수 있다고 안내한다.\n- 제휴사 주택담보대출 계약이나 기존 comparison quote 자체는 변경하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_253": {
+              "customer_id": "cust_253",
+              "name": "임철회",
+              "date_of_birth": "1990-07-19",
+              "age": 35,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_mortgage_comparison_253": {
+              "service_id": "svc_mortgage_comparison_253",
+              "customer_id": "cust_253",
+              "service_name": "주택담보대출 비교하기",
+              "status": "ACTIVE",
+              "linked_account_id": null,
+              "started_at": "2026-01-15T10:00:00+09:00",
+              "ended_at": null,
+              "restriction_flags": [],
+              "terms_consent_active": true,
+              "credit_info_consent_active": true,
+              "third_party_consent_active": true,
+              "fee_change_notified": true,
+              "future_monthly_fee_krw": 1000,
+              "fee_effective_at": "2026-05-20",
+              "reapply_allowed_after_close": true
+            }
+          }
+        },
+        "comparison_sessions": {
+          "data": {
+            "cmp_mortgage_253": {
+              "comparison_id": "cmp_mortgage_253",
+              "customer_id": "cust_253",
+              "service_type": "MORTGAGE_LOAN_COMPARISON",
+              "status": "QUOTE_VIEWED",
+              "partner_id": "partner_blue_mortgage",
+              "quoted_rate": "4.29%",
+              "quoted_limit_krw": 410000000,
+              "final_contract_id": null
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mortgage_comparison_fee_change_withdrawal_closes_service_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "주택담보대출 비교하기 서비스 무료 별도 이용요금 개별통지 동의 철회 즉시 해지 재가입 가능"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_comparison_fee_change_withdrawal_closes_service_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_253"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_comparison_fee_change_withdrawal_closes_service_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "svc_mortgage_comparison_253",
+          "table": "service_enrollments"
+        }
+      },
+      {
+        "action_id": "kb_manual_mortgage_comparison_fee_change_withdrawal_closes_service_03",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_253",
+          "target_id": "svc_mortgage_comparison_253",
+          "close_type": "SERVICE_CONSENT_WITHDRAWAL",
+          "reason": "USER_WITHDREW_MORTGAGE_COMPARISON_SERVICE_CONSENT_AFTER_FEE_NOTICE"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_mortgage_comparison_253",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_service_access",
+        "arguments": {
+          "service_id": "svc_mortgage_comparison_253",
+          "feature": "mortgage_loan_comparison",
+          "expected_allowed": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "comparison_sessions",
+          "record_id": "cmp_mortgage_253",
+          "field_names": [
+            "status",
+            "quoted_rate",
+            "quoted_limit_krw",
+            "final_contract_id"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "현재 약관상 서비스는 무료이지만 별도 이용요금이 부과되는 경우 카카오뱅크가 약관 변경 고지 방식에 준해 개별통지해야 한다고 안내한다.",
+      "이용자는 언제든지 모바일앱 등으로 서비스 이용 동의를 철회할 수 있고, 철회 시 이용계약이 즉시 해지된다고 설명한다.",
+      "서비스 enrollment를 닫고, 해지 이후에도 언제든지 다시 가입 신청할 수 있다고 안내한다.",
+      "제휴사 주택담보대출 계약이나 기존 comparison quote 자체는 변경하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_주택담보대출_비교하기_003",
+    "doc_kakao_product_주택담보대출_비교하기_004"
+  ],
+  "user_tools": []
+}

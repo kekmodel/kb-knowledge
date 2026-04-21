@@ -1,0 +1,185 @@
+{
+  "id": "kb_manual_business_credit_purpose_misuse_accelerates_refusal",
+  "description": {
+    "purpose": "refusal task for 개인사업자 신용대출",
+    "relevant_policies": "doc_kakao_product_개인사업자_신용대출_001, doc_kakao_product_개인사업자_신용대출_009",
+    "notes": "source_task_id=kb_manual_business_credit_purpose_misuse_accelerates_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_purpose_misuse_accelerates_refusal.md; notes=This refusal expands the product beyond refinance. It tests the enterprise-loan purpose restriction and requires immediate-repayment acceleration rather than a mere warning."
+  },
+  "user_prompt": "개인사업자 신용대출을 운영자금으로 받았는데, 급해서 1,200만원을 제 개인 전세보증금에 썼습니다. 사업 매출 들어오면 다시 채워 넣을 테니 용도외 유용으로 보지 말고 대출은 정상 유지해 주세요.",
+  "user_scenario": {
+    "persona": "개인사업자 신용대출금을 승인 목적과 다르게 사용한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n개인사업자 신용대출을 운영자금으로 받았는데, 급해서 1,200만원을 제 개인 전세보증금에 썼습니다. 사업 매출 들어오면 다시 채워 넣을 테니 용도외 유용으로 보지 말고 대출은 정상 유지해 주세요.\n\nExpected assistant response points:\n- 기업대출은 사업 운영 및 시설 투자 목적 자금 지원을 전제로 하며 자금용도 외 사용 규제가 엄격하다고 안내한다.\n- 운영자금으로 받은 대출금을 개인 전세보증금에 사용한 것은 승인된 자금용도와 다른 사용이라고 판단한다.\n- 용도 외 유용 시 기한의 이익을 상실하고 즉시상환 대상이 되며 신규 여신 취급 제한이 발생할 수 있다고 설명한다.\n- 대출 정상 유지 요청은 거절하고, 해당 개인사업자 신용대출을 즉시상환 필요 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_055": {
+              "customer_id": "cust_055",
+              "name": "문운영",
+              "date_of_birth": "1982-12-03",
+              "age": 43,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_055": {
+              "business_id": "biz_055",
+              "customer_id": "cust_055",
+              "business_name": "문운영 공방",
+              "business_type": "SOLE_PROPRIETOR",
+              "business_status": "ACTIVE",
+              "representative_name": "문운영"
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "biz_credit_loan_055": {
+              "loan_id": "biz_credit_loan_055",
+              "customer_id": "cust_055",
+              "product_name": "개인사업자 신용대출",
+              "status": "ACTIVE",
+              "principal_krw": 60000000,
+              "outstanding_krw": 59200000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2029-02-15",
+              "late_days": 0,
+              "purpose": "WORKING_CAPITAL",
+              "approved_use": "BUSINESS_OPERATING_FUNDS",
+              "misuse_confirmed": true,
+              "misuse_amount_krw": 12000000,
+              "misuse_category": "PERSONAL_HOUSING_DEPOSIT",
+              "restriction_flags": [
+                "POST_EXECUTION_USE_MONITORING"
+              ],
+              "executed_at": "2026-02-15T10:00:00+09:00",
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {}
+        },
+        "refinance_requests": {
+          "data": {}
+        },
+        "required_documents": {
+          "data": {
+            "req_use_review_055": {
+              "document_id": "req_use_review_055",
+              "customer_id": "cust_055",
+              "target_type": "loan",
+              "target_id": "biz_credit_loan_055",
+              "document_type": "BUSINESS_LOAN_USE_OF_FUNDS_REVIEW",
+              "status": "PENDING_DECISION",
+              "due_date": "2026-04-20",
+              "submitted_at": "2026-04-18T11:00:00+09:00"
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_purpose_misuse_accelerates_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "개인사업자 신용대출 자금용도 외 유용 기한의 이익 상실 즉시상환 신규 여신 제한"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_purpose_misuse_accelerates_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_055"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_purpose_misuse_accelerates_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "biz_credit_loan_055",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_purpose_misuse_accelerates_refusal_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "biz_credit_loan_055",
+          "operation": "ACCELERATE_IMMEDIATE_REPAYMENT",
+          "reason": "BUSINESS_CREDIT_FUNDS_USED_OUTSIDE_APPROVED_PURPOSE",
+          "effective_at": "2026-04-20T14:00:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "biz_credit_loan_055",
+          "expected_accelerated": true,
+          "expected_reason": "BUSINESS_CREDIT_FUNDS_USED_OUTSIDE_APPROVED_PURPOSE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "biz_credit_loan_055",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "biz_credit_loan_055",
+          "document_type": "BUSINESS_LOAN_USE_OF_FUNDS_REVIEW",
+          "expected_status": "VIOLATION_CONFIRMED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "기업대출은 사업 운영 및 시설 투자 목적 자금 지원을 전제로 하며 자금용도 외 사용 규제가 엄격하다고 안내한다.",
+      "운영자금으로 받은 대출금을 개인 전세보증금에 사용한 것은 승인된 자금용도와 다른 사용이라고 판단한다.",
+      "용도 외 유용 시 기한의 이익을 상실하고 즉시상환 대상이 되며 신규 여신 취급 제한이 발생할 수 있다고 설명한다.",
+      "대출 정상 유지 요청은 거절하고, 해당 개인사업자 신용대출을 즉시상환 필요 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_개인사업자_신용대출_001",
+    "doc_kakao_product_개인사업자_신용대출_009"
+  ],
+  "user_tools": []
+}

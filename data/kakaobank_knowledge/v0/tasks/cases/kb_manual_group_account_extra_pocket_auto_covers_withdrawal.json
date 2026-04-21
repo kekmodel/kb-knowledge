@@ -1,0 +1,213 @@
+{
+  "id": "kb_manual_group_account_extra_pocket_auto_covers_withdrawal",
+  "description": {
+    "purpose": "success task for 모임통장",
+    "relevant_policies": "doc_kakao_product_모임통장_004",
+    "notes": "source_task_id=kb_manual_group_account_extra_pocket_auto_covers_withdrawal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_group_account_extra_pocket_auto_covers_withdrawal.md; notes=This success task checks the non-obvious withdrawal order: the agent must not reject the withdrawal only because the basic pocket is short, and must not drain the additional pocket directly to the external payee."
+  },
+  "user_prompt": "모임통장 기본포켓에는 10만원만 있고 여행비 추가포켓에 40만원이 있어요. 오늘 식당 예약금 25만원을 모임통장에서 출금해야 하는데, 부족한 15만원은 추가포켓에서 자동으로 옮겨서 출금해 주세요.",
+  "user_scenario": {
+    "persona": "동호회 회식비를 모임통장에서 결제하려는 모임주",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n모임통장 기본포켓에는 10만원만 있고 여행비 추가포켓에 40만원이 있어요. 오늘 식당 예약금 25만원을 모임통장에서 출금해야 하는데, 부족한 15만원은 추가포켓에서 자동으로 옮겨서 출금해 주세요.\n\nExpected assistant response points:\n- 모임통장 출금은 기본포켓 잔액 범위에서 먼저 차감된다고 안내한다.\n- 기본포켓 잔액이 부족하면 추가포켓에서 부족한 금액만큼 자동 돈 옮기기 후 기본포켓에서 출금된다고 설명한다.\n- 추가포켓에서 기본포켓으로 15만원을 자동 이동한 뒤 기본포켓에서 25만원 출금을 실행한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_019": {
+              "customer_id": "cust_019",
+              "name": "송모임",
+              "date_of_birth": "1991-07-17",
+              "age": 34,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_group_019": {
+              "account_id": "acct_group_019",
+              "customer_id": "cust_019",
+              "product_name": "모임통장",
+              "status": "ACTIVE",
+              "balance_krw": 500000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "svc_group_019"
+              ],
+              "restriction_flags": [
+                "LIMIT_LOAN_BLOCKED_BY_GROUP_ACCOUNT"
+              ],
+              "member_count": 12
+            }
+          }
+        },
+        "service_enrollments": {
+          "data": {
+            "svc_group_019": {
+              "service_id": "svc_group_019",
+              "customer_id": "cust_019",
+              "service_name": "모임통장서비스",
+              "status": "ACTIVE",
+              "linked_account_id": "acct_group_019",
+              "started_at": "2026-01-03",
+              "ended_at": null,
+              "restriction_flags": [],
+              "financial_info_consent_status": "ACTIVE"
+            }
+          }
+        },
+        "group_memberships": {
+          "data": {
+            "gm_owner_019": {
+              "membership_id": "gm_owner_019",
+              "service_id": "svc_group_019",
+              "account_id": "acct_group_019",
+              "customer_id": "cust_019",
+              "role": "OWNER",
+              "status": "ACTIVE",
+              "last_financial_info_consent_at": "2026-01-03T09:00:00+09:00"
+            }
+          }
+        },
+        "pockets": {
+          "data": {
+            "pocket_group_basic_019": {
+              "pocket_id": "pocket_group_basic_019",
+              "parent_id": "acct_group_019",
+              "pocket_type": "GROUP_ACCOUNT_BASIC_POCKET",
+              "pocket_name": "기본포켓",
+              "status": "ACTIVE",
+              "balance_krw": 100000,
+              "created_at": "2026-01-03T09:00:00+09:00",
+              "move_restriction_flags": []
+            },
+            "pocket_group_trip_019": {
+              "pocket_id": "pocket_group_trip_019",
+              "parent_id": "acct_group_019",
+              "pocket_type": "GROUP_ACCOUNT_ADDITIONAL_POCKET",
+              "pocket_name": "여행비",
+              "status": "ACTIVE",
+              "balance_krw": 400000,
+              "created_at": "2026-02-01T09:00:00+09:00",
+              "move_restriction_flags": []
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_group_account_extra_pocket_auto_covers_withdrawal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "모임통장 포켓 출금 기본포켓 부족 추가포켓 자동 돈 옮기기 후 출금"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_extra_pocket_auto_covers_withdrawal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_019"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_extra_pocket_auto_covers_withdrawal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_group_019",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_extra_pocket_auto_covers_withdrawal_03",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "pocket_group_trip_019",
+          "target_id": "pocket_group_basic_019",
+          "amount": 150000,
+          "currency": "KRW",
+          "transaction_type": "GROUP_POCKET_AUTO_MOVE_FOR_WITHDRAWAL"
+        }
+      },
+      {
+        "action_id": "kb_manual_group_account_extra_pocket_auto_covers_withdrawal_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "pocket_group_basic_019",
+          "target_id": "external_payee_restaurant_019",
+          "amount": 250000,
+          "currency": "KRW",
+          "transaction_type": "GROUP_ACCOUNT_WITHDRAWAL_AFTER_AUTO_POCKET_MOVE"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "pocket_group_trip_019",
+          "target_id": "pocket_group_basic_019",
+          "amount": 150000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "pocket_group_basic_019",
+          "target_id": "external_payee_restaurant_019",
+          "amount": 250000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "service_enrollments",
+          "record_id": "svc_group_019",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "모임통장 출금은 기본포켓 잔액 범위에서 먼저 차감된다고 안내한다.",
+      "기본포켓 잔액이 부족하면 추가포켓에서 부족한 금액만큼 자동 돈 옮기기 후 기본포켓에서 출금된다고 설명한다.",
+      "추가포켓에서 기본포켓으로 15만원을 자동 이동한 뒤 기본포켓에서 25만원 출금을 실행한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_모임통장_004"
+  ],
+  "user_tools": []
+}

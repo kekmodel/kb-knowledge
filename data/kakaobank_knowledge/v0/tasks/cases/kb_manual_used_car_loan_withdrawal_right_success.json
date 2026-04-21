@@ -1,0 +1,200 @@
+{
+  "id": "kb_manual_used_car_loan_withdrawal_right_success",
+  "description": {
+    "purpose": "success task for 중고차 구매대출",
+    "relevant_policies": "doc_kakao_product_중고차_구매대출_003",
+    "notes": "source_task_id=kb_manual_used_car_loan_withdrawal_right_success; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_used_car_loan_withdrawal_right_success.md; notes=This success task intentionally uses the generic loan-withdrawal facts from the product explanation, not a made-up used-car-specific exception. The decisive reasoning is the latest relevant date plus 14-day deadline, return readiness, fee exemption, and no acceleration."
+  },
+  "user_prompt": "4월 10일에 중고차 구매대출 계약서류를 받고 대출금도 받았습니다. 오늘 4월 20일 앱에서 철회의사를 표시했고, 원금과 그동안 이자, 제3자 비용까지 반환할 수 있습니다. 중도상환해약금 없이 대출계약 철회로 처리해 주세요.",
+  "user_scenario": {
+    "persona": "중고차 구매대출 실행 후 14일 안에 대출계약 철회권을 행사하려는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n4월 10일에 중고차 구매대출 계약서류를 받고 대출금도 받았습니다. 오늘 4월 20일 앱에서 철회의사를 표시했고, 원금과 그동안 이자, 제3자 비용까지 반환할 수 있습니다. 중도상환해약금 없이 대출계약 철회로 처리해 주세요.\n\nExpected assistant response points:\n- 대출계약 철회권은 계약체결일, 계약서류 수령일, 대출금 수령일 중 나중의 날부터 14일 이내 행사할 수 있다고 안내한다.\n- fixture상 가장 늦은 기준일이 2026-04-10이고 2026-04-20 요청은 14일 이내라 철회 가능하다고 판단한다.\n- 모바일앱 철회의사 표시와 원금, 이자, 제3자 비용 반환이 필요하다고 설명한다.\n- 중도상환해약금은 면제되고 관련 대출정보 삭제가 5영업일 이내로 예정되는 철회 상태로 처리한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_053": {
+              "customer_id": "cust_053",
+              "name": "강철회",
+              "date_of_birth": "1990-01-04",
+              "age": 36,
+              "residency": "KR",
+              "nationality": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "used_car_loan_053": {
+              "loan_id": "used_car_loan_053",
+              "customer_id": "cust_053",
+              "product_name": "중고차 구매대출",
+              "status": "EXECUTED",
+              "principal_krw": 24000000,
+              "outstanding_krw": 24000000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2031-04-10",
+              "late_days": 0,
+              "restriction_flags": [
+                "WITHDRAWAL_RIGHT_WINDOW_OPEN"
+              ],
+              "contract_signed_at": "2026-04-10T09:00:00+09:00",
+              "contract_documents_received_at": "2026-04-10T09:05:00+09:00",
+              "funds_received_at": "2026-04-10T10:00:00+09:00",
+              "withdrawal_right_deadline": "2026-04-24",
+              "withdrawal_notice_submitted_at": "2026-04-20T10:00:00+09:00",
+              "principal_return_ready_krw": 24000000,
+              "interest_return_ready_krw": 87300,
+              "third_party_cost_return_ready_krw": 35000,
+              "early_repayment_fee_krw": null,
+              "loan_information_deletion_due_date": null,
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false
+            }
+          }
+        },
+        "vehicle_purchase_cases": {
+          "data": {
+            "vehicle_case_053": {
+              "vehicle_case_id": "vehicle_case_053",
+              "loan_id": "used_car_loan_053",
+              "customer_id": "cust_053",
+              "dealer_id": "dealer_withdraw_053",
+              "payment_status": "FUNDS_RETURN_READY",
+              "title_transfer_due_date": "2026-04-25",
+              "title_transfer_status": "NOT_REGISTERED",
+              "sale_contract_status": "LOAN_WITHDRAWAL_REQUESTED",
+              "status": "LOAN_WITHDRAWAL_REQUESTED"
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_loan_withdrawal_053": {
+              "document_id": "req_loan_withdrawal_053",
+              "customer_id": "cust_053",
+              "target_type": "loan",
+              "target_id": "used_car_loan_053",
+              "document_type": "LOAN_WITHDRAWAL_NOTICE",
+              "status": "SUBMITTED",
+              "due_date": "2026-04-24",
+              "submitted_at": "2026-04-20T10:00:00+09:00"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_used_car_loan_withdrawal_right_success_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "중고차 구매대출 대출계약 철회권 14일 모바일앱 원금 이자 제3자 비용 반환 중도상환해약금 면제"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_withdrawal_right_success_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_053"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_withdrawal_right_success_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "used_car_loan_053",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_used_car_loan_withdrawal_right_success_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "used_car_loan_053",
+          "operation": "PROCESS_LOAN_WITHDRAWAL_RIGHT",
+          "reason": "WITHDRAWAL_WITHIN_14_DAYS_FUNDS_RETURN_READY",
+          "effective_at": "2026-04-20T10:10:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "used_car_loan_053",
+          "expected_status": "WITHDRAWN"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "used_car_loan_053",
+          "expected_accelerated": false,
+          "expected_reason": null
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "vehicle_purchase_cases",
+          "record_id": "vehicle_case_053",
+          "expected_status": "LOAN_WITHDRAWN_BY_CUSTOMER"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "used_car_loan_053",
+          "document_type": "LOAN_WITHDRAWAL_NOTICE",
+          "expected_status": "ACCEPTED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "대출계약 철회권은 계약체결일, 계약서류 수령일, 대출금 수령일 중 나중의 날부터 14일 이내 행사할 수 있다고 안내한다.",
+      "fixture상 가장 늦은 기준일이 2026-04-10이고 2026-04-20 요청은 14일 이내라 철회 가능하다고 판단한다.",
+      "모바일앱 철회의사 표시와 원금, 이자, 제3자 비용 반환이 필요하다고 설명한다.",
+      "중도상환해약금은 면제되고 관련 대출정보 삭제가 5영업일 이내로 예정되는 철회 상태로 처리한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_중고차_구매대출_003"
+  ],
+  "user_tools": []
+}

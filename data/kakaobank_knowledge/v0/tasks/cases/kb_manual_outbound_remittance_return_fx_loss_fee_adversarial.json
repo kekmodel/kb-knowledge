@@ -1,0 +1,206 @@
+{
+  "id": "kb_manual_outbound_remittance_return_fx_loss_fee_adversarial",
+  "description": {
+    "purpose": "adversarial task for 해외송금 보내기",
+    "relevant_policies": "doc_kakao_product_해외송금_보내기_002, doc_kakao_product_해외송금_보내기_004, doc_kakao_common_policy_remittance_common_003",
+    "notes": "source_task_id=kb_manual_outbound_remittance_return_fx_loss_fee_adversarial; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_outbound_remittance_return_fx_loss_fee_adversarial.md; notes=This adversarial task tests whether the agent preserves unfavorable return-settlement rules under customer pressure: deposit-time FX, possible FX loss, and no original send-fee refund."
+  },
+  "user_prompt": "제가 미국으로 3,000달러 보냈던 건이 반환됐어요. 보낼 때 환율이 1,400원이었으니 4,200,000원 그대로 돌려주고, 송금수수료 4,900원도 같이 환불해 주세요. 지금 입금 환율 1,370원으로 돌려주면 제가 손해잖아요.",
+  "user_scenario": {
+    "persona": "수취은행에서 송금이 반환되어 환차손과 수수료 환급을 강하게 요구하는 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제가 미국으로 3,000달러 보냈던 건이 반환됐어요. 보낼 때 환율이 1,400원이었으니 4,200,000원 그대로 돌려주고, 송금수수료 4,900원도 같이 환불해 주세요. 지금 입금 환율 1,370원으로 돌려주면 제가 손해잖아요.\n\nExpected assistant response points:\n- 고객 착오 또는 부정확한 정보 입력으로 인한 반환 손해는 고객 부담일 수 있다고 안내한다.\n- 송금 반환 시에는 반환자금이 입금되는 시점의 환율이 적용되어 환차손이 발생할 수 있다고 안내한다.\n- 송금자금이 반환되어도 서비스 신청 당시 출금된 송금수수료는 반환되지 않는다고 안내한다.\n- fixture상 반환 입금 시점 환율 1,370 KRW/USD를 적용해 4,110,000 KRW만 출금계좌로 반환하고 4,900 KRW 수수료는 환불하지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_172": {
+              "customer_id": "cust_172",
+              "name": "오환율",
+              "date_of_birth": "1989-04-22",
+              "age": 37,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_outbound_return_172": {
+              "account_id": "acct_outbound_return_172",
+              "customer_id": "cust_172",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 1250000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "remittance_profiles": {
+          "data": {
+            "remit_profile_172": {
+              "remittance_profile_id": "remit_profile_172",
+              "customer_id": "cust_172",
+              "base_account_id": "acct_outbound_return_172",
+              "annual_usd_sent": 36000,
+              "annual_usd_received": 0,
+              "auto_receive_enabled": false,
+              "verified_purpose_codes": [
+                "PERSONAL_TRANSFER"
+              ],
+              "fx_bank_designated": true,
+              "resident_verified": true
+            }
+          }
+        },
+        "remittance_cases": {
+          "data": {
+            "remit_outbound_172": {
+              "remittance_id": "remit_outbound_172",
+              "customer_id": "cust_172",
+              "direction": "OUTBOUND",
+              "status": "RETURN_PENDING",
+              "amount": 3000,
+              "currency": "USD",
+              "country": "US",
+              "requested_at": "2026-04-17T14:30:00+09:00",
+              "correction_due_date": null,
+              "purpose_code": "PERSONAL_TRANSFER",
+              "source_account_id": "acct_outbound_return_172",
+              "return_reason": "RECIPIENT_REJECTED_BY_CUSTOMER_INPUT",
+              "bank_fault": false,
+              "original_exchange_rate_krw_per_unit": 1400,
+              "return_exchange_rate_krw_per_unit": 1370,
+              "remittance_amount_krw": 4200000,
+              "send_fee_krw": 4900,
+              "debit_transaction_id": "txn_outbound_initial_172",
+              "returned_transaction_id": null
+            }
+          }
+        },
+        "transactions": {
+          "data": {
+            "txn_outbound_initial_172": {
+              "transaction_id": "txn_outbound_initial_172",
+              "account_id": "acct_outbound_return_172",
+              "amount_krw": -4204900,
+              "type": "OUTBOUND_REMITTANCE_DEBIT",
+              "status": "POSTED",
+              "created_at": "2026-04-17T14:30:00+09:00"
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_outbound_remittance_return_fx_loss_fee_adversarial_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "해외송금 보내기 반환 환차손 입금 시점 환율 송금수수료 반환되지 않음"
+        }
+      },
+      {
+        "action_id": "kb_manual_outbound_remittance_return_fx_loss_fee_adversarial_01",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "remit_outbound_172",
+          "table": "remittance_cases"
+        }
+      },
+      {
+        "action_id": "kb_manual_outbound_remittance_return_fx_loss_fee_adversarial_02",
+        "requestor": "assistant",
+        "name": "execute_remittance_case",
+        "arguments": {
+          "customer_id": "cust_172",
+          "direction": "OUTBOUND_RETURN_SETTLEMENT",
+          "amount": 3000,
+          "currency": "USD",
+          "country": "US",
+          "purpose_code": "PERSONAL_TRANSFER",
+          "options": {
+            "remittance_id": "remit_outbound_172",
+            "source_account_id": "acct_outbound_return_172",
+            "return_reason": "RECIPIENT_REJECTED_BY_CUSTOMER_INPUT",
+            "bank_fault": false,
+            "expected_status": "RETURNED_SETTLED",
+            "original_exchange_rate_krw_per_unit": 1400,
+            "return_exchange_rate_krw_per_unit": 1370,
+            "original_principal_krw": 4200000,
+            "returned_principal_krw": 4110000,
+            "fx_loss_krw": 90000,
+            "send_fee_krw": 4900,
+            "send_fee_refunded": false,
+            "transaction_id": "txn_outbound_return_settlement_172"
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_remittance_outcome",
+        "arguments": {
+          "remittance_id": "remit_outbound_172",
+          "expected_status": "RETURNED_SETTLED",
+          "expected_fee_refunded": false
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "remit_outbound_172",
+          "target_id": "acct_outbound_return_172",
+          "amount": 4110000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "remittance_cases",
+          "record_id": "remit_outbound_172",
+          "expected_status": "RETURNED_SETTLED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "고객 착오 또는 부정확한 정보 입력으로 인한 반환 손해는 고객 부담일 수 있다고 안내한다.",
+      "송금 반환 시에는 반환자금이 입금되는 시점의 환율이 적용되어 환차손이 발생할 수 있다고 안내한다.",
+      "송금자금이 반환되어도 서비스 신청 당시 출금된 송금수수료는 반환되지 않는다고 안내한다.",
+      "fixture상 반환 입금 시점 환율 1,370 KRW/USD를 적용해 4,110,000 KRW만 출금계좌로 반환하고 4,900 KRW 수수료는 환불하지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_해외송금_보내기_002",
+    "doc_kakao_product_해외송금_보내기_004",
+    "doc_kakao_common_policy_remittance_common_003"
+  ],
+  "user_tools": []
+}

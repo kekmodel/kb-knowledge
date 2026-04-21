@@ -1,0 +1,183 @@
+{
+  "id": "kb_manual_business_credit_post_use_statement_missing_refusal",
+  "description": {
+    "purpose": "refusal task for 개인사업자 신용대출",
+    "relevant_policies": "doc_kakao_product_개인사업자_신용대출_009",
+    "notes": "source_task_id=kb_manual_business_credit_post_use_statement_missing_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_business_credit_post_use_statement_missing_refusal.md; notes=This task is deliberately separate from confirmed purpose misuse. The violation is missing the required post-use inspection statement within 3 months, which the agreement treats as sanction-equivalent to purpose misuse."
+  },
+  "user_prompt": "1월 10일에 받은 개인사업자 신용대출이 사후점검 대상이라고 들었는데, 대출금 사용내역표를 아직 못 냈습니다. 3개월은 이미 지났지만 이번 달 말에 낼 테니 용도외 유용과 같은 제재는 적용하지 말고 대출을 정상 유지해 주세요.",
+  "user_scenario": {
+    "persona": "사후점검 대상 개인사업자 신용대출의 사용내역표 제출기한을 넘긴 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n1월 10일에 받은 개인사업자 신용대출이 사후점검 대상이라고 들었는데, 대출금 사용내역표를 아직 못 냈습니다. 3개월은 이미 지났지만 이번 달 말에 낼 테니 용도외 유용과 같은 제재는 적용하지 말고 대출을 정상 유지해 주세요.\n\nExpected assistant response points:\n- 사후점검 대상 여신은 취급일부터 3개월 이내 대출금 사용내역표를 제출해야 한다고 안내한다.\n- fixture상 2026-01-10 취급 건의 사용내역표 due date는 2026-04-10이고, 2026-04-20 현재 미제출이라 기한을 넘겼다고 판단한다.\n- 사용내역표 미제출 시 용도 외 유용과 동일한 제재를 받을 수 있다고 설명한다.\n- 정상 유지 요청은 거절하고 즉시상환 필요 상태로 변경하며 required document를 제재 적용 상태로 남긴다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_056": {
+              "customer_id": "cust_056",
+              "name": "서점검",
+              "date_of_birth": "1979-06-30",
+              "age": 46,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "businesses": {
+          "data": {
+            "biz_056": {
+              "business_id": "biz_056",
+              "customer_id": "cust_056",
+              "business_name": "서점검 디자인",
+              "business_type": "SOLE_PROPRIETOR",
+              "business_status": "ACTIVE",
+              "representative_name": "서점검"
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "biz_credit_loan_056": {
+              "loan_id": "biz_credit_loan_056",
+              "customer_id": "cust_056",
+              "product_name": "개인사업자 신용대출",
+              "status": "ACTIVE",
+              "principal_krw": 70000000,
+              "outstanding_krw": 68600000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2029-01-10",
+              "late_days": 0,
+              "purpose": "FACILITY_AND_WORKING_CAPITAL",
+              "post_use_inspection_required": true,
+              "use_of_funds_statement_due_date": "2026-04-10",
+              "use_of_funds_statement_submitted_at": null,
+              "restriction_flags": [
+                "USE_OF_FUNDS_STATEMENT_OVERDUE"
+              ],
+              "executed_at": "2026-01-10T10:00:00+09:00",
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {}
+        },
+        "refinance_requests": {
+          "data": {}
+        },
+        "required_documents": {
+          "data": {
+            "req_use_statement_056": {
+              "document_id": "req_use_statement_056",
+              "customer_id": "cust_056",
+              "target_type": "loan",
+              "target_id": "biz_credit_loan_056",
+              "document_type": "BUSINESS_LOAN_USE_OF_FUNDS_STATEMENT",
+              "status": "OVERDUE",
+              "due_date": "2026-04-10",
+              "submitted_at": null
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_business_credit_post_use_statement_missing_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "개인사업자 신용대출 사후점검 대상 여신 3개월 대출금 사용내역표 미제출 용도 외 유용 동일 제재"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_post_use_statement_missing_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_056"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_post_use_statement_missing_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "biz_credit_loan_056",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_business_credit_post_use_statement_missing_refusal_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "biz_credit_loan_056",
+          "operation": "ACCELERATE_IMMEDIATE_REPAYMENT",
+          "reason": "POST_USE_INSPECTION_STATEMENT_NOT_SUBMITTED_WITHIN_3_MONTHS",
+          "effective_at": "2026-04-20T15:10:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "biz_credit_loan_056",
+          "expected_accelerated": true,
+          "expected_reason": "POST_USE_INSPECTION_STATEMENT_NOT_SUBMITTED_WITHIN_3_MONTHS"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "biz_credit_loan_056",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "biz_credit_loan_056",
+          "document_type": "BUSINESS_LOAN_USE_OF_FUNDS_STATEMENT",
+          "expected_status": "OVERDUE_SANCTION_APPLIED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "사후점검 대상 여신은 취급일부터 3개월 이내 대출금 사용내역표를 제출해야 한다고 안내한다.",
+      "fixture상 2026-01-10 취급 건의 사용내역표 due date는 2026-04-10이고, 2026-04-20 현재 미제출이라 기한을 넘겼다고 판단한다.",
+      "사용내역표 미제출 시 용도 외 유용과 동일한 제재를 받을 수 있다고 설명한다.",
+      "정상 유지 요청은 거절하고 즉시상환 필요 상태로 변경하며 required document를 제재 적용 상태로 남긴다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_개인사업자_신용대출_009"
+  ],
+  "user_tools": []
+}

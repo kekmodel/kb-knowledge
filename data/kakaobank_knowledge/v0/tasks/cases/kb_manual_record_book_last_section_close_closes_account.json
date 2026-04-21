@@ -1,0 +1,202 @@
+{
+  "id": "kb_manual_record_book_last_section_close_closes_account",
+  "description": {
+    "purpose": "success task for 기록통장",
+    "relevant_policies": "doc_kakao_product_기록통장_003",
+    "notes": "source_task_id=kb_manual_record_book_last_section_close_closes_account; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_record_book_last_section_close_closes_account.md; notes=The user asks for only a section close, but the correct durable state change includes Record Book account closure because this is the last non-interest section."
+  },
+  "user_prompt": "기록통장에 최애적금 섹션 하나만 남아 있어요. 섹션에 있는 18만원은 연결된 입출금통장으로 옮기고, 섹션만 닫아 주세요. 기록통장은 나중에 다시 쓸 수 있게 그대로 두고 싶어요.",
+  "user_scenario": {
+    "persona": "최애적금형 기록을 정리하려는 기록통장 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n기록통장에 최애적금 섹션 하나만 남아 있어요. 섹션에 있는 18만원은 연결된 입출금통장으로 옮기고, 섹션만 닫아 주세요. 기록통장은 나중에 다시 쓸 수 있게 그대로 두고 싶어요.\n\nExpected assistant response points:\n- 섹션을 해지하면 해당 섹션 잔액은 연결된 입출금통장으로 이체된다고 안내한다.\n- 이자섹션을 제외한 마지막 남은 섹션을 해지하면 기록통장도 함께 해지된다고 안내한다.\n- 고객이 계속 진행하면 섹션 잔액을 근거계좌로 이체하고, 마지막 일반 섹션과 기록통장을 함께 닫는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_010": {
+              "customer_id": "cust_010",
+              "name": "윤기록",
+              "date_of_birth": "1997-05-18",
+              "age": 28,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_010": {
+              "account_id": "acct_base_010",
+              "customer_id": "cust_010",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 1200000,
+              "currency": "KRW",
+              "restriction_flags": []
+            },
+            "acct_record_010": {
+              "account_id": "acct_record_010",
+              "customer_id": "cust_010",
+              "product_name": "기록통장",
+              "status": "ACTIVE",
+              "balance_krw": 180000,
+              "currency": "KRW",
+              "linked_account_id": "acct_base_010",
+              "non_interest_section_count": 1,
+              "interest_section_id": "pocket_record_interest_010",
+              "restriction_flags": []
+            }
+          }
+        },
+        "pockets": {
+          "data": {
+            "pocket_record_fan_010": {
+              "pocket_id": "pocket_record_fan_010",
+              "parent_id": "acct_record_010",
+              "pocket_type": "RECORD_BOOK_SECTION",
+              "section_name": "최애적금",
+              "status": "ACTIVE",
+              "balance_krw": 180000,
+              "created_at": "2025-12-01T09:00:00+09:00",
+              "is_interest_section": false,
+              "monthly_deposit_amount_krw": 350000,
+              "collection_rules": [
+                {
+                  "rule_id": "record_rule_fan_010",
+                  "amount_krw": 10000,
+                  "record_text": "응원한 날"
+                }
+              ]
+            },
+            "pocket_record_interest_010": {
+              "pocket_id": "pocket_record_interest_010",
+              "parent_id": "acct_record_010",
+              "pocket_type": "RECORD_BOOK_INTEREST_SECTION",
+              "section_name": "이자섹션",
+              "status": "ACTIVE",
+              "balance_krw": 0,
+              "created_at": "2025-12-01T09:00:00+09:00",
+              "is_interest_section": true
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {}
+        },
+        "service_enrollments": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_record_book_last_section_close_closes_account_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "기록통장 마지막 섹션 해지 통장도 함께 해지 잔액 근거계좌 이체"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_last_section_close_closes_account_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_010"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_last_section_close_closes_account_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_record_010",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_last_section_close_closes_account_03",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "pocket_record_fan_010",
+          "target_id": "acct_base_010",
+          "amount": 180000,
+          "currency": "KRW",
+          "transaction_type": "RECORD_BOOK_SECTION_CLOSE_TRANSFER"
+        }
+      },
+      {
+        "action_id": "kb_manual_record_book_last_section_close_closes_account_04",
+        "requestor": "assistant",
+        "name": "close_account_or_service",
+        "arguments": {
+          "customer_id": "cust_010",
+          "target_id": "pocket_record_fan_010",
+          "close_type": "CLOSE_LAST_NON_INTEREST_SECTION_AND_RECORD_ACCOUNT",
+          "reason": "LAST_NON_INTEREST_SECTION_CLOSE"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "pocket_record_fan_010",
+          "target_id": "acct_base_010",
+          "amount": 180000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "pockets",
+          "record_id": "pocket_record_fan_010",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_record_010",
+          "expected_status": "CLOSED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "섹션을 해지하면 해당 섹션 잔액은 연결된 입출금통장으로 이체된다고 안내한다.",
+      "이자섹션을 제외한 마지막 남은 섹션을 해지하면 기록통장도 함께 해지된다고 안내한다.",
+      "고객이 계속 진행하면 섹션 잔액을 근거계좌로 이체하고, 마지막 일반 섹션과 기록통장을 함께 닫는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_기록통장_003"
+  ],
+  "user_tools": []
+}

@@ -1,0 +1,174 @@
+{
+  "id": "kb_manual_mini_cancel_amount_pending_over_holding_limit",
+  "description": {
+    "purpose": "success task for 카카오뱅크 mini",
+    "relevant_policies": "doc_kakao_product_카카오뱅크_mini_001, doc_kakao_product_카카오뱅크_mini_002",
+    "notes": "source_task_id=kb_manual_mini_cancel_amount_pending_over_holding_limit; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_mini_cancel_amount_pending_over_holding_limit.md; notes=This task tests that cancellation returns do not override the mini holding limit; the correct state is pending cancellation amount, not an over-limit balance credit."
+  },
+  "user_prompt": "mini 잔액이 49만5천원인데 어제 출금했던 1만2천원 거래가 취소됐어요. 보유한도 50만원을 넘더라도 취소된 돈은 바로 mini 잔액에 넣어 주세요.",
+  "user_scenario": {
+    "persona": "mini 잔액이 보유한도에 가까운 상태에서 결제 취소금액을 돌려받으려는 청소년 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\nmini 잔액이 49만5천원인데 어제 출금했던 1만2천원 거래가 취소됐어요. 보유한도 50만원을 넘더라도 취소된 돈은 바로 mini 잔액에 넣어 주세요.\n\nExpected assistant response points:\n- mini 보유한도는 50만원이라고 확인한다.\n- 출금 후 거래가 취소되어 다시 입금되어야 해도 보유한도 때문에 입금되지 못하면 해당 금액은 취소금액 입금대기가 된다고 안내한다.\n- 49만5천원 잔액에 1만2천원을 즉시 재입금하면 보유한도를 초과하므로 잔액을 50만7천원으로 만들지 않는다.\n- 취소 거래를 입금대기 상태로 남기고 mini 잔액은 그대로 유지한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_254": {
+              "customer_id": "cust_254",
+              "name": "김입대",
+              "date_of_birth": "2010-08-12",
+              "age": 15,
+              "residency": "KR",
+              "nationality": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "prepaid_wallets": {
+          "data": {
+            "mini_wallet_254": {
+              "wallet_id": "mini_wallet_254",
+              "customer_id": "cust_254",
+              "status": "ACTIVE",
+              "balance_krw": 495000,
+              "holding_limit_krw": 500000,
+              "daily_limit_krw": 200000,
+              "monthly_limit_krw": 1000000,
+              "daily_spend_used_krw": 30000,
+              "monthly_spend_used_krw": 190000,
+              "age_band": "AGE_13_PLUS"
+            }
+          }
+        },
+        "transactions": {
+          "data": {
+            "mini_cancel_return_254": {
+              "transaction_id": "mini_cancel_return_254",
+              "customer_id": "cust_254",
+              "target_wallet_id": "mini_wallet_254",
+              "type": "MINI_WITHDRAWAL_CANCEL_RETURN",
+              "status": "CANCEL_RETURN_READY",
+              "amount_krw": 12000,
+              "cancel_confirmed_at": "2026-04-20T12:10:00+09:00",
+              "credited_at": null
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_mini_cancel_amount_pending_over_holding_limit_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "카카오뱅크 mini 보유한도 50만원 출금 후 거래 취소 취소금액 입금대기"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_cancel_amount_pending_over_holding_limit_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_254"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_cancel_amount_pending_over_holding_limit_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_wallet_254",
+          "table": "prepaid_wallets"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_cancel_amount_pending_over_holding_limit_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "mini_cancel_return_254",
+          "table": "transactions"
+        }
+      },
+      {
+        "action_id": "kb_manual_mini_cancel_amount_pending_over_holding_limit_04",
+        "requestor": "assistant",
+        "name": "execute_deposit_or_box_transfer",
+        "arguments": {
+          "source_id": "mini_cancel_return_254",
+          "target_id": "mini_wallet_254",
+          "amount": 12000,
+          "currency": "KRW",
+          "transaction_type": "MINI_CANCEL_AMOUNT_PENDING_OVER_HOLDING_LIMIT",
+          "new_transaction_status": "PENDING_CANCEL_RETURN",
+          "current_balance_krw": 495000,
+          "holding_limit_krw": 500000,
+          "would_be_balance_krw": 507000,
+          "credited_to_wallet": false
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "transactions",
+          "record_id": "mini_cancel_return_254",
+          "expected_status": "PENDING_CANCEL_RETURN"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_254",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "prepaid_wallets",
+          "record_id": "mini_wallet_254",
+          "field_names": [
+            "balance_krw",
+            "holding_limit_krw"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "mini 보유한도는 50만원이라고 확인한다.",
+      "출금 후 거래가 취소되어 다시 입금되어야 해도 보유한도 때문에 입금되지 못하면 해당 금액은 취소금액 입금대기가 된다고 안내한다.",
+      "49만5천원 잔액에 1만2천원을 즉시 재입금하면 보유한도를 초과하므로 잔액을 50만7천원으로 만들지 않는다.",
+      "취소 거래를 입금대기 상태로 남기고 mini 잔액은 그대로 유지한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_카카오뱅크_mini_001",
+    "doc_kakao_product_카카오뱅크_mini_002"
+  ],
+  "user_tools": []
+}

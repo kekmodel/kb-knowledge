@@ -1,0 +1,179 @@
+{
+  "id": "kb_manual_credit_loan_high_value_home_purchase_accelerates",
+  "description": {
+    "purpose": "success task for 신용대출",
+    "relevant_policies": "doc_kakao_product_신용대출_006",
+    "notes": "source_task_id=kb_manual_credit_loan_high_value_home_purchase_accelerates; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_credit_loan_high_value_home_purchase_accelerates.md; notes=This success task checks that the agent distinguishes a prohibited regulated-area presale-right purchase from an inheritance exception and performs the required loan acceleration state change."
+  },
+  "user_prompt": "올해 1월에 신용대출을 받아 전 금융권 신용대출 잔액이 1억 3천5백만원이 됐고, 사후 용도관리 약정도 했어요. 그런데 지난주 조정대상지역 아파트 분양권을 매매로 취득했습니다. 상속은 아니고요. 이 경우 제 대출 상태를 약정 위반으로 처리해야 하나요?",
+  "user_scenario": {
+    "persona": "1억원 초과 신용대출 실행 후 사후 용도관리 약정을 체결한 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n올해 1월에 신용대출을 받아 전 금융권 신용대출 잔액이 1억 3천5백만원이 됐고, 사후 용도관리 약정도 했어요. 그런데 지난주 조정대상지역 아파트 분양권을 매매로 취득했습니다. 상속은 아니고요. 이 경우 제 대출 상태를 약정 위반으로 처리해야 하나요?\n\nExpected assistant response points:\n- 신규 1억원 초과 또는 추가 대출 후 전 금융기관 신용대출 잔액 1억원 초과 차주는 사후 용도관리 약정 대상이라고 안내한다.\n- 대출 실행일부터 1년 또는 전액상환 중 빠른 날까지 조정대상지역 등 규제지역 주택, 분양권, 조합원 입주권을 구입하면 금지의무 위반이라고 설명한다.\n- 상속이 아닌 매매 취득이므로 본 대출의 기한의 이익을 상실 처리하고 즉시변제 대상 상태로 변경한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_027": {
+              "customer_id": "cust_027",
+              "name": "한고액",
+              "date_of_birth": "1983-03-12",
+              "age": 43,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "loan_credit_027": {
+              "loan_id": "loan_credit_027",
+              "customer_id": "cust_027",
+              "product_name": "신용대출",
+              "status": "ACTIVE",
+              "principal_krw": 120000000,
+              "outstanding_krw": 118400000,
+              "repayment_mode": "AMORTIZING",
+              "maturity_date": "2029-01-10",
+              "late_days": 0,
+              "restriction_flags": [
+                "HIGH_CREDIT_PURPOSE_MONITORING"
+              ],
+              "executed_at": "2026-01-10T10:00:00+09:00",
+              "purpose_management_until": "2027-01-10",
+              "all_financial_credit_balance_after_execution_krw": 135000000,
+              "purpose_management_addendum_signed": true,
+              "accelerated": false,
+              "acceleration_reason": null,
+              "immediate_repayment_required": false,
+              "post_execution_monitoring_events": [
+                {
+                  "event_id": "home_purchase_027",
+                  "event_type": "REGULATED_AREA_HOME_ACQUISITION",
+                  "asset_type": "PRESALE_RIGHT",
+                  "acquisition_method": "PURCHASE",
+                  "region_type": "ADJUSTMENT_TARGET_AREA",
+                  "acquired_at": "2026-04-14",
+                  "is_inheritance": false
+                }
+              ]
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {}
+        },
+        "refinance_requests": {
+          "data": {}
+        },
+        "required_documents": {
+          "data": {
+            "req_high_credit_addendum_027": {
+              "document_id": "req_high_credit_addendum_027",
+              "customer_id": "cust_027",
+              "target_type": "loan",
+              "target_id": "loan_credit_027",
+              "document_type": "HIGH_CREDIT_PURPOSE_MANAGEMENT_ADDENDUM",
+              "status": "ACCEPTED",
+              "due_date": "2026-01-10",
+              "submitted_at": "2026-01-10T09:55:00+09:00"
+            }
+          }
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_credit_loan_high_value_home_purchase_accelerates_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "신용대출 1억원 초과 사후 용도관리 조정대상지역 분양권 매매 기한의 이익 상실"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_high_value_home_purchase_accelerates_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_027"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_high_value_home_purchase_accelerates_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "loan_credit_027",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_credit_loan_high_value_home_purchase_accelerates_03",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "loan_credit_027",
+          "operation": "ACCELERATE_IMMEDIATE_REPAYMENT",
+          "reason": "HIGH_CREDIT_REGULATED_AREA_HOME_PURCHASE_VIOLATION",
+          "effective_at": "2026-04-20T09:30:00+09:00"
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_loan_acceleration",
+        "arguments": {
+          "loan_id": "loan_credit_027",
+          "expected_accelerated": true,
+          "expected_reason": "HIGH_CREDIT_REGULATED_AREA_HOME_PURCHASE_VIOLATION"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "loans",
+          "record_id": "loan_credit_027",
+          "expected_status": "ACCELERATED"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "loan_credit_027",
+          "document_type": "HIGH_CREDIT_PURPOSE_MANAGEMENT_ADDENDUM",
+          "expected_status": "ACCEPTED"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "신규 1억원 초과 또는 추가 대출 후 전 금융기관 신용대출 잔액 1억원 초과 차주는 사후 용도관리 약정 대상이라고 안내한다.",
+      "대출 실행일부터 1년 또는 전액상환 중 빠른 날까지 조정대상지역 등 규제지역 주택, 분양권, 조합원 입주권을 구입하면 금지의무 위반이라고 설명한다.",
+      "상속이 아닌 매매 취득이므로 본 대출의 기한의 이익을 상실 처리하고 즉시변제 대상 상태로 변경한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_신용대출_006"
+  ],
+  "user_tools": []
+}

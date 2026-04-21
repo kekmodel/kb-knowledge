@@ -1,0 +1,191 @@
+{
+  "id": "kb_manual_26week_maturity_full_bonus_auto_close",
+  "description": {
+    "purpose": "success task for 26주적금",
+    "relevant_policies": "doc_kakao_product_26주적금_001, doc_kakao_product_26주적금_002",
+    "notes": "source_task_id=kb_manual_26week_maturity_full_bonus_auto_close; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_26week_maturity_full_bonus_auto_close.md; notes=This success task complements the missed-week fill adversarial task: here there are no failed weeks, the auto-close precondition is clean, and the decisive outcome is a closed matured deposit with the full 3.00%p auto-transfer preferential rate."
+  },
+  "user_prompt": "오늘이 26주적금 만기일이고 1주차부터 26주차까지 자동이체가 전부 성공했어요. 만기 자동해지도 신청해 뒀고 압류나 사고신고 같은 제한은 없습니다. 7주차랑 26주차 우대금리를 모두 반영해서 근거계좌로 자동해지 처리해 주세요.",
+  "user_scenario": {
+    "persona": "26주차까지 모두 자동이체가 성공했고 만기 자동해지를 신청해 둔 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘이 26주적금 만기일이고 1주차부터 26주차까지 자동이체가 전부 성공했어요. 만기 자동해지도 신청해 뒀고 압류나 사고신고 같은 제한은 없습니다. 7주차랑 26주차 우대금리를 모두 반영해서 근거계좌로 자동해지 처리해 주세요.\n\nExpected assistant response points:\n- 우대금리는 자동이체 연속 성공과 만기 해지 조건이 함께 충족되어야 한다고 확인한다.\n- 1~7주차 연속 성공분 1.00%p와 1~26주차 연속 성공분 추가 2.00%p를 합산해 총 3.00%p 우대를 적용한다.\n- 만기 자동해지는 법적 지급제한이 없고 사전 동의가 있으므로 진행 가능하다고 안내한다.\n- 적금 계약을 만기 자동해지 상태로 닫고 만기 지급액을 고객의 근거계좌로 입금한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_061": {
+              "customer_id": "cust_061",
+              "name": "정만기",
+              "date_of_birth": "1991-03-12",
+              "age": 35,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_base_061": {
+              "account_id": "acct_base_061",
+              "customer_id": "cust_061",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 250000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [
+                "dep_26w_061"
+              ],
+              "restriction_flags": []
+            }
+          }
+        },
+        "deposit_contracts": {
+          "data": {
+            "dep_26w_061": {
+              "deposit_id": "dep_26w_061",
+              "account_id": "acct_base_061",
+              "customer_id": "cust_061",
+              "product_name": "26주적금",
+              "status": "ACTIVE",
+              "opened_at": "2025-10-20",
+              "matures_at": "2026-04-20",
+              "principal_krw": 1755000,
+              "currency": "KRW",
+              "close_type": null,
+              "legal_restriction_flags": [],
+              "base_account_id": "acct_base_061",
+              "starting_amount_krw": 5000,
+              "current_week": 26,
+              "auto_close_consent": true,
+              "maturity_payout_krw": 1798000,
+              "preferential_rate_points_if_closed_at_maturity": 3.0
+            }
+          }
+        },
+        "auto_transfer_rules": {
+          "data": {
+            "auto_rule_061": {
+              "auto_transfer_id": "auto_rule_061",
+              "contract_id": "dep_26w_061",
+              "source_account_id": "acct_base_061",
+              "success_count": 26,
+              "failed_weeks": [],
+              "status": "COMPLETED"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_26week_maturity_full_bonus_auto_close_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "26주적금 26주 자동이체 연속 성공 우대금리 만기 자동해지 근거계좌 입금 법적 지급제한"
+        }
+      },
+      {
+        "action_id": "kb_manual_26week_maturity_full_bonus_auto_close_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_061"
+        }
+      },
+      {
+        "action_id": "kb_manual_26week_maturity_full_bonus_auto_close_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "dep_26w_061",
+          "table": "deposit_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_26week_maturity_full_bonus_auto_close_03",
+        "requestor": "assistant",
+        "name": "request_maturity_or_extension",
+        "arguments": {
+          "target_id": "dep_26w_061",
+          "operation": "MATURE_AUTO_CLOSE",
+          "requested_at": "2026-04-20T09:00:00+09:00",
+          "options": {
+            "destination_account_id": "acct_base_061",
+            "auto_transfer_success_count": 26,
+            "failed_weeks": [],
+            "preferential_rate_points": 3.0,
+            "close_type": "MATURITY_AUTO_CLOSE",
+            "legal_restriction_flags": [],
+            "maturity_payout_krw": 1798000
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_auto_transfer_count",
+        "arguments": {
+          "auto_transfer_id": "auto_rule_061",
+          "expected_success_count": 26,
+          "expected_failed_count": 0
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_maturity_or_close_result",
+        "arguments": {
+          "deposit_id": "dep_26w_061",
+          "expected_status": "CLOSED",
+          "expected_close_type": "MATURITY_AUTO_CLOSE",
+          "expected_destination_account_id": "acct_base_061",
+          "expected_preferential_rate_points": 3.0
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_balance_delta",
+        "arguments": {
+          "source_id": "dep_26w_061",
+          "target_id": "acct_base_061",
+          "amount": 1798000,
+          "currency": "KRW"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "우대금리는 자동이체 연속 성공과 만기 해지 조건이 함께 충족되어야 한다고 확인한다.",
+      "1~7주차 연속 성공분 1.00%p와 1~26주차 연속 성공분 추가 2.00%p를 합산해 총 3.00%p 우대를 적용한다.",
+      "만기 자동해지는 법적 지급제한이 없고 사전 동의가 있으므로 진행 가능하다고 안내한다.",
+      "적금 계약을 만기 자동해지 상태로 닫고 만기 지급액을 고객의 근거계좌로 입금한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_26주적금_001",
+    "doc_kakao_product_26주적금_002"
+  ],
+  "user_tools": []
+}

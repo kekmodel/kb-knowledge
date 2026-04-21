@@ -1,0 +1,144 @@
+{
+  "id": "kb_manual_piggy_bank_eligible_opening_zero_balance",
+  "description": {
+    "purpose": "success task for 저금통",
+    "relevant_policies": "doc_kakao_product_저금통_001",
+    "notes": "source_task_id=kb_manual_piggy_bank_eligible_opening_zero_balance; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_piggy_bank_eligible_opening_zero_balance.md; notes=This adds the positive opening branch that the earlier Piggy Bank tasks did not cover."
+  },
+  "user_prompt": "제 카카오뱅크 입출금통장에 연결해서 저금통을 새로 만들고 싶어요. 저는 실명확인된 성인이고 저금통은 아직 없어요. 처음에는 0원으로 시작해 주세요.",
+  "user_scenario": {
+    "persona": "저금통을 처음 만드는 카카오뱅크 입출금통장 보유 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n제 카카오뱅크 입출금통장에 연결해서 저금통을 새로 만들고 싶어요. 저는 실명확인된 성인이고 저금통은 아직 없어요. 처음에는 0원으로 시작해 주세요.\n\nExpected assistant response points:\n- 저금통은 카카오뱅크 입출금통장을 보유한 실명의 개인이 연결 신규할 수 있다고 확인한다.\n- 1인 1계좌 제한과 근거계좌 변경 불가 조건을 확인하고, 고객에게 기존 저금통이 없다고 판단한다.\n- 0원 신규가 가능하므로 `box_piggy_224`를 연결 입출금통장 기준으로 개설한다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_224": {
+              "customer_id": "cust_224",
+              "name": "첫저금",
+              "date_of_birth": "1994-03-12",
+              "age": 32,
+              "residency": "KR",
+              "employment_type": "SALARIED",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "acct_piggy_base_224": {
+              "account_id": "acct_piggy_base_224",
+              "customer_id": "cust_224",
+              "product_name": "입출금통장",
+              "status": "ACTIVE",
+              "balance_krw": 430000,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "savings_boxes": {
+          "data": {}
+        },
+        "auto_transfer_rules": {
+          "data": {}
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_piggy_bank_eligible_opening_zero_balance_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "저금통 가입대상 입출금통장 보유 실명 개인 연결 신규 1인 1계좌 0원 신규"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_eligible_opening_zero_balance_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_224"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_eligible_opening_zero_balance_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "acct_piggy_base_224",
+          "table": "accounts"
+        }
+      },
+      {
+        "action_id": "kb_manual_piggy_bank_eligible_opening_zero_balance_03",
+        "requestor": "assistant",
+        "name": "open_or_enroll_product",
+        "arguments": {
+          "customer_id": "cust_224",
+          "product_name": "저금통",
+          "source_account_id": "acct_piggy_base_224",
+          "options": {
+            "operation": "OPEN_PIGGY_BANK",
+            "box_id": "box_piggy_224",
+            "opening_amount_krw": 0,
+            "base_account_id": "acct_piggy_base_224",
+            "base_account_changeable": false,
+            "limit_amount": 100000
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "savings_boxes",
+          "record_id": "box_piggy_224",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_record_status",
+        "arguments": {
+          "table": "accounts",
+          "record_id": "acct_piggy_base_224",
+          "expected_status": "ACTIVE"
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "저금통은 카카오뱅크 입출금통장을 보유한 실명의 개인이 연결 신규할 수 있다고 확인한다.",
+      "1인 1계좌 제한과 근거계좌 변경 불가 조건을 확인하고, 고객에게 기존 저금통이 없다고 판단한다.",
+      "0원 신규가 가능하므로 `box_piggy_224`를 연결 입출금통장 기준으로 개설한다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_저금통_001"
+  ],
+  "user_tools": []
+}

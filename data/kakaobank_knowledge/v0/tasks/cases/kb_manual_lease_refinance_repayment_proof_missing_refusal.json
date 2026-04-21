@@ -1,0 +1,262 @@
+{
+  "id": "kb_manual_lease_refinance_repayment_proof_missing_refusal",
+  "description": {
+    "purpose": "refusal task for 전월세보증금 대출",
+    "relevant_policies": "doc_kakao_product_전월세보증금_대출_004",
+    "notes": "source_task_id=kb_manual_lease_refinance_repayment_proof_missing_refusal; phase=full; manual_review=data/tasks/kakaobank_manual_v0_reviews/kb_manual_lease_refinance_repayment_proof_missing_refusal.md; notes=This task differs from the landlord-account refusal: the landlord account is clean, but the old-loan repayment and proof requirement independently blocks execution."
+  },
+  "user_prompt": "오늘 실행일이고 앱 실행버튼도 눌렀어요. 기존 전세대출은 아직 전액 상환하지 못했고 상환영수증도 제출 전이지만, 임대인 계좌는 정상이라 일단 새 전월세보증금 대출부터 실행해 주세요.",
+  "user_scenario": {
+    "persona": "전월세보증금 대출을 기존 보유대출 상환조건부로 승인받은 고객",
+    "instructions": "This source task is driven in v0 by the top-level user_prompt field.\n\nIf a future user simulator consumes this scenario, start with this exact utterance:\n오늘 실행일이고 앱 실행버튼도 눌렀어요. 기존 전세대출은 아직 전액 상환하지 못했고 상환영수증도 제출 전이지만, 임대인 계좌는 정상이라 일단 새 전월세보증금 대출부터 실행해 주세요.\n\nExpected assistant response points:\n- 기존 보유대출 상환조건부 취급이면 안내 기간 안에 기존대출이 상환되고 은행 확인이 있어야 실행 가능하다고 안내한다.\n- 기존 보유대출 전액 상환과 그 증빙자료 제출은 대출 실행 이전까지 필요하다고 설명한다.\n- 임대인 계좌가 정상이더라도 이 조건이 충족되지 않았으므로 대출 실행을 하지 않는다.\n- 실행 차단 사유를 기록하고 대출 원금 지급이나 임대인 계좌 입금을 만들지 않는다."
+  },
+  "initial_state": {
+    "initialization_data": {
+      "agent_data": {
+        "customers": {
+          "data": {
+            "cust_074": {
+              "customer_id": "cust_074",
+              "name": "배대환",
+              "date_of_birth": "1985-06-30",
+              "age": 40,
+              "residency": "KR",
+              "identity_verified": true,
+              "status": "ACTIVE",
+              "risk_flags": []
+            }
+          }
+        },
+        "loan_applications": {
+          "data": {
+            "lease_app_074": {
+              "application_id": "lease_app_074",
+              "customer_id": "cust_074",
+              "product_name": "전월세보증금 대출",
+              "status": "APPROVED",
+              "requested_amount_krw": 130000000,
+              "approved_amount_krw": 130000000,
+              "screening_result": "APPROVED",
+              "execution_date": "2026-04-20",
+              "selected_terms": {
+                "purpose": "LEASE_DEPOSIT_REFINANCE",
+                "refinance_condition": true,
+                "old_loan_id": "old_lease_loan_074",
+                "landlord_account_id": "landlord_acct_074"
+              }
+            }
+          }
+        },
+        "loans": {
+          "data": {
+            "old_lease_loan_074": {
+              "loan_id": "old_lease_loan_074",
+              "customer_id": "cust_074",
+              "product_name": "타행 전세대출",
+              "status": "ACTIVE",
+              "principal_krw": 95000000,
+              "outstanding_krw": 95000000,
+              "repayment_mode": "BULLET",
+              "maturity_date": "2026-09-30",
+              "late_days": 0,
+              "restriction_flags": []
+            },
+            "lease_loan_074": {
+              "loan_id": "lease_loan_074",
+              "application_id": "lease_app_074",
+              "customer_id": "cust_074",
+              "product_name": "전월세보증금 대출",
+              "status": "APPROVED_NOT_EXECUTED",
+              "principal_krw": 130000000,
+              "outstanding_krw": 0,
+              "principal_balance": 0,
+              "repayment_mode": "BULLET_OR_INSTALLMENT_BY_CONTRACT",
+              "maturity_date": "2028-04-20",
+              "late_days": 0,
+              "restriction_flags": [
+                "PENDING_OLD_LOAN_REPAYMENT_PROOF"
+              ],
+              "currency": "KRW",
+              "execution_block_reason": null
+            }
+          }
+        },
+        "lease_contracts": {
+          "data": {
+            "lease_contract_074": {
+              "contract_id": "lease_contract_074",
+              "application_id": "lease_app_074",
+              "loan_id": "lease_loan_074",
+              "tenant_customer_id": "cust_074",
+              "landlord_account_id": "landlord_acct_074",
+              "landlord_account_number": "110-222-000074",
+              "landlord_account_status": "ACTIVE",
+              "lease_deposit_amount_krw": 180000000,
+              "execution_button_pressed": true,
+              "preexisting_acceleration_reason": null,
+              "refinance_condition": true,
+              "old_loan_repaid": false,
+              "old_loan_repayment_verified_by_bank": false
+            }
+          }
+        },
+        "accounts": {
+          "data": {
+            "landlord_acct_074": {
+              "account_id": "landlord_acct_074",
+              "customer_id": "landlord_074",
+              "product_name": "임대인 수취계좌",
+              "status": "ACTIVE",
+              "balance_krw": 0,
+              "currency": "KRW",
+              "is_limit_account": false,
+              "linked_service_ids": [],
+              "restriction_flags": []
+            }
+          }
+        },
+        "required_documents": {
+          "data": {
+            "req_doc_074": {
+              "document_id": "req_doc_074",
+              "customer_id": "cust_074",
+              "loan_id": "lease_loan_074",
+              "document_type": "OLD_LOAN_FULL_REPAYMENT_PROOF",
+              "status": "PENDING",
+              "deadline": "2026-04-20"
+            }
+          }
+        },
+        "transactions": {
+          "data": {}
+        }
+      },
+      "user_data": null
+    },
+    "initialization_actions": null,
+    "message_history": null
+  },
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "kb_manual_lease_refinance_repayment_proof_missing_refusal_00",
+        "requestor": "assistant",
+        "name": "KB_search",
+        "arguments": {
+          "query": "전월세보증금 대출 기존 보유대출 상환조건부 실행 전 전액 상환 증빙자료 제출"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_refinance_repayment_proof_missing_refusal_01",
+        "requestor": "assistant",
+        "name": "get_customer_profile",
+        "arguments": {
+          "customer_id": "cust_074"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_refinance_repayment_proof_missing_refusal_02",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_loan_074",
+          "table": "loans"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_refinance_repayment_proof_missing_refusal_03",
+        "requestor": "assistant",
+        "name": "get_account_or_contract",
+        "arguments": {
+          "record_id": "lease_contract_074",
+          "table": "lease_contracts"
+        }
+      },
+      {
+        "action_id": "kb_manual_lease_refinance_repayment_proof_missing_refusal_04",
+        "requestor": "assistant",
+        "name": "update_loan_contract_state",
+        "arguments": {
+          "loan_id": "lease_loan_074",
+          "application_id": "lease_app_074",
+          "operation": "MARK_EXECUTION_BLOCKED",
+          "reason": "OLD_LOAN_REPAYMENT_PROOF_MISSING_BEFORE_EXECUTION",
+          "effective_at": "2026-04-20T11:10:00+09:00",
+          "options": {
+            "refinance_condition": true,
+            "old_loan_id": "old_lease_loan_074",
+            "old_loan_repaid": false,
+            "old_loan_repayment_verified_by_bank": false,
+            "landlord_account_status": "ACTIVE",
+            "disbursement_amount_krw": 0
+          }
+        }
+      }
+    ],
+    "env_assertions": [
+      {
+        "env_type": "assistant",
+        "func_name": "assert_application_decision",
+        "arguments": {
+          "application_id": "lease_app_074",
+          "expected_status": "EXECUTION_BLOCKED",
+          "expected_reason": "OLD_LOAN_REPAYMENT_PROOF_MISSING_BEFORE_EXECUTION"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "loans",
+          "record_id": "lease_loan_074",
+          "field_names": [
+            "status",
+            "outstanding_krw",
+            "principal_balance"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_required_document_status",
+        "arguments": {
+          "target_id": "lease_loan_074",
+          "document_type": "OLD_LOAN_FULL_REPAYMENT_PROOF",
+          "expected_status": "PENDING"
+        },
+        "assert_value": true,
+        "message": null
+      },
+      {
+        "env_type": "assistant",
+        "func_name": "assert_no_state_change",
+        "arguments": {
+          "table": "transactions",
+          "record_id": "*",
+          "field_names": [
+            "data"
+          ]
+        },
+        "assert_value": true,
+        "message": null
+      }
+    ],
+    "communicate_info": [
+      "기존 보유대출 상환조건부 취급이면 안내 기간 안에 기존대출이 상환되고 은행 확인이 있어야 실행 가능하다고 안내한다.",
+      "기존 보유대출 전액 상환과 그 증빙자료 제출은 대출 실행 이전까지 필요하다고 설명한다.",
+      "임대인 계좌가 정상이더라도 이 조건이 충족되지 않았으므로 대출 실행을 하지 않는다.",
+      "실행 차단 사유를 기록하고 대출 원금 지급이나 임대인 계좌 입금을 만들지 않는다."
+    ],
+    "reward_basis": [
+      "DB"
+    ]
+  },
+  "required_documents": [
+    "doc_kakao_product_전월세보증금_대출_004"
+  ],
+  "user_tools": []
+}
