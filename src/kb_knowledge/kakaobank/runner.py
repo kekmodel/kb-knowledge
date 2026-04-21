@@ -102,12 +102,6 @@ READ_TOOL_NAMES = {
     "get_customer_profile",
     "get_account_or_contract",
 }
-EXCLUDED_RUNNER_TOOLS = {
-    "customer_apply_for_product",
-    "log_identity_verification",
-    "submit_required_document",
-    "request_human_transfer",
-}
 KAKAOBANK_TABLE_NAMES = (
     "customers",
     "businesses",
@@ -973,8 +967,6 @@ def build_openai_tool_definitions(
     for action_schema in schema["action_families"]:
         name = str(action_schema["name"])
         if action_schema.get("requestor") != "assistant":
-            continue
-        if name in EXCLUDED_RUNNER_TOOLS:
             continue
         if name == "KB_search" and retrieval_config not in BM25_RETRIEVAL_CONFIGS:
             continue
