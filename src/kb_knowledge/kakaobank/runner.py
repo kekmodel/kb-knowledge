@@ -199,12 +199,7 @@ TOOL_DESCRIPTION_OVERRIDES = {
         "box transfer, pocket movement, record-book section movement, or mini balance "
         "movement. Use this when money or balance-backed state should change. For "
         "rejected or pending movements, include the rejection/pending status in the "
-        "arguments so replay leaves balances unchanged when appropriate. For group-account "
-        "extra-pocket shortage coverage, first move only the shortage amount from the extra "
-        "pocket to the basic pocket with GROUP_POCKET_AUTO_MOVE_FOR_WITHDRAWAL, then move "
-        "the full withdrawal amount from the basic pocket to the external payee with "
-        "GROUP_ACCOUNT_WITHDRAWAL_AFTER_AUTO_POCKET_MOVE. Do not debit the basic pocket "
-        "to the external payee before the shortage-cover movement."
+        "arguments so replay leaves balances unchanged when appropriate."
     ),
     "request_interest_payment": (
         "Request and apply a product-specific interest payment, such as a SafeBox "
@@ -245,9 +240,7 @@ TOOL_DESCRIPTION_OVERRIDES = {
         "Update mini-card/card state for issue, reissue, lost-card reporting, card "
         "restriction, rejected issuance, payment approval/refusal, or T-money transfer "
         "handling. Use when age, guardian consent, existing-card count, wallet balance, "
-        "password errors, merchant restrictions, or report-window rules control the outcome. "
-        "For lost/stolen-card compensation, if the card runtime record is still ACTIVE or "
-        "lost_reported_at is null, call REPORT_LOST_CARD before filing the dispute."
+        "password errors, merchant restrictions, or report-window rules control the outcome."
     ),
     "file_dispute_or_objection": (
         "Create or update a dispute, objection, compensation, or affiliate-service "

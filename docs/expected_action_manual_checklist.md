@@ -41,7 +41,7 @@ The goal is to distinguish correct gold actions from task bugs, fixture visibili
 - Generated-ID exposure: addressed by a deterministic system-prompt convention and runtime numeric suffix hints.
 - Server-side execution timestamps are canonicalized in replay so hidden exact wall-clock times are not part of model evaluation.
 - Material KB/query gaps: fixed for `kb_manual_safebox_clean_close_transfers_to_base_account`.
-- Multi-write e2e after remediation: 3/3 passed with `gpt-5.4-nano` on `bm25_grep`.
+- Multi-write e2e after remediation and removal of task-specific ordering hints: 3/3 passed with `gpt-5.4-nano` on `bm25_grep`.
 - Remaining required-document top-10 retrieval miss: `kb_manual_demand_deposit_clean_close_success` still misses `doc_kakao_product_입출금통장_002`, but the manual audit judged it non-material because `doc_kakao_product_입출금통장_003` contains the close restrictions and is retrieved at rank 1.
 
 ## Gold Replay Failures
